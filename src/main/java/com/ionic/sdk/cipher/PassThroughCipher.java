@@ -1,0 +1,44 @@
+package com.ionic.sdk.cipher;
+
+import javax.crypto.Cipher;
+
+import com.ionic.sdk.error.IonicException;
+
+/**
+ * PassThroughCipher class.
+ * @author Ionic Security
+ */
+public class PassThroughCipher extends CipherAbstract {
+
+    /**
+     * Cipher that does nothing.
+     * @param cipher - ignored.
+     */
+    public PassThroughCipher(final Cipher cipher) {
+        super(cipher);
+        // TODO Auto-generated constructor stub
+    }
+
+    /**
+     * @param plainText - The bytes we want encrypted.
+     * @return returns the input.
+     * @throws IonicException - thrown if an encrypt fails.
+     */
+    @Override
+    public final byte[] encrypt(final byte[] plainText) throws IonicException {
+        // TODO Auto-generated method stub
+        return plainText;
+    }
+
+    /**
+     * @param cipherText - The bytes we want decrypted.
+     * @return returns the input.
+     * @throws IonicException thrown if decrypt fails.
+     */
+    @Override
+    public final byte[] decrypt(final byte[] cipherText) throws IonicException {
+        // TODO Auto-generated method stub
+        return cipherText;
+    }
+
+}
