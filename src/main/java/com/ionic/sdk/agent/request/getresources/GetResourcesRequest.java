@@ -103,21 +103,21 @@ public class GetResourcesRequest extends AgentRequestBase {
          * @return the reference used to associate individual resource requests with response data
          */
         public final String getRefId() {
-            return refId;
+            return ((refId == null) ? "" : refId);
         }
 
         /**
          * @return the id associated with the requested resource
          */
         public final String getResourceId() {
-            return resourceId;
+            return ((resourceId == null) ? "" : resourceId);
         }
 
         /**
          * @return the args associated with the resource request
          */
         public final String getArgs() {
-            return args;
+            return ((args == null) ? "" : args);
         }
     }
 }

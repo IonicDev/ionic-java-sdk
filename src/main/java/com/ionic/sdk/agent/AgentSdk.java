@@ -1,8 +1,8 @@
 package com.ionic.sdk.agent;
 
 import com.ionic.sdk.cipher.aes.AesCipher;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -66,6 +66,27 @@ public final class AgentSdk {
     }
 
     /**
+     * Initialize the Ionic SDK for usage.  In Java, this implementation:
+     * <ol>
+     * <li>checks the active JRE for the policy jurisdiction files needed to work with AES 256 bit keys,</li>
+     * <li>adds the Bouncycastle provider (in JRE 7) so that necessary cryptography primitives are available.</li>
+     * </ol>
+     * <p>
+     * https://www.journaldev.com/1377/java-singleton-design-pattern-best-practices-examples
+     *
+     * @throws IonicException on cryptography errors
+     */
+    public static void initialize() throws IonicException {
+        final AgentSdk agentSdk = SingletonHelper.INSTANCE;
+        final IonicException exceptionInitialize = agentSdk.exceptionInitialize;
+        if (exceptionInitialize == null) {
+            return;
+        } else {
+            throw exceptionInitialize;
+        }
+    }
+
+    /**
      * Helper to guard against double init.
      * <p>
      * http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html
@@ -102,7 +123,7 @@ public final class AgentSdk {
             final Cipher cipher = Cipher.getInstance(AesCipher.TRANSFORM_CTR);
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
         } catch (GeneralSecurityException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_INIT_FAILED_KEY_SIZE.value(), e);
+            throw new IonicException(SdkError.ISAGENT_INIT_FAILED_KEY_SIZE, e);
         }
     }
 
@@ -132,9 +153,9 @@ public final class AgentSdk {
             addProviderBouncyCastle();
             Cipher.getInstance(AesCipher.TRANSFORM_GCM);
         } catch (ReflectiveOperationException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_RESOURCE_NOT_FOUND.value(), e);
+            throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND, e);
         } catch (GeneralSecurityException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_INIT_FAILED_PLATFORM.value(), e);
+            throw new IonicException(SdkError.ISAGENT_INIT_FAILED_PLATFORM, e);
         }
     }
 

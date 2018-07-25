@@ -1,5 +1,7 @@
 package com.ionic.sdk.agent.data;
 
+import com.ionic.sdk.error.SdkData;
+
 /**
  * A base class used by several other classes that wish to store metadata.
  */
@@ -38,8 +40,10 @@ public class MetadataHolder {
      * Update the metadata attributes.
      *
      * @param metadata the attributes which should replace the existing attributes
+     * @throws NullPointerException on invalid (null) parameters
      */
     public final void setMetadata(final MetadataMap metadata) {
+        SdkData.checkNotNullNPE(metadata, getClass().getName());
         this.metadata = metadata;
     }
 

@@ -78,7 +78,7 @@ public class AgentConfig {
     private void clearInternal() {
         this.properties.clear();
         this.userAgent = IDC.Metadata.USER_AGENT_DEFAULT;
-        this.httpImpl = null;
+        this.httpImpl = "";
         this.httpTimeoutSecs = HTTP_TIMEOUT_SECS_DEFAULT;
         this.maxRedirects = HTTP_REDIRECTS_DEFAULT;
         this.originFile = "";

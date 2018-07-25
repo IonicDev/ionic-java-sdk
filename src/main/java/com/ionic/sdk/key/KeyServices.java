@@ -1,7 +1,6 @@
 package com.ionic.sdk.key;
 
 import com.ionic.sdk.agent.data.MetadataMap;
-import com.ionic.sdk.agent.key.AgentKey;
 import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.request.createkey.CreateKeysRequest;
 import com.ionic.sdk.agent.request.createkey.CreateKeysResponse;
@@ -140,21 +139,19 @@ public interface KeyServices {
     /**
      * Updates a single protection key from Ionic.com.
      *
-     * @param key         key to update
-     * @param forceUpdate instruction for server to unconditionally overwrite the existing mutable attributes
-     * @param metadata    The metadata properties to send along with the HTTP request.
+     * @param key      key to update
+     * @param metadata The metadata properties to send along with the HTTP request.
      * @return The protection key response output data object.
      * @throws IonicException if an error occurs
      */
-    UpdateKeysResponse updateKey(AgentKey key, boolean forceUpdate, MetadataMap metadata) throws IonicException;
+    UpdateKeysResponse updateKey(UpdateKeysRequest.Key key, MetadataMap metadata) throws IonicException;
 
     /**
      * Updates a single protection key from Ionic.com.
      *
-     * @param key         key to update
-     * @param forceUpdate instruction for server to unconditionally overwrite the existing mutable attributes
+     * @param key key to update
      * @return The protection key response output data object.
      * @throws IonicException if an error occurs
      */
-    UpdateKeysResponse updateKey(AgentKey key, boolean forceUpdate) throws IonicException;
+    UpdateKeysResponse updateKey(UpdateKeysRequest.Key key) throws IonicException;
 }

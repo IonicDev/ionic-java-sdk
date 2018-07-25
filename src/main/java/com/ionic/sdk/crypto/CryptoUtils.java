@@ -2,8 +2,9 @@ package com.ionic.sdk.crypto;
 
 import com.ionic.sdk.agent.AgentSdk;
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.error.CryptoErrorModuleConstants;
+import com.ionic.sdk.core.hash.Hash;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -28,16 +29,6 @@ public final class CryptoUtils {
     public static final String HMAC_ALGORITHM = "HmacSHA256";
 
     /**
-     * readonly field for hash byte.
-     */
-    public static final int HASH_BYTES = 24;
-
-    /**
-     * readonly field for salt byte.
-     */
-    public static final int SALT_BYTES = 24;
-
-    /**
      * Constructor.
      * http://checkstyle.sourceforge.net/config_design.html#FinalClass
      */
@@ -56,7 +47,7 @@ public final class CryptoUtils {
         try {
             return Transcoder.base64().decode(buffer);
         } catch (RuntimeException e) {
-            throw new IonicException(CryptoErrorModuleConstants.ISCRYPTO_BAD_INPUT.value(), e);
+            throw new IonicException(SdkError.ISCRYPTO_BAD_INPUT, e);
         }
     }
 
@@ -156,7 +147,7 @@ public final class CryptoUtils {
         try {
             return Transcoder.hex().decode(buffer);
         } catch (IllegalArgumentException e) {
-            throw new IonicException(CryptoErrorModuleConstants.ISCRYPTO_BAD_INPUT.value(), e);
+            throw new IonicException(SdkError.ISCRYPTO_BAD_INPUT, e);
         }
     }
 
@@ -170,13 +161,13 @@ public final class CryptoUtils {
      */
     private static byte[] hmacSHA256Internal(final byte[] message, final byte[] key) throws IonicException {
         try {
-            AgentSdk.initialize(null);
+            AgentSdk.initialize();
             final Mac hmacSHA256 = Mac.getInstance(HMAC_ALGORITHM);
             final SecretKeySpec keySpec = new SecretKeySpec(key, HMAC_ALGORITHM);
             hmacSHA256.init(keySpec);
             return hmacSHA256.doFinal(message);
         } catch (GeneralSecurityException e) {
-            throw new IonicException(CryptoErrorModuleConstants.ISCRYPTO_ERROR.value(), e);
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
         }
     }
 
@@ -203,5 +194,45 @@ public final class CryptoUtils {
      */
     public static String hmacSHA256Base64(final byte[] message, final byte[] key) throws IonicException {
         return Transcoder.base64().encode(hmacSHA256Internal(message, key));
+    }
+
+    /**
+     * Calculate hash of input byte stream.
+     *
+     * @param message input to the hash function
+     * @return the SHA-256 hash of the input, as a raw byte array
+     */
+    public static byte[] sha256ToBytes(final byte[] message) {
+        return new Hash().sha256(message);
+    }
+
+    /**
+     * Calculate hash of input byte stream.
+     *
+     * @param message input to the hash function
+     * @return the SHA-256 hash of the input, as the hex representation of the hash byte array
+     */
+    public static String sha256ToHexString(final byte[] message) {
+        return Transcoder.hex().encode(new Hash().sha256(message));
+    }
+
+    /**
+     * Calculate hash of input byte stream.
+     *
+     * @param message input to the hash function
+     * @return the SHA-512 hash of the input, as a raw byte array
+     */
+    public static byte[] sha512ToBytes(final byte[] message) {
+        return new Hash().sha512(message);
+    }
+
+    /**
+     * Calculate hash of input byte stream.
+     *
+     * @param message input to the hash function
+     * @return the SHA-512 hash of the input, as the hex representation of the hash byte array
+     */
+    public static String sha512ToHexString(final byte[] message) {
+        return Transcoder.hex().encode(new Hash().sha512(message));
     }
 }

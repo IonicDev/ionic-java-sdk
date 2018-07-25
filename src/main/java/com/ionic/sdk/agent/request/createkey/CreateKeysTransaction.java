@@ -15,7 +15,8 @@ import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
 import com.ionic.sdk.httpclient.HttpResponse;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -69,7 +70,7 @@ public class CreateKeysTransaction extends AgentTransactionBase {
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
         final String cid = message.getCid();
         // assemble the secured (outer) HTTP payload
-        final String envelope = JsonU.toJson(jsonMessage, false);
+        final String envelope = JsonIO.write(jsonMessage, false);
         //logger.finest(envelope);  // plaintext json; IDC http entity (for debugging)
         final AesGcmCipher cipher = new AesGcmCipher();
         cipher.setKey(activeProfile.getAesCdIdcProfileKey());
@@ -79,12 +80,12 @@ public class CreateKeysTransaction extends AgentTransactionBase {
                 .add(IDC.Payload.CID, cid)
                 .add(IDC.Payload.ENVELOPE, envelopeSecureBase64)
                 .build();
-        logger.fine(JsonU.toJson(payload, true));
+        logger.fine(JsonIO.write(payload, true));
         // assemble the HTTP request to be sent to the server
         final URL url = AgentTransactionUtil.getProfileUrl(activeProfile);
         final String resource = String.format(IDC.Resource.KEYS_CREATE, IDC.Resource.SERVER_API_V24);
         final ByteArrayInputStream bis = new ByteArrayInputStream(
-                Transcoder.utf8().decode(JsonU.toJson(payload, false)));
+                Transcoder.utf8().decode(JsonIO.write(payload, false)));
         return new HttpRequest(url, Http.Method.POST, resource, getHttpHeaders(), bis);
     }
 
@@ -104,28 +105,29 @@ public class CreateKeysTransaction extends AgentTransactionBase {
         final CreateKeysRequest request = (CreateKeysRequest) getRequestBase();
         final CreateKeysResponse response = (CreateKeysResponse) getResponseBase();
         final String cid = response.getConversationId();
-        final JsonObject jsonData = response.getJsonPayload().getJsonObject(IDC.Payload.DATA);
-        final JsonArray jsonProtectionKeys = jsonData.getJsonArray(IDC.Payload.PROTECTION_KEYS);
+        final JsonObject jsonPayload = response.getJsonPayload();
+        final JsonObject jsonData = JsonSource.getJsonObject(jsonPayload, IDC.Payload.DATA);
+        final JsonArray jsonProtectionKeys = JsonSource.getJsonArray(jsonData, IDC.Payload.PROTECTION_KEYS);
         for (JsonValue value : jsonProtectionKeys) {
             // deserialize each response key into a user-consumable object
-            final JsonObject jsonProtectionKey = (JsonObject) value;
-            final String ref = JsonU.getString(jsonProtectionKey, IDC.Payload.REF);
+            final JsonObject jsonProtectionKey = JsonSource.toJsonObject(value, IDC.Payload.PROTECTION_KEYS);
+            final String ref = JsonSource.getString(jsonProtectionKey, IDC.Payload.REF);
             AgentTransactionUtil.checkNotNull(cid, IDC.Payload.REF, ref);
             final CreateKeysRequest.Key keyRequest = request.getKey(ref);
             final String csigQ = message.getCsigs().getProperty(ref);
             final String msigQ = message.getMsigs().getProperty(ref);
-            final String id = JsonU.getString(jsonProtectionKey, IDC.Payload.ID);
+            final String id = JsonSource.getString(jsonProtectionKey, IDC.Payload.ID);
             final String authData = Value.join(IDC.Signature.DELIMITER, cid, ref, id, csigQ, msigQ);
-            final String keyHex = JsonU.getString(jsonProtectionKey, IDC.Payload.KEY);
-            final String csig = JsonU.getString(jsonProtectionKey, IDC.Payload.CSIG);
-            final String msig = JsonU.getString(jsonProtectionKey, IDC.Payload.MSIG);
+            final String keyHex = JsonSource.getString(jsonProtectionKey, IDC.Payload.KEY);
+            final String csig = JsonSource.getString(jsonProtectionKey, IDC.Payload.CSIG);
+            final String msig = JsonSource.getString(jsonProtectionKey, IDC.Payload.MSIG);
             // verify each received response key
             final AesGcmCipher cipherEi = new AesGcmCipher();
             cipherEi.setKey(activeProfile.getAesCdEiProfileKey());
             cipherEi.setAuthData(Transcoder.utf8().decode(authData));
             final byte[] clearBytesKey = cipherEi.decrypt(Transcoder.hex().decode(keyHex));
             response.add(new CreateKeysResponse.Key(ref, id, clearBytesKey, activeProfile.getDeviceId(),
-                    keyRequest.getAttributesMap(), keyRequest.getMutableAttributes(), new KeyObligationsMap(),
+                    keyRequest.getAttributesMap(), keyRequest.getMutableAttributesMap(), new KeyObligationsMap(),
                     IDC.Metadata.KEYORIGIN_IONIC, csig, msig));
         }
     }

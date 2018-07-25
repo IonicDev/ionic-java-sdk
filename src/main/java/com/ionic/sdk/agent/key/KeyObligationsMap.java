@@ -1,16 +1,17 @@
 package com.ionic.sdk.agent.key;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 /**
  * Contains map of obligations used when a key was created.
  */
-public final class KeyObligationsMap extends HashMap<String, List<String>> {
+public final class KeyObligationsMap extends TreeMap<String, List<String>> {
 
     /**
      * Constructs an empty KeyObligationsMap.
@@ -38,7 +39,7 @@ public final class KeyObligationsMap extends HashMap<String, List<String>> {
      * Check if the map is empty or not.
      *
      * @deprecated
-     *      please use {@link HashMap#isEmpty isEmpty} instead.
+     *      please use {@link Map#isEmpty isEmpty} instead.
      * @return true if it contains no key-value mappings.
      */
     @Deprecated
@@ -47,11 +48,23 @@ public final class KeyObligationsMap extends HashMap<String, List<String>> {
     }
 
     /**
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
+     *
+     * @param key
+     *          attribute key
+     * @return attribute value
+     */
+    public List<String> get(final String key) {
+        return ((key == null) ? null : super.get(key));
+    }
+
+    /**
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for the key, the old value is replaced.
      *
      * @deprecated
-     *      please use {@link HashMap#put put} instead.
+     *      please use {@link Map#put put} instead.
      *
      * @param key
      *          attribute key
@@ -61,7 +74,7 @@ public final class KeyObligationsMap extends HashMap<String, List<String>> {
      *          when either the key or the value is null.
      */
     @Deprecated
-    public void set(final String key, final List<String> value)
+    public void set(final String key, final Collection<String> value)
         throws NullPointerException {
         if (key == null) {
             throw new NullPointerException("key cannot be null");
@@ -71,14 +84,14 @@ public final class KeyObligationsMap extends HashMap<String, List<String>> {
         }
 
         // ignore return of HashMap.put()
-        this.put(key, value);
+        this.put(key, new ArrayList<String>(value));
     }
 
     /**
      * Removes the mapping for the specified key from this map if present.
      *
      * @deprecated
-     *  please use {@link HashMap#remove remove} instead.
+     *  please use {@link Map#remove remove} instead.
      *
      * @param key
      *          attribute key
@@ -102,7 +115,7 @@ public final class KeyObligationsMap extends HashMap<String, List<String>> {
      * Checks if map contains given key.
      *
      * @deprecated
-     *      please use {@link HashMap#containsKey containsKey} instead.
+     *      please use {@link Map#containsKey containsKey} instead.
      *
      * @param key
      *          attribute key
@@ -110,14 +123,14 @@ public final class KeyObligationsMap extends HashMap<String, List<String>> {
      */
     @Deprecated
     public boolean hasKey(final String key) {
-        return this.containsKey(key);
+        return ((key != null) && (this.containsKey(key)));
     }
 
     /**
      * Returns an iterator to enable iterating over the elements of this map.
      *
      * @deprecated
-     *      please use {@link HashMap#entrySet entrySet} and iterate over that set.
+     *      please use {@link Map#entrySet entrySet} and iterate over that set.
      *
      * @return Iterator object
      */

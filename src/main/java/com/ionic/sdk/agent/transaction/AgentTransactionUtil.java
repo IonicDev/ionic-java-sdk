@@ -1,15 +1,17 @@
 package com.ionic.sdk.agent.transaction;
 
 import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.SdkVersion;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.core.rng.RNG;
+import com.ionic.sdk.core.rng.CryptoRng;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.core.vm.VM;
 import com.ionic.sdk.device.profile.DeviceProfile;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
+import com.ionic.sdk.json.JsonTarget;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -42,11 +44,12 @@ public final class AgentTransactionUtil {
      *
      * @param deviceId the id associated with the active record in the Secure Enrollment Profile.
      * @return a string to be used in context of a server transaction
+     * @throws IonicException on random number generation failure
      */
-    public static String generateConversationId(final String deviceId) {
+    public static String generateConversationId(final String deviceId) throws IonicException {
         final String date = Long.toString(new Date().getTime());
         // generate a conversation nonce
-        final byte[] bytes = RNG.fill(new byte[Integer.SIZE / Byte.SIZE]);
+        final byte[] bytes = new CryptoRng().rand(new byte[Integer.SIZE / Byte.SIZE]);
         final String nonce = Transcoder.base64().encode(bytes).replace(Transcoder.BASE64_PAD, "");
         // generate a conversation id
         return Value.join(IDC.Message.DELIMITER, IDC.Message.CID, deviceId, date, nonce);
@@ -58,11 +61,12 @@ public final class AgentTransactionUtil {
      *
      * @param deviceId the id associated with the active record in the Secure Enrollment Profile.
      * @return a string to be used in context of a server transaction
+     * @throws IonicException on random number generation failure
      */
-    public static String generateConversationIdV(final String deviceId) {
+    public static String generateConversationIdV(final String deviceId) throws IonicException {
         final String date = Long.toString(new Date().getTime());
         // generate a conversation nonce
-        final byte[] bytes = RNG.fill(new byte[Integer.SIZE / Byte.SIZE]);
+        final byte[] bytes = new CryptoRng().rand(new byte[Integer.SIZE / Byte.SIZE]);
         final String nonce = Transcoder.base64().encode(bytes).replace(Transcoder.BASE64_PAD, "");
         // generate a conversation id
         return Value.join(IDC.Message.DELIMITER, IDC.Message.CID, deviceId, date, nonce, IDC.Message.SERVER_API_CID);
@@ -111,9 +115,9 @@ public final class AgentTransactionUtil {
         try {
             return new URL(server);
         } catch (NullPointerException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_NULL_INPUT.value(), e);
+            throw new IonicException(SdkError.ISAGENT_NULL_INPUT, e);
         } catch (MalformedURLException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value(), e);
+            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, e);
         }
     }
 
@@ -130,39 +134,24 @@ public final class AgentTransactionUtil {
         final JsonObjectBuilder builderMeta = Json.createObjectBuilder();
         // apply metadata from agent
         for (Map.Entry<String, String> entry : agent.getMetadata().entrySet()) {
-            builderMeta.add(entry.getKey(), entry.getValue());
+            JsonTarget.addNotNull(builderMeta, entry.getKey(), entry.getValue());
         }
         // apply metadata from request
         for (Map.Entry<String, String> entry : requestBase.getMetadata().entrySet()) {
-            builderMeta.add(entry.getKey(), entry.getValue());
+            JsonTarget.addNotNull(builderMeta, entry.getKey(), entry.getValue());
         }
         // apply fingerprint data
-        for (Map.Entry<Object, Object> entry : fingerprint.entrySet()) {
-            builderMeta.add(entry.getKey().toString(), entry.getValue().toString());
+        for (String key : fingerprint.stringPropertyNames()) {
+            JsonTarget.addNotNull(builderMeta, key, fingerprint.getProperty(key));
         }
-        // apply SDK-provided metadata
-        builderMeta
-                .add(IDC.Metadata.IONIC_AGENT, ionicAgent())  // https://en.wikipedia.org/wiki/User_agent
-                .add(IDC.Metadata.USER_AGENT, agent.getConfig().getUserAgent())
-                .add(IDC.Metadata.OS_ARCH, System.getProperty(VM.Sys.OS_ARCH))
-                .add(IDC.Metadata.OS_NAME, System.getProperty(VM.Sys.OS_NAME))
-                .add(IDC.Metadata.OS_VERSION, System.getProperty(VM.Sys.OS_VERSION));
+        // apply SDK-provided metadata; https://en.wikipedia.org/wiki/User_agent
+        JsonTarget.addNotNull(builderMeta, IDC.Metadata.IONIC_AGENT, SdkVersion.getAgentString());
+        JsonTarget.addNotNull(builderMeta, IDC.Metadata.USER_AGENT, agent.getConfig().getUserAgent());
+        JsonTarget.addNotNull(builderMeta, IDC.Metadata.OS_ARCH, System.getProperty(VM.Sys.OS_ARCH));
+        JsonTarget.addNotNull(builderMeta, IDC.Metadata.OS_NAME, System.getProperty(VM.Sys.OS_NAME));
+        JsonTarget.addNotNull(builderMeta, IDC.Metadata.OS_VERSION, System.getProperty(VM.Sys.OS_VERSION));
         return builderMeta.build();
     }
-
-    /**
-     * Generate the Ionic agent string, which identifies the SDK language and version in communications with ionic.com.
-     *
-     * @return a string identifying the SDK language and version
-     */
-    private static String ionicAgent() {
-        return String.format(IONIC_AGENT, AgentTransactionUtil.class.getPackage().getImplementationVersion());
-    }
-
-    /**
-     * Ionic agent string pattern.
-     */
-    private static final String IONIC_AGENT = "IonicSDK/2 Java/%s";
 
     /**
      * Validate value against expected value.
@@ -174,7 +163,7 @@ public final class AgentTransactionUtil {
      */
     public static void checkEqual(final String cid, final String expected, final String actual) throws IonicException {
         if (!Value.isEqual(expected, actual)) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value(), new IOException(
+            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, new IOException(
                     String.format("Expectation failed (conversation ID %s expected %s, actual %s).",
                             cid, expected, actual)));
         }
@@ -190,7 +179,7 @@ public final class AgentTransactionUtil {
      */
     public static void checkNotNull(final String cid, final String name, final String value) throws IonicException {
         if (value == null) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value(),
+            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE,
                     new IOException(String.format("Null value detected (conversation ID %s, name %s).", cid, name)));
         }
     }

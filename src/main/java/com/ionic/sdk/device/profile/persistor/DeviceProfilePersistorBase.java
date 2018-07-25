@@ -12,7 +12,6 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
 
 import com.ionic.sdk.cipher.CipherAbstract;
 import com.ionic.sdk.core.codec.Transcoder;
@@ -21,9 +20,11 @@ import com.ionic.sdk.core.io.Stream;
 import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.device.profile.DeviceFields;
 import com.ionic.sdk.device.profile.DeviceProfile;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.error.SdkError;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
+import com.ionic.sdk.json.JsonTarget;
 
 /**
  * DeviceProfilePersistorBase is an abstract class. It is used to do the core
@@ -102,7 +103,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      */
     public final void setFilePath(final String path) throws IonicException {
         if (path == null) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_NULL_INPUT.value());
+            throw new IonicException(SdkError.ISAGENT_NULL_INPUT);
         }
         if (!mFilePath.equals(path)) {
             mFilePath = path;
@@ -133,11 +134,11 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      *             or ISCRYPTO_ERROR
      */
     @Override
-    public final List<DeviceProfile> loadAllProfiles(final String[] activeProfile) throws IonicException {
-
+    @SuppressWarnings({"checkstyle:designforextension"})  // extended in Ionic/addon/dpapi
+    public List<DeviceProfile> loadAllProfiles(final String[] activeProfile) throws IonicException {
         final File f = new File(mFilePath);
         if (!f.exists()) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_RESOURCE_NOT_FOUND.value());
+            throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND);
         }
         if (shouldUpdateProfiles) {
             final Tuple<List<DeviceProfile>, String> profiles = loadAllProfilesFromFile(mFilePath);
@@ -166,8 +167,8 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      *             saveAllProfilesToJson can throw an ISCRYPTO_ERROR on encrypt.
      */
     @Override
-    public final void saveAllProfiles(final List<DeviceProfile> profiles, final String activeProfile)
-            throws IonicException {
+    @SuppressWarnings({"checkstyle:designforextension"})  // extended in Ionic/addon/dpapi
+    public void saveAllProfiles(final List<DeviceProfile> profiles, final String activeProfile) throws IonicException {
         mProfiles = new ArrayList<DeviceProfile>(profiles);
         activeDeviceProfileId = activeProfile;
 
@@ -192,8 +193,8 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     private static void saveAllProfilesToFile(final List<DeviceProfile> profiles, final String activeProfile,
             final String filePath, final CipherAbstract cipher) throws IonicException {
         final File folder = new File(filePath).getParentFile();
-        if ((!folder.exists()) && (!folder.mkdirs())) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_OPENFILE.value());
+        if ((folder != null) && (!folder.exists()) && (!folder.mkdirs())) {
+            throw new IonicException(SdkError.ISAGENT_OPENFILE);
         }
         Stream.writeToDisk(filePath, saveAllProfilesToJson(profiles, activeProfile, cipher));
     }
@@ -211,26 +212,29 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      * @throws IonicException
      *             can throw an ISCRYPTO_ERROR on encrypt.
      */
-    private static byte[] saveAllProfilesToJson(final List<DeviceProfile> profiles, final String activeProfile,
+    protected static byte[] saveAllProfilesToJson(final List<DeviceProfile> profiles, final String activeProfile,
             final CipherAbstract cipher) throws IonicException {
 
         final JsonObjectBuilder devicePersistor = Json.createObjectBuilder();
-        JsonU.addNotNull(devicePersistor, DeviceFields.FIELD_ACTIVE_DEVICE_ID, activeProfile);
+        JsonTarget.addNotNull(devicePersistor, DeviceFields.FIELD_ACTIVE_DEVICE_ID, activeProfile);
         final JsonArrayBuilder deviceProfiles = Json.createArrayBuilder();
 
         for (final DeviceProfile profile : profiles) {
-
-            deviceProfiles.add(Json.createObjectBuilder().add(DeviceFields.FIELD_NAME, profile.getName())
-                    .add(DeviceFields.FIELD_DEVICE_ID, profile.getDeviceId())
-                    .add(DeviceFields.FIELD_SERVER, profile.getServer())
-                    .add(DeviceFields.FIELD_AES_CD_IDC_KEY, CryptoUtils.binToHex(profile.getAesCdIdcProfileKey()))
-                    .add(DeviceFields.FIELD_AES_CD_EI_KEY, CryptoUtils.binToHex(profile.getAesCdEiProfileKey()))
-                    .add(DeviceFields.FIELD_CREATION_TIMESTAMP, profile.getCreationTimestampSecs()).build());
+            final String keyHexIDC = CryptoUtils.binToHex(profile.getAesCdIdcProfileKey());
+            final String keyHexEI = CryptoUtils.binToHex(profile.getAesCdEiProfileKey());
+            final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+            JsonTarget.addNotNull(objectBuilder, DeviceFields.FIELD_NAME, profile.getName());
+            JsonTarget.addNotNull(objectBuilder, DeviceFields.FIELD_DEVICE_ID, profile.getDeviceId());
+            JsonTarget.addNotNull(objectBuilder, DeviceFields.FIELD_SERVER, profile.getServer());
+            JsonTarget.addNotNull(objectBuilder, DeviceFields.FIELD_AES_CD_IDC_KEY, keyHexIDC);
+            JsonTarget.addNotNull(objectBuilder, DeviceFields.FIELD_AES_CD_EI_KEY, keyHexEI);
+            JsonTarget.add(objectBuilder, DeviceFields.FIELD_CREATION_TIMESTAMP, profile.getCreationTimestampSecs());
+            JsonTarget.addNotNull(deviceProfiles, objectBuilder.build());
         }
-        devicePersistor.add(DeviceFields.FIELD_PROFILES, deviceProfiles.build());
+        JsonTarget.addNotNull(devicePersistor, DeviceFields.FIELD_PROFILES, deviceProfiles.build());
         final JsonObject jobject = devicePersistor.build();
 
-        return cipher.encrypt(Transcoder.utf8().decode(jobject.toString()));
+        return cipher.encrypt(Transcoder.utf8().decode(JsonIO.write(jobject, false)));
     }
 
     /**
@@ -268,7 +272,6 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
         return loadAllProfilesFromJson(loadedFile, cipher);
     }
 
-    @SuppressWarnings({"checkstyle:javadocmethod"})
     /**
      * A method used to decrypt and parse a json object in order to create Device
      * profiles.
@@ -282,24 +285,17 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      * @throws IonicException
      *             decrypt or json parsing can throw a sdk exception, expect
      *             ISAGENT_PARSEFAILED or ISCRYPTO_ERROR
-     * @throws javax.json.JsonException on problems parsing the persistor bytes
      */
-    private static Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(final byte[] cipherText,
+    protected static Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(final byte[] cipherText,
             final CipherAbstract cipher) throws IonicException {
         final List<DeviceProfile> profiles = new ArrayList<DeviceProfile>();
         String activeDeviceId = null;
         final byte[] json = cipher.decrypt(cipherText);
 
-        final JsonObject jsonObj = JsonU.getJsonObject(Transcoder.utf8().encode(json));
-
-        if (jsonObj.getValueType() != ValueType.OBJECT) {
-            Logger.getLogger(DeviceProfilePersistorBase.class.getName()).log(Level.SEVERE,
-                    "JSON does not represent an object");
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_PARSEFAILED.value());
-        }
+        final JsonObject jsonObj = JsonIO.readObject(json);
 
         try {
-            activeDeviceId = JsonU.getString(jsonObj, DeviceFields.FIELD_ACTIVE_DEVICE_ID);
+            activeDeviceId = JsonSource.getString(jsonObj, DeviceFields.FIELD_ACTIVE_DEVICE_ID);
 
         } catch (final NullPointerException npe) {
             // do NOT fail here since this field is optional
@@ -308,15 +304,9 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
         }
 
         // read device profiles array
-        final JsonValue jsonProfilesArray = jsonObj.get(DeviceFields.FIELD_PROFILES);
-        if (jsonProfilesArray.getValueType() != ValueType.ARRAY) {
-            Logger.getLogger(DeviceProfilePersistorBase.class.getName()).log(Level.SEVERE,
-                    "JSON is missing a field " + DeviceFields.FIELD_PROFILES + ".");
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_MISSINGVALUE.value());
-        }
-
-        final JsonArray jsonProfiles = (JsonArray) jsonProfilesArray;
-        for (final JsonObject value : jsonProfiles.getValuesAs(JsonObject.class)) {
+        final JsonArray jsonProfiles = JsonSource.getJsonArray(jsonObj, DeviceFields.FIELD_PROFILES);
+        for (JsonValue jsonProfile : jsonProfiles) {
+            final JsonObject value = JsonSource.toJsonObject(jsonProfile, DeviceFields.FIELD_PROFILES);
             final DeviceProfile profile = new DeviceProfile();
 
             String deviceName;
@@ -326,12 +316,12 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
             String aesCdEiKeyHex;
             int timeStamp;
             try {
-                deviceName = JsonU.getString(value, DeviceFields.FIELD_NAME);
-                deviceId = JsonU.getString(value, DeviceFields.FIELD_DEVICE_ID);
-                server = JsonU.getString(value, DeviceFields.FIELD_SERVER);
-                aesCdIdcKeyHex = JsonU.getString(value, DeviceFields.FIELD_AES_CD_IDC_KEY);
-                aesCdEiKeyHex = JsonU.getString(value, DeviceFields.FIELD_AES_CD_EI_KEY);
-                timeStamp = JsonU.getInt(value, DeviceFields.FIELD_CREATION_TIMESTAMP);
+                deviceName = JsonSource.getString(value, DeviceFields.FIELD_NAME);
+                deviceId = JsonSource.getString(value, DeviceFields.FIELD_DEVICE_ID);
+                server = JsonSource.getString(value, DeviceFields.FIELD_SERVER);
+                aesCdIdcKeyHex = JsonSource.getString(value, DeviceFields.FIELD_AES_CD_IDC_KEY);
+                aesCdEiKeyHex = JsonSource.getString(value, DeviceFields.FIELD_AES_CD_EI_KEY);
+                timeStamp = JsonSource.getInt(value, DeviceFields.FIELD_CREATION_TIMESTAMP);
             } catch (final NullPointerException npe) {
                 // NOTE: do NOT fail here, just skip the loading of this invalid profile and
                 // keep moving

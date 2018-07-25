@@ -1,5 +1,6 @@
 package com.ionic.sdk.httpclient;
 
+import com.ionic.sdk.agent.config.AgentConfig;
 import com.ionic.sdk.core.date.DateTime;
 import com.ionic.sdk.core.io.Stream;
 import com.ionic.sdk.httpclient.proxy.ProxyManager;
@@ -53,13 +54,12 @@ public final class HttpClientTrustAll implements HttpClient {
     /**
      * Constructor.
      *
-     * @param httpTimeoutSecs the number of seconds to wait after making a server request for a response
-     * @param maxRedirects    the maximum number of HTTP redirects
-     * @param protocol        the protocol to be checked for proxy configuration (e.g. "http", "https")
+     * @param agentConfig the configuration settings associated with the agent instance in use
+     * @param protocol    the protocol to be checked for proxy configuration (e.g. "http", "https")
      */
-    public HttpClientTrustAll(final int httpTimeoutSecs, final int maxRedirects, final String protocol) {
-        this.httpTimeoutSecs = httpTimeoutSecs;
-        this.maxRedirects = maxRedirects;
+    public HttpClientTrustAll(final AgentConfig agentConfig, final String protocol) {
+        this.httpTimeoutSecs = agentConfig.getHttpTimeoutSecs();
+        this.maxRedirects = agentConfig.getMaxRedirects();
         this.proxy = ProxyManager.getProxy(protocol);
         SSLSocketFactory sslSocketFactoryCtor = null;
         try {

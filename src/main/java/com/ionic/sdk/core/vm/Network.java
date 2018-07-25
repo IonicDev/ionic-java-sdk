@@ -1,8 +1,8 @@
 package com.ionic.sdk.core.vm;
 
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -41,7 +41,7 @@ public final class Network {
                 }
             }
         } catch (SocketException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_ERROR.value(), e);
+            throw new IonicException(SdkError.ISAGENT_ERROR, e);
         }
         return macAddresses.toArray(new String[macAddresses.size()]);
     }

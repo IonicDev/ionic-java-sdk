@@ -7,7 +7,8 @@ import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.error.IonicException;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonTarget;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -35,8 +36,9 @@ public class UpdateKeysMessage extends MessageBase {
      * Constructor.
      *
      * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
+     * @throws IonicException on random number generation failure
      */
-    public UpdateKeysMessage(final Agent agent) {
+    public UpdateKeysMessage(final Agent agent) throws IonicException {
         super(agent, AgentTransactionUtil.generateConversationIdV(agent.getActiveProfile().getDeviceId()));
         this.msigs = new Properties();
     }
@@ -76,26 +78,27 @@ public class UpdateKeysMessage extends MessageBase {
         for (UpdateKeysRequest.Key key : updateKeysRequest.getKeys()) {
             final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
             final String id = key.getId();
-            objectBuilder.add(IDC.Payload.ID, id).add(IDC.Payload.FORCE, key.isForceUpdate());
+            JsonTarget.addNotNull(objectBuilder, IDC.Payload.ID, id);
+            JsonTarget.add(objectBuilder, IDC.Payload.FORCE, key.getForceUpdate());
             // spec says omit or blank, but due to server bug must be blank for now (4/2018)
             final String csig = "";
-            final String prevcsig = key.isForceUpdate() ? "" : key.getAttributesSigBase64FromServer();
-            final String prevmsig = key.isForceUpdate() ? "" : key.getMutableAttributesSigBase64FromServer();
-            JsonU.addNotNull(objectBuilder, IDC.Payload.CSIG, csig);
-            JsonU.addNotNull(objectBuilder, IDC.Payload.PREVCSIG, prevcsig);
-            JsonU.addNotNull(objectBuilder, IDC.Payload.PREVMSIG, prevmsig);
-            final String extra = (key.isForceUpdate() ? IDC.Signature.FORCE : null);
-            final String mattrs = JsonU.toJson(getJsonAttrs(key.getMutableAttributes()), false);
+            final String prevcsig = key.getForceUpdate() ? "" : key.getAttributesSigBase64FromServer();
+            final String prevmsig = key.getForceUpdate() ? "" : key.getMutableAttributesSigBase64FromServer();
+            JsonTarget.addNotNull(objectBuilder, IDC.Payload.CSIG, csig);
+            JsonTarget.addNotNull(objectBuilder, IDC.Payload.PREVCSIG, prevcsig);
+            JsonTarget.addNotNull(objectBuilder, IDC.Payload.PREVMSIG, prevmsig);
+            final String extra = (key.getForceUpdate() ? IDC.Signature.FORCE : null);
+            final String mattrs = JsonIO.write(super.generateJsonAttrs(key.getMutableAttributesMap()), false);
             final String msig = super.buildSignedAttributes(id, extra, mattrs, true);
             msigs.put(id, msig);
-            JsonU.addNotNull(objectBuilder, IDC.Payload.MATTRS, mattrs);
-            JsonU.addNotNull(objectBuilder, IDC.Payload.MSIG, msig);
+            JsonTarget.addNotNull(objectBuilder, IDC.Payload.MATTRS, mattrs);
+            JsonTarget.addNotNull(objectBuilder, IDC.Payload.MSIG, msig);
             final JsonObject jsonProtectionKey = objectBuilder.build();
             jsonProtectionKeys.add(jsonProtectionKey);
         }
         final JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
         for (JsonObject jsonProtectionKey : jsonProtectionKeys) {
-            jsonArrayBuilder.add(jsonProtectionKey);
+            JsonTarget.addNotNull(jsonArrayBuilder, jsonProtectionKey);
         }
         return jsonArrayBuilder.build();
     }
@@ -112,9 +115,9 @@ public class UpdateKeysMessage extends MessageBase {
             final String key = entry.getKey();
             final JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
             for (final String value : entry.getValue()) {
-                arrayBuilder.add(value);
+                JsonTarget.addNotNull(arrayBuilder, value);
             }
-            objectBuilder.add(key, arrayBuilder.build());
+            JsonTarget.addNotNull(objectBuilder, key, arrayBuilder.build());
         }
         return objectBuilder.build();
     }

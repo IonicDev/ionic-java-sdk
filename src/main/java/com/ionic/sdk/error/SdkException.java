@@ -62,7 +62,7 @@ public class SdkException extends Exception {
      */
     public SdkException(final Throwable cause) {
         super(cause);
-        this.errorCode = AgentErrorModuleConstants.ISAGENT_ERROR.value();
+        this.errorCode = -1;
     }
 
     /**
@@ -73,6 +73,6 @@ public class SdkException extends Exception {
      */
     public SdkException(final String message, final Throwable cause) {
         super(message, cause);
-        this.errorCode = AgentErrorModuleConstants.ISAGENT_ERROR.value();
+        this.errorCode = -1;
     }
 }

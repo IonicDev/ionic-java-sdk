@@ -5,9 +5,8 @@ import com.ionic.sdk.agent.cipher.chunk.data.ChunkCryptoDecryptAttributes;
 import com.ionic.sdk.agent.cipher.chunk.data.ChunkCryptoEncryptAttributes;
 import com.ionic.sdk.agent.key.AgentKey;
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
-import com.ionic.sdk.error.ChunkCryptoErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.key.KeyServices;
 
 import java.io.IOException;
@@ -223,10 +222,6 @@ public class ChunkCipherAuto extends ChunkCipherAbstract {
     private byte[] decryptAuto(
             final String cipherText, final ChunkCryptoDecryptAttributes decryptAttributes) throws IonicException {
         final ChunkCryptoChunkInfo chunkInfo = getChunkInfoAuto(cipherText);
-        if (chunkInfo == null) {
-            throw new IonicException(
-                    AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value(), new IOException(cipherText));
-        }
         // decrypt using the correct cipher out of those that are available
         for (ChunkCipherAbstract chunkCipher : chunkCiphers) {
             if (chunkInfo.getCipherId().equals(chunkCipher.getId())) {
@@ -234,7 +229,7 @@ public class ChunkCipherAuto extends ChunkCipherAbstract {
             }
         }
         // no cipher found that understands this data
-        throw new IonicException(AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value(), new IOException(cipherText));
+        throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, new IOException(cipherText));
     }
 
     /**
@@ -249,8 +244,7 @@ public class ChunkCipherAuto extends ChunkCipherAbstract {
     protected final byte[] decryptInternal(final AgentKey key, final String cipherTextBase64) throws IonicException {
         // this function must be implemented in order to satisfy the inheritance contract, but is not valid
         // in context (implemented only in versioned chunk ciphers)
-        throw new IonicException(ChunkCryptoErrorModuleConstants.ISCHUNKCRYPTO_ERROR.value(),
-                new IOException(cipherTextBase64));
+        throw new IonicException(SdkError.ISCHUNKCRYPTO_ERROR, new IOException(cipherTextBase64));
     }
 
     /**
@@ -271,10 +265,11 @@ public class ChunkCipherAuto extends ChunkCipherAbstract {
      * @return an info object which may be used to decrypt the parameter data; or null if the data is not understood
      */
     private ChunkCryptoChunkInfo getChunkInfoAuto(final String data) {
-        ChunkCryptoChunkInfo chunkInfo = null;
+        ChunkCryptoChunkInfo chunkInfo = new ChunkCryptoChunkInfo();
         for (final ChunkCipherAbstract chunkCipher : chunkCiphers) {
-            chunkInfo = chunkCipher.getChunkInfoInternal(data);
-            if (chunkInfo != null) {
+            final ChunkCryptoChunkInfo chunkInfoIt = chunkCipher.getChunkInfoInternal(data);
+            if (chunkInfoIt != null) {
+                chunkInfo = chunkInfoIt;
                 break;
             }
         }

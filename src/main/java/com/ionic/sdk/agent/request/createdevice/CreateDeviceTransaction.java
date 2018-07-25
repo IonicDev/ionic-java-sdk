@@ -20,14 +20,15 @@ import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
 import com.ionic.sdk.httpclient.HttpResponse;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -92,7 +93,7 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
                 .add(IDC.Payload.PUBKEYDERB64, pubkeySessionB64)
                 .add(IDC.Payload.AUTH, authdataB64)
                 .build();
-        final String payloadPlainText = JsonU.toJson(jsonPayloadRoot, false);
+        final String payloadPlainText = JsonIO.write(jsonPayloadRoot, false);
 
         // ENCRYPT USING CLIENT SYMMETRIC KEY
         // encrypt payload with AES session key and encode with Base64
@@ -122,14 +123,14 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
                 .add(IDC.Payload.P, payloadSecureB64)
                 .add(IDC.Payload.S, aesSessionKeyB64)
                 .build();
-        logger.fine(JsonU.toJson(jsonRequestRoot, false));
+        logger.fine(JsonIO.write(jsonRequestRoot, false));
         // assemble the HTTP request to be sent to the server
         final URL url = AgentTransactionUtil.getProfileUrl(request.getServer());
         logger.fine(request.getServer());
         final String resource = String.format(IDC.Resource.DEVICE_CREATE,
                 IDC.Resource.SERVER_API_V22, request.getEtag());
         final ByteArrayInputStream bis = new ByteArrayInputStream(
-                Transcoder.utf8().decode(JsonU.toJson(jsonRequestRoot, false)));
+                Transcoder.utf8().decode(JsonIO.write(jsonRequestRoot, false)));
         return new HttpRequest(url, Http.Method.POST, resource, getHttpHeaders(), bis);
     }
 
@@ -149,14 +150,12 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
             final byte[] entityResponse = Stream.read(httpResponse.getEntity());
             //logger.fine(new UTF8().encode(entityResponse));
 
-            final JsonReader reader = Json.createReader(new ByteArrayInputStream(entityResponse));
-            final JsonObject json = reader.readObject();
-
-            final String cid = JsonU.getString(json, IDC.Payload.CID);
+            final JsonObject json = JsonIO.readObject(entityResponse);
+            final String cid = JsonSource.getString(json, IDC.Payload.CID);
             logger.finest(cid);
-            final String deviceId = JsonU.getString(json, IDC.Payload.DEVICE_ID);
-            final String sepAesk = JsonU.getString(json, IDC.Payload.SEPAESK);
-            final String sepAeskIdc = JsonU.getString(json, IDC.Payload.SEPAESK_IDC);
+            final String deviceId = JsonSource.getString(json, IDC.Payload.DEVICE_ID);
+            final String sepAesk = JsonSource.getString(json, IDC.Payload.SEPAESK);
+            final String sepAeskIdc = JsonSource.getString(json, IDC.Payload.SEPAESK_IDC);
 
             final AesCtrCipher aesCipher = new AesCtrCipher();
             aesCipher.setKey(aesKeyHolder.getKey().getEncoded());
@@ -171,7 +170,7 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
                     creationTimestamp, deviceId, request.getServer(), keyIDC, keyEI);
             response.setDeviceProfile(deviceProfile);
         } catch (IOException e) {
-            throw new IonicException(e);
+            throw new IonicException(SdkError.ISAGENT_BADRESPONSE, e);
         }
     }
 }

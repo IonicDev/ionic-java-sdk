@@ -2,8 +2,9 @@ package com.ionic.sdk.cipher;
 
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.crypto.CryptoUtils;
-import com.ionic.sdk.error.CryptoErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 
 import javax.crypto.Cipher;
 import java.security.GeneralSecurityException;
@@ -51,6 +52,15 @@ public abstract class CipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public abstract byte[] encrypt(final byte[] plainText) throws IonicException;
+
+    /**
+     * Encrypt a string and return the result as a byte array.
+     *
+     * @param plainText Plaintext String to encrypt.
+     * @return An array of bytes representing the ciphertext.
+     * @throws IonicException on cryptography errors
+     */
+    public abstract byte[] encrypt(final String plainText) throws IonicException;
 
     /**
      * Encrypt a byte array and return the result as a base64-encoded string.
@@ -134,14 +144,16 @@ public abstract class CipherAbstract {
      * @param authData      additional authenticated data used by some ciphers in crypto operations
      * @param parameterSpec additional configuration specific to some ciphers
      * @return an array of bytes representing the ciphertext
-     * @throws IonicException on cryptography errors
+     * @throws IonicException on cryptography errors, or invalid (null) parameters (key, plainText)
      */
     protected final byte[] encrypt(final byte[] plainText, final byte[] authData,
                                    final AlgorithmParameterSpec parameterSpec) throws IonicException {
+        SdkData.checkNotNull(keyInstance, Key.class.getName());
+        SdkData.checkNotNull(plainText, getClass().getSimpleName());
         try {
             return encryptInner(plainText, authData, parameterSpec);
         } catch (GeneralSecurityException e) {
-            throw new IonicException(CryptoErrorModuleConstants.ISCRYPTO_ERROR.value(), e);
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
         }
     }
 
@@ -177,14 +189,16 @@ public abstract class CipherAbstract {
      * @param authData      additional authenticated data used by some ciphers in crypto operations
      * @param parameterSpec additional configuration specific to some ciphers
      * @return array of bytes representing the decrypted plaintext
-     * @throws IonicException on cryptography errors
+     * @throws IonicException on cryptography errors, or invalid (null) parameters (key, cipherText)
      */
     protected final byte[] decrypt(final byte[] cipherText, final byte[] authData,
                                    final AlgorithmParameterSpec parameterSpec) throws IonicException {
+        SdkData.checkNotNull(keyInstance, Key.class.getName());
+        SdkData.checkNotNull(cipherText, getClass().getSimpleName());
         try {
             return decryptInner(cipherText, authData, parameterSpec);
         } catch (GeneralSecurityException e) {
-            throw new IonicException(CryptoErrorModuleConstants.ISCRYPTO_ERROR.value(), e);
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
         }
     }
 

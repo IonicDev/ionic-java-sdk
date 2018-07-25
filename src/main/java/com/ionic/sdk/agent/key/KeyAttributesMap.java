@@ -1,6 +1,7 @@
 package com.ionic.sdk.agent.key;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,18 @@ public final class KeyAttributesMap extends TreeMap<String, List<String>> {
     }
 
     /**
+     * Returns the value to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
+     *
+     * @param key
+     *          attribute key
+     * @return attribute value
+     */
+    public List<String> get(final String key) {
+        return ((key == null) ? null : super.get(key));
+    }
+
+    /**
      * Associates the specified value with the specified key in this map.
      * If the map previously contained a mapping for the key, the old value is replaced.
      *
@@ -61,7 +74,7 @@ public final class KeyAttributesMap extends TreeMap<String, List<String>> {
      *          when either the key or the value is null.
      */
     @Deprecated
-    public void set(final String key, final List<String> value)
+    public void set(final String key, final Collection<String> value)
         throws NullPointerException {
         if (key == null) {
             throw new NullPointerException("key cannot be null");
@@ -71,7 +84,7 @@ public final class KeyAttributesMap extends TreeMap<String, List<String>> {
         }
 
         // ignore return of HashMap.put()
-        this.put(key, value);
+        this.put(key, new ArrayList<String>(value));
     }
 
     /**
@@ -110,7 +123,7 @@ public final class KeyAttributesMap extends TreeMap<String, List<String>> {
      */
     @Deprecated
     public boolean hasKey(final String key) {
-        return this.containsKey(key);
+        return ((key != null) && (this.containsKey(key)));
     }
 
     /**
@@ -118,6 +131,7 @@ public final class KeyAttributesMap extends TreeMap<String, List<String>> {
      *
      * @deprecated
      *      please use {@link Map#entrySet entrySet} and iterate over that set.
+     *
      * @return Iterator object
      */
     @Deprecated

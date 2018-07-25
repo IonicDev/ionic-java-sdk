@@ -25,14 +25,14 @@ package com.ionic.sdk.agent.key;
       *
       * @return KeyAttributesMap attributes.
       */
-     KeyAttributesMap getMutableAttributes();
+     KeyAttributesMap getMutableAttributesMap();
 
      /**
       * Set the key attributes map.
       *
       * @param mutableAttributes The key attributes map.
       */
-     void setMutableAttributes(KeyAttributesMap mutableAttributes);
+     void setMutableAttributesMap(KeyAttributesMap mutableAttributes);
 
      /**
       * Get the key obligations.

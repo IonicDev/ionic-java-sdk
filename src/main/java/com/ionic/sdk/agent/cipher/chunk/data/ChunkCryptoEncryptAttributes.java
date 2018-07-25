@@ -42,7 +42,20 @@ public class ChunkCryptoEncryptAttributes extends MetadataHolder {
     public ChunkCryptoEncryptAttributes() {
         this.keyAttributes = new KeyAttributesMap();
         this.mutableAttributes = new KeyAttributesMap();
-        this.cipherId = null;
+        this.cipherId = "";
+        this.key = null;
+        this.serverErrorResponse = null;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param keyAttributes the key attributes
+     */
+    public ChunkCryptoEncryptAttributes(final KeyAttributesMap keyAttributes) {
+        this.keyAttributes = new KeyAttributesMap(keyAttributes);
+        this.mutableAttributes = new KeyAttributesMap();
+        this.cipherId = "";
         this.key = null;
         this.serverErrorResponse = null;
     }
@@ -57,7 +70,7 @@ public class ChunkCryptoEncryptAttributes extends MetadataHolder {
             final KeyAttributesMap keyAttributes, final KeyAttributesMap mutableAttributes) {
         this.keyAttributes = new KeyAttributesMap(keyAttributes);
         this.mutableAttributes = new KeyAttributesMap(mutableAttributes);
-        this.cipherId = null;
+        this.cipherId = "";
         this.key = null;
         this.serverErrorResponse = null;
     }
@@ -70,10 +83,41 @@ public class ChunkCryptoEncryptAttributes extends MetadataHolder {
     }
 
     /**
-     * @return the mutable attributes
+     * Set the key attributes to be associated with keys generated this chunk encrypt operation.
+     *
+     * @param keyAttributes the key attributes for any keys generated during this operation
      */
+    public final void setKeyAttributes(final KeyAttributesMap keyAttributes) {
+        this.keyAttributes.clear();
+        this.keyAttributes.putAll(keyAttributes);
+    }
+
+    /**
+     * @return the mutable attributes
+     * @deprecated
+     *      Please migrate usages to the replacement {@link #getMutableKeyAttributes()}
+     *      method (Ionic SDK 1.x API compatibility).
+     */
+    @Deprecated
     public final KeyAttributesMap getMutableAttributes() {
         return mutableAttributes;
+    }
+
+    /**
+     * @return the mutable attributes
+     */
+    public final KeyAttributesMap getMutableKeyAttributes() {
+        return mutableAttributes;
+    }
+
+    /**
+     * Set the mutable key attributes to be associated with keys generated this chunk encrypt operation.
+     *
+     * @param mutableKeyAttributes the mutable key attributes for any keys generated during this operation
+     */
+    public final void setMutableKeyAttributes(final KeyAttributesMap mutableKeyAttributes) {
+        this.mutableAttributes.clear();
+        this.mutableAttributes.putAll(mutableKeyAttributes);
     }
 
     /**
@@ -101,14 +145,14 @@ public class ChunkCryptoEncryptAttributes extends MetadataHolder {
      * @return the id of the key used in the encryption operation
      */
     public final String getKeyId() {
-        return ((key == null) ? null : key.getId());
+        return ((key == null) ? "" : key.getId());
     }
 
     /**
      * @return the origin of the key used in the encryption operation
      */
     public final String getKeyOrigin() {
-        return ((key == null) ? null : key.getOrigin());
+        return ((key == null) ? "" : key.getOrigin());
     }
 
     /**

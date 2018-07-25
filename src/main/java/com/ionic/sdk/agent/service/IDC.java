@@ -226,6 +226,16 @@ public final class IDC {
         /**
          * Request / response JSON attribute name.
          */
+        public static final String IDS = "ids";
+
+        /**
+         * Request / response JSON attribute name.
+         */
+        public static final String IONIC_EXTERNAL_ID = "ionic-external-id";
+
+        /**
+         * Request / response JSON attribute name.
+         */
         public static final String KEY = "key";
 
         /**
@@ -266,12 +276,22 @@ public final class IDC {
         /**
          * Request / response JSON attribute name.
          */
+        public static final String PROTECTION_KEY_QUERIES = "protection-key-queries";
+
+        /**
+         * Request / response JSON attribute name.
+         */
         public static final String PUBKEYDERB64 = "TKRespPubKDERB64";
 
         /**
          * Request / response JSON attribute name.
          */
         public static final String QTY = "qty";
+
+        /**
+         * Request / response JSON attribute name.
+         */
+        public static final String QUERY_RESULTS = "query-results";
 
         /**
          * Request / response JSON attribute name.
@@ -369,5 +389,21 @@ public final class IDC {
          * Secret Share Key Persistor JSON attribute name.
          */
         public static final String SHARES = "shares";
+    }
+
+    /**
+     * Text strings associated with key attribute identifiers for which attribute level protection should be applied.
+     */
+    public static class Protect {
+
+        /**
+         * Protected key attribute name prefix.
+         */
+        public static final String PREFIX = "ionic-protected-";
+
+        /**
+         * Protected key attribute name special case.
+         */
+        public static final String INTEGRITY_HASH = "ionic-integrity-hash";
     }
 }

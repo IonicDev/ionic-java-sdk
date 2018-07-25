@@ -198,7 +198,7 @@ public class AgentKey implements KeyBase, KeyMetadata {
      */
     @Override
     public final void setAttributesMap(final KeyAttributesMap keyAttributes) {
-        this.keyAttributes = keyAttributes;
+        this.keyAttributes = ((keyAttributes == null) ? new KeyAttributesMap() : keyAttributes);
     }
 
     /**
@@ -207,7 +207,7 @@ public class AgentKey implements KeyBase, KeyMetadata {
      * @return KeyAttributesMap attributes.
      */
     @Override
-    public final KeyAttributesMap getMutableAttributes() {
+    public final KeyAttributesMap getMutableAttributesMap() {
         return this.mutableAttributes;
     }
 
@@ -218,8 +218,35 @@ public class AgentKey implements KeyBase, KeyMetadata {
      *      The key attributes map.
      */
     @Override
+    public final void setMutableAttributesMap(final KeyAttributesMap mutableAttributes) {
+        this.mutableAttributes = ((mutableAttributes == null) ? new KeyAttributesMap() : mutableAttributes);
+    }
+
+    /**
+     * Get the mutable attributes map.
+     *
+     * @return KeyAttributesMap attributes.
+     * @deprecated
+     *      Please migrate usages to the replacement {@link #getMutableAttributesMap()}
+     *      method (Ionic SDK 1.x API compatibility).
+     */
+    @Deprecated
+    public final KeyAttributesMap getMutableAttributes() {
+        return this.mutableAttributes;
+    }
+
+    /**
+     * Set the mutable attributes map.
+     *
+     * @param mutableAttributes
+     *      The key attributes map.
+     * @deprecated
+     *      Please migrate usages to the replacement {@link #setMutableAttributesMap(KeyAttributesMap)}
+     *      method (Ionic SDK 1.x API compatibility).
+     */
+    @Deprecated
     public final void setMutableAttributes(final KeyAttributesMap mutableAttributes) {
-        this.mutableAttributes = mutableAttributes;
+        this.mutableAttributes = ((mutableAttributes == null) ? new KeyAttributesMap() : mutableAttributes);
     }
 
     /**
@@ -227,7 +254,7 @@ public class AgentKey implements KeyBase, KeyMetadata {
      *
      * @return KeyAttributesMap attributes.
      */
-    public final KeyAttributesMap getMutableAttributesFromServer() {
+    public final KeyAttributesMap getMutableAttributesMapFromServer() {
         return this.mutableAttributesFromServer;
     }
 
@@ -237,8 +264,37 @@ public class AgentKey implements KeyBase, KeyMetadata {
      * @param mutableAttributesFromServer
      *      The key attributes map.
      */
+    public final void setMutableAttributesMapFromServer(final KeyAttributesMap mutableAttributesFromServer) {
+        this.mutableAttributesFromServer = ((mutableAttributesFromServer == null)
+                ? new KeyAttributesMap() : mutableAttributesFromServer);
+    }
+
+    /**
+     * Get the copy of the mutable attributes map.
+     *
+     * @return KeyAttributesMap attributes.
+     * @deprecated
+     *      Please migrate usages to the replacement {@link #getMutableAttributesMapFromServer()}
+     *      method (Ionic SDK 1.x API compatibility).
+     */
+    @Deprecated
+    public final KeyAttributesMap getMutableAttributesFromServer() {
+        return this.mutableAttributesFromServer;
+    }
+
+    /**
+     * Set the copy of the mutable attributes map.
+     *
+     * @param mutableAttributesFromServer
+     *      The key attributes map.
+     * @deprecated
+     *      Please migrate usages to the replacement {@link #setMutableAttributesMapFromServer(KeyAttributesMap)}
+     *      method (Ionic SDK 1.x API compatibility).
+     */
+    @Deprecated
     public final void setMutableAttributesFromServer(final KeyAttributesMap mutableAttributesFromServer) {
-        this.mutableAttributesFromServer = mutableAttributesFromServer;
+        this.mutableAttributesFromServer = ((mutableAttributesFromServer == null)
+                ? new KeyAttributesMap() : mutableAttributesFromServer);
     }
 
     /**
@@ -259,7 +315,7 @@ public class AgentKey implements KeyBase, KeyMetadata {
      */
     @Override
     public final void setObligationsMap(final KeyObligationsMap keyObligations) {
-        this.keyObligations = keyObligations;
+        this.keyObligations = ((keyObligations == null) ? new KeyObligationsMap() : keyObligations);
     }
 
     /**

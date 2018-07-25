@@ -10,9 +10,8 @@ import com.ionic.sdk.agent.request.getkey.GetKeysRequest;
 import com.ionic.sdk.agent.request.getkey.GetKeysResponse;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.value.Value;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
-import com.ionic.sdk.error.ChunkCryptoErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.key.KeyServices;
 
 import java.io.IOException;
@@ -56,26 +55,25 @@ public abstract class ChunkCipherAbstract {
     final String encryptInternal(
             final byte[] plainText, final ChunkCryptoEncryptAttributes encryptAttributes) throws IonicException {
         if (Value.isEmpty(plainText)) {
-            throw new IonicException(ChunkCryptoErrorModuleConstants.ISCHUNKCRYPTO_BAD_INPUT.value());
+            throw new IonicException(SdkError.ISCHUNKCRYPTO_BAD_INPUT);
         }
         // create request
         final CreateKeysRequest createKeysRequest = new CreateKeysRequest();
         final String refId = getClass().getSimpleName();
         createKeysRequest.add(new CreateKeysRequest.Key(refId, 1,
-                encryptAttributes.getKeyAttributes(), encryptAttributes.getMutableAttributes()));
+                encryptAttributes.getKeyAttributes(), encryptAttributes.getMutableKeyAttributes()));
         // execute request
         createKeysRequest.setMetadata(encryptAttributes.getMetadata());
         final CreateKeysResponse createKeysResponse = agent.createKeys(createKeysRequest);
         // capture response
         encryptAttributes.setCipherId(getId());
-        if (createKeysResponse.getServerErrorCode() != AgentErrorModuleConstants.ISAGENT_OK.value()) {
+        if (createKeysResponse.getServerErrorCode() != SdkError.ISAGENT_OK) {
             encryptAttributes.setServerErrorResponse(createKeysResponse);
         }
         final List<CreateKeysResponse.Key> createKeys = createKeysResponse.getKeys();
         if (createKeys.isEmpty()) {
-            throw new IonicException(
-                    AgentErrorModuleConstants.ISAGENT_KEY_DENIED.value(),
-                    AgentErrorModuleConstants.ISAGENT_KEY_DENIED.message());
+            throw new IonicException(SdkError.ISAGENT_KEY_DENIED,
+                    SdkError.getErrorString(SdkError.ISAGENT_KEY_DENIED));
         }
         // capture response key
         final CreateKeysResponse.Key createKey = createKeys.iterator().next();
@@ -114,8 +112,7 @@ public abstract class ChunkCipherAbstract {
             final String cipherTextBase64 = denormalize(cipherText.substring(cipherTextStart, cipherTextEnd));
             return decryptInternal(keyId, cipherTextBase64, decryptAttributes);
         } else {
-            throw new IonicException(
-                    AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value(), new IOException(cipherText));
+            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, new IOException(cipherText));
         }
     }
 
@@ -138,23 +135,21 @@ public abstract class ChunkCipherAbstract {
         final GetKeysResponse getKeysResponse = agent.getKeys(getKeysRequest);
         // capture response
         decryptAttributes.setCipherId(getId());
-        if (getKeysResponse.getServerErrorCode() != AgentErrorModuleConstants.ISAGENT_OK.value()) {
+        if (getKeysResponse.getServerErrorCode() != SdkError.ISAGENT_OK) {
             decryptAttributes.setServerErrorResponse(getKeysResponse);
         }
         final List<GetKeysResponse.Key> getKeys = getKeysResponse.getKeys();
         if (getKeys.isEmpty()) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_KEY_DENIED.value(),
-                    new IOException(cipherTextBase64));
+            throw new IonicException(SdkError.ISAGENT_KEY_DENIED, new IOException(cipherTextBase64));
         }
         // capture response key
         final GetKeysResponse.Key getKey = getKeys.iterator().next();
         decryptAttributes.setKey(getKey);
         decryptAttributes.setKeyAttributes(getKey.getAttributesMap());
-        decryptAttributes.setMutableAttributes(getKey.getMutableAttributes());
+        decryptAttributes.setMutableAttributes(getKey.getMutableAttributesMap());
         final String keyId = getKey.getId();
         if (!keyIdQ.equals(keyId)) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_BADRESPONSE.value(),
-                    new IOException(cipherTextBase64));
+            throw new IonicException(SdkError.ISAGENT_BADRESPONSE, new IOException(cipherTextBase64));
         }
         return decryptInternal(getKey, cipherTextBase64);
     }

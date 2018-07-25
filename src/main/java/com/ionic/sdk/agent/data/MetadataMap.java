@@ -1,5 +1,7 @@
 package com.ionic.sdk.agent.data;
 
+import com.ionic.sdk.error.SdkData;
+
 import java.util.HashMap;
 
 /**
@@ -21,8 +23,11 @@ public class MetadataMap extends HashMap<String, String> {
      *
      * @param key   metadata key
      * @param value metadata value
+     * @throws NullPointerException on invalid (null) parameters
      */
     public final void set(final String key, final String value) {
+        SdkData.checkNotNullNPE(key, getClass().getName());
+        SdkData.checkNotNullNPE(value, getClass().getName());
         super.put(key, value);
     }
 

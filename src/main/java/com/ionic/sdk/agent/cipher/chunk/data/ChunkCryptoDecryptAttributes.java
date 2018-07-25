@@ -45,7 +45,7 @@ public class ChunkCryptoDecryptAttributes extends MetadataHolder {
     public ChunkCryptoDecryptAttributes() {
         this.keyAttributes = new KeyAttributesMap();
         this.mutableAttributes = new KeyAttributesMap();
-        this.cipherId = null;
+        this.cipherId = "";
         this.key = null;
         this.serverErrorResponse = null;
     }
@@ -59,8 +59,19 @@ public class ChunkCryptoDecryptAttributes extends MetadataHolder {
 
     /**
      * @return the mutable attributes
+     * @deprecated
+     *      Please migrate usages to the replacement {@link #getMutableKeyAttributes()}
+     *      method (Ionic SDK 1.x API compatibility).
      */
+    @Deprecated
     public final KeyAttributesMap getMutableAttributes() {
+        return mutableAttributes;
+    }
+
+    /**
+     * @return the mutable attributes
+     */
+    public final KeyAttributesMap getMutableKeyAttributes() {
         return mutableAttributes;
     }
 
@@ -89,14 +100,14 @@ public class ChunkCryptoDecryptAttributes extends MetadataHolder {
      * @return the id of the key used in the decryption operation
      */
     public final String getKeyId() {
-        return ((key == null) ? null : key.getId());
+        return ((key == null) ? "" : key.getId());
     }
 
     /**
      * @return the origin of the key used in the decryption operation
      */
     public final String getKeyOrigin() {
-        return ((key == null) ? null : key.getOrigin());
+        return ((key == null) ? "" : key.getOrigin());
     }
 
     /**

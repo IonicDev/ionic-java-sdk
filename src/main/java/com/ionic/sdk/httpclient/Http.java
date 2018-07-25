@@ -1,5 +1,7 @@
 package com.ionic.sdk.httpclient;
 
+import java.net.HttpURLConnection;
+
 /**
  * Constants associated with the ISHTTP module.
  */
@@ -17,6 +19,16 @@ public class Http {
          * The "POST" HTTP method.
          */
         public static final String POST = "POST";
+    }
+
+    /**
+     * Status values associated with the ISHTTP module.
+     */
+    public static class Status {
+        /**
+         * The code associated with a successful HTTP call.
+         */
+        public static final int OK = HttpURLConnection.HTTP_OK;
     }
 
     /**

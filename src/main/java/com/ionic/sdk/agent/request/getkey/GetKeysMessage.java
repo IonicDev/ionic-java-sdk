@@ -6,15 +6,19 @@ import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.core.value.Value;
+import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
+import com.ionic.sdk.json.JsonTarget;
 
 import javax.json.Json;
 import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-import javax.json.JsonString;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -28,8 +32,9 @@ public class GetKeysMessage extends MessageBase {
      * Constructor.
      *
      * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
+     * @throws IonicException on random number generation failure
      */
-    public GetKeysMessage(final Agent agent) {
+    public GetKeysMessage(final Agent agent) throws IonicException {
         super(agent, AgentTransactionUtil.generateConversationIdV(agent.getActiveProfile().getDeviceId()));
     }
 
@@ -38,51 +43,49 @@ public class GetKeysMessage extends MessageBase {
      *
      * @param requestBase the user-generated object containing the attributes of the request
      * @return a {@link JsonObject} to be incorporated into the request payload
+     * @throws IonicException on cryptography errors (used by protected attributes feature)
      */
     @Override
-    protected final JsonObject getJsonData(final AgentRequestBase requestBase) {
-        return Json.createObjectBuilder()
-                .add(IDC.Payload.PROTECTION_KEYS, getJsonProtectionKeys((GetKeysRequest) requestBase))
-                .build();
-    }
-
-    /**
-     * Assemble the "protection keys" json associated with the request.
-     *
-     * @param getKeysRequest the user-generated object containing the attributes of the request
-     * @return a {@link JsonArray} to be incorporated into the request payload
-     */
-    private JsonArray getJsonProtectionKeys(final GetKeysRequest getKeysRequest) {
-        final JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
-        for (String keyId : getKeysRequest.getKeyIds()) {
-            jsonArrayBuilder.add(keyId);
+    protected final JsonObject getJsonData(final AgentRequestBase requestBase) throws IonicException {
+        GetKeysRequest getKeysRequest = (GetKeysRequest) requestBase;
+        final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        JsonTarget.add(objectBuilder, IDC.Payload.PROTECTION_KEYS, JsonTarget.toJsonArray(getKeysRequest.getKeyIds()));
+        // external-id
+        final JsonObjectBuilder protectionKeyQueries = Json.createObjectBuilder();
+        for (final String id : getKeysRequest.getExternalIds()) {
+            final JsonObjectBuilder externalId = Json.createObjectBuilder();
+            JsonTarget.addNotNull(externalId, IDC.Payload.IONIC_EXTERNAL_ID, id);
+            JsonTarget.addNotNull(protectionKeyQueries, id, externalId.build());
         }
-        return jsonArrayBuilder.build();
+        JsonTarget.add(objectBuilder, IDC.Payload.PROTECTION_KEY_QUERIES, protectionKeyQueries.build());
+        return objectBuilder.build();
     }
 
     /**
      * Extract the attributes from the json structure in the parameter string.
      *
-     * @param attrs the json-serialized attributes string in the payload
+     * @param attrs    the json-serialized attributes string in the payload
+     * @param keyId    the key id used as AAD
+     * @param keyBytes if using encrypted attributes, we need a key to decrypt
      * @return the map of attribute keys to the list of values associated with the key
+     * @throws IonicException on failure parsing the attribute json, or on cryptography errors
+     *                        (used by protected attributes feature)
      */
-    public final KeyAttributesMap getJsonAttrs(final String attrs) {
+    public final KeyAttributesMap getJsonAttrs(final String attrs, final String keyId,
+                                               final byte[] keyBytes) throws IonicException {
         final KeyAttributesMap keyAttributes = new KeyAttributesMap();
-        if (attrs != null) {
-            final JsonObject jsonObject = JsonU.getJsonObject(attrs);
-            for (Map.Entry<String, JsonValue> entry : jsonObject.entrySet()) {
-                List<String> values = new ArrayList<String>();
+        if (!Value.isEmpty(attrs)) {
+            final JsonObject jsonObject = JsonIO.readObject(attrs);
+            final Iterator<Map.Entry<String, JsonValue>> iterator = JsonSource.getIterator(jsonObject);
+            while (iterator.hasNext()) {
+                final Map.Entry<String, JsonValue> entry = iterator.next();
                 final String key = entry.getKey();
-                final JsonValue value = entry.getValue();
-                if (value instanceof JsonArray) {
-                    final JsonArray jsonArray = (JsonArray) value;
-                    for (final JsonValue jsonValue : jsonArray) {
-                        if (jsonValue instanceof JsonString) {
-                            values.add(((JsonString) jsonValue).getString());
-                        } else {
-                            values.add(jsonValue.toString());
-                        }
-                    }
+                final JsonValue value = super.isIonicProtect(key)
+                        ? super.decryptIonicAttrs(entry.getValue(), keyId, keyBytes) : entry.getValue();
+                final JsonArray jsonArray = JsonSource.toJsonArray(value, key);
+                final List<String> values = new ArrayList<String>();
+                for (final JsonValue jsonValue : jsonArray) {
+                    values.add(JsonSource.toString(jsonValue));
                 }
                 keyAttributes.put(key, values);
             }

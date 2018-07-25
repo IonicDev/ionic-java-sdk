@@ -17,8 +17,8 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 
 /**
  * Utilities to read / write byte[] from source objects.
@@ -125,7 +125,7 @@ public final class Stream {
         try {
             Files.write(Paths.get(path), dataTowrite);
         } catch (final IOException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_OPENFILE.value(), e);
+            throw new IonicException(SdkError.ISAGENT_OPENFILE, e);
         }
     }
 
