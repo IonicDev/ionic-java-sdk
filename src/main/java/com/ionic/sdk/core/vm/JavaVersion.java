@@ -2,6 +2,8 @@ package com.ionic.sdk.core.vm;
 
 /**
  * Encapsulation of logic to derive the version of the JVM from the system property set.
+ * <p>
+ * Java version detection is only used to resolve the active transcoder set for a particular environment.
  */
 public enum JavaVersion {
 
@@ -16,9 +18,14 @@ public enum JavaVersion {
     VERSION_1_8,
 
     /**
-     * JRE version 7 (released September 2017).
+     * JRE version 9 (released September 2017).
      */
-    VERSION_1_9;
+    VERSION_1_9,
+
+    /**
+     * JRE version 10 (released March 2018).
+     */
+    VERSION_1_10;
 
     /**
      * @return the enum corresponding to the currently detected JRE version
@@ -33,6 +40,8 @@ public enum JavaVersion {
             return VERSION_1_8;
         } else if (javaVersion.startsWith(PREFIX_1_9)) {
             return VERSION_1_9;
+        } else if (javaVersion.startsWith(PREFIX_1_10)) {
+            return VERSION_1_10;
         } else {
             throw new IllegalStateException(javaVersion);
         }
@@ -52,4 +61,9 @@ public enum JavaVersion {
      * The prefix of the value of the in-use JRE which corresponds to version 9 (released September 2017).
      */
     private static final String PREFIX_1_9 = "9.0.";
+
+    /**
+     * The prefix of the value of the in-use JRE which corresponds to version 10 (released March 2018).
+     */
+    private static final String PREFIX_1_10 = "10.0.";
 }

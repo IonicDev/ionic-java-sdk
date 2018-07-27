@@ -1,7 +1,7 @@
 package com.ionic.sdk.crypto.shamir;
 
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
@@ -45,7 +45,7 @@ public final class Scheme {
     public Scheme(final int n, final int k) throws IonicException {
         boolean invalid = ((k < 1) || (n < k) || (n > MAX_N));
         if (invalid) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value(),
+            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE,
                     new IllegalArgumentException(String.format("N = %d, K = %d", n, k)));
         }
         this.n = n;

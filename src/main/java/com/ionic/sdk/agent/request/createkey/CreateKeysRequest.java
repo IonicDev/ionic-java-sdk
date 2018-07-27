@@ -64,12 +64,12 @@ public class CreateKeysRequest extends AgentRequestBase {
         /**
          * A reference to be used to associate any keys received in the response with the request.
          */
-        private final String refId;
+        private String refId;
 
         /**
          * The number of keys requested by this key request.
          */
-        private final int quantity;
+        private int quantity;
 
         /**
          * The attributes to be associated with the keys requested by this key request.
@@ -84,7 +84,7 @@ public class CreateKeysRequest extends AgentRequestBase {
         /**
          * Constructor.
          *
-         * @param refId    a reference to be used to associate keys received in the response with the request
+         * @param refId a reference to be used to associate keys received in the response with the request
          */
         public Key(final String refId) {
             this(refId, 1);
@@ -135,10 +135,28 @@ public class CreateKeysRequest extends AgentRequestBase {
         }
 
         /**
+         * Set the reference id for this key request object, in the context of this CreateKeys server operation.
+         *
+         * @param refId a reference to be used to associate any keys received in the response with the request.
+         */
+        public final void setRefId(final String refId) {
+            this.refId = refId;
+        }
+
+        /**
          * @return the number of keys requested by this key request
          */
         public final int getQuantity() {
             return quantity;
+        }
+
+        /**
+         * Set the number of keys requested by this request.
+         *
+         * @param quantity the number of keys requested by this key request
+         */
+        public final void setQuantity(final int quantity) {
+            this.quantity = quantity;
         }
 
         /**
@@ -150,8 +168,19 @@ public class CreateKeysRequest extends AgentRequestBase {
 
         /**
          * @return the attributes to be associated with the keys requested by this key request
+         * @deprecated
+         *      Please migrate usages to the replacement {@link #getMutableAttributesMap()}
+         *      method (Ionic SDK 1.x API compatibility).
          */
+        @Deprecated
         public final KeyAttributesMap getMutableAttributes() {
+            return mutableAttributes;
+        }
+
+        /**
+         * @return the attributes to be associated with the keys requested by this key request
+         */
+        public final KeyAttributesMap getMutableAttributesMap() {
             return mutableAttributes;
         }
     }

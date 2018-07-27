@@ -9,9 +9,9 @@ import java.util.Random;
  * <p>
  * <a href="https://research.swtch.com/field">Finite Field Arithmetic and Reed-Solomon Coding</a>
  * <p>
- * <a href="http://www.cs.utsa.edu/~wagner/laws/FFM.html}">The Laws of Cryptography: The Finite Field GF(256)</a>
+ * <a href="http://www.cs.utsa.edu/~wagner/laws/FFM.html">The Laws of Cryptography: The Finite Field GF(256)</a>
  * <p>
- * <a href="http://www.cs.utsa.edu/~wagner/laws/AFFMultTables.html}">
+ * <a href="http://www.cs.utsa.edu/~wagner/laws/AFFMultTables.html">
  * The Laws of Cryptography:  Generate Multiplication Tables</a>
  * <p>
  * <a href="https://github.com/codahale/shamir/blob/master/src/main/java/com/codahale/shamir/GF256.java">

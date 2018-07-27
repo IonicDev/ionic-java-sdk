@@ -6,9 +6,9 @@ import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.cipher.aes.AesGcmCipher;
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.IonicServerException;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpClient;
 import com.ionic.sdk.httpclient.HttpClientFactory;
@@ -16,12 +16,11 @@ import com.ionic.sdk.httpclient.HttpHeader;
 import com.ionic.sdk.httpclient.HttpHeaders;
 import com.ionic.sdk.httpclient.HttpRequest;
 import com.ionic.sdk.httpclient.HttpResponse;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
 
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
-import java.io.ByteArrayInputStream;
+import javax.json.JsonValue;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Set;
@@ -97,7 +96,7 @@ public abstract class AgentTransactionBase {
      */
     public final void run() throws IonicException {
         if (!agent.isInitialized()) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_NOINIT.value());
+            throw new IonicException(SdkError.ISAGENT_NOINIT);
         }
         // set up the fingerprint field (hashed + hexed)
         final Properties fingerprint = new Properties();
@@ -128,13 +127,12 @@ public abstract class AgentTransactionBase {
     private void runWithFingerprint(final Properties fingerprint) throws IonicException {
         final HttpRequest httpRequest = buildHttpRequest(fingerprint);
         final AgentConfig config = agent.getConfig();
-        final HttpClient httpClientIDC = HttpClientFactory.create(config.getHttpImpl(),
-                config.getHttpTimeoutSecs(), config.getMaxRedirects(), httpRequest.getUrl().getProtocol());
+        final HttpClient httpClientIDC = HttpClientFactory.create(config, httpRequest.getUrl().getProtocol());
         try {
             final HttpResponse httpResponse = httpClientIDC.execute(httpRequest);
             parseHttpResponse(httpResponse);
         } catch (IOException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_REQUESTFAILED.value(), e);
+            throw new IonicException(SdkError.ISAGENT_REQUESTFAILED, e);
         }
     }
 
@@ -156,7 +154,7 @@ public abstract class AgentTransactionBase {
         if (errorsHandled.contains(returnCode)) {
             logger.warning(String.format("Recoverable error encountered during %s.  Recovery attempt %d. "
                     + "Error code: %d", getClass().getSimpleName(), attempt, returnCode));
-        } else if (returnCode == AgentErrorModuleConstants.ISAGENT_FPHASH_DENIED.value()) {
+        } else if (returnCode == SdkError.ISAGENT_FPHASH_DENIED) {
             // specific client handling of server fingerprint hash rejection is to retry with full fingerprint
             errorsHandled.add(returnCode);
             handleFingerprintDeniedError(fingerprint);
@@ -195,17 +193,16 @@ public abstract class AgentTransactionBase {
         }
         if (cidQ != null) {
             // deserialize server response entity
-            final JsonReader readerSecure = Json.createReader(httpResponse.getEntity());
-            final JsonObject jsonSecure = readerSecure.readObject();
-            logger.fine(JsonU.toJson(jsonSecure, true));
-            final String cid = JsonU.getString(jsonSecure, IDC.Payload.CID);
-            final String envelope = JsonU.getString(jsonSecure, IDC.Payload.ENVELOPE);
+            final JsonObject jsonSecure = JsonIO.readObject(httpResponse.getEntity());
+            logger.fine(JsonIO.write(jsonSecure, true));
+            final String cid = JsonSource.getString(jsonSecure, IDC.Payload.CID);
+            final String envelope = JsonSource.getString(jsonSecure, IDC.Payload.ENVELOPE);
             try {
                 AgentTransactionUtil.checkNotNull(cid, IDC.Payload.CID, cid);
                 AgentTransactionUtil.checkNotNull(envelope, IDC.Payload.ENVELOPE, envelope);
             } catch (IonicException e) {
-                int error = AgentErrorModuleConstants.ISAGENT_BADRESPONSE.value();
-                throw new IonicException(error, new IOException(JsonU.toJson(jsonSecure, false)));
+                int error = SdkError.ISAGENT_BADRESPONSE;
+                throw new IonicException(error, new IOException(JsonIO.write(jsonSecure, false)));
             }
             AgentTransactionUtil.checkEqual(cidQ, cidQ, cid);
             parseHttpResponseBase2(cid, envelope);
@@ -217,8 +214,8 @@ public abstract class AgentTransactionBase {
      *
      * @param cid      the cid in the server response
      * @param envelope the ciphertext containing the protected server response
-     * @throws IonicException on cryptography or server response errors
-     * @throws javax.json.JsonException  on problems parsing the response payload bytes
+     * @throws IonicException           on cryptography or server response errors
+     * @throws javax.json.JsonException on problems parsing the response payload bytes
      */
     private void parseHttpResponseBase2(final String cid, final String envelope) throws IonicException {
         // unwrap content of secure envelope
@@ -226,16 +223,15 @@ public abstract class AgentTransactionBase {
         cipher.setKey(agent.getActiveProfile().getAesCdIdcProfileKey());
         cipher.setAuthData(Transcoder.utf8().decode(cid));
         final byte[] entityClear = cipher.decryptBase64(envelope);
-        //logger.finest(new UTF8().encode(entityClear));  // plaintext json; IDC http entity (for debugging)
+        //logger.finest(Transcoder.utf8().encode(entityClear));  // plaintext json; IDC http entity (for debugging)
         // decompose cleartext content of server response
-        final JsonReader readerClear = Json.createReader(new ByteArrayInputStream(entityClear));
-        final JsonObject jsonPayload = readerClear.readObject();
-        final JsonObject error = jsonPayload.getJsonObject(IDC.Payload.ERROR);
+        final JsonObject jsonPayload = JsonIO.readObject(entityClear);
+        final JsonObject error = JsonSource.getJsonObjectNullable(jsonPayload, IDC.Payload.ERROR);
         responseBase.setConversationId(cid);
         responseBase.setJsonPayload(jsonPayload);
-        responseBase.setServerErrorCode((error == null) ? 0 : JsonU.getInt(error, IDC.Payload.CODE));
-        responseBase.setServerErrorMessage((error == null) ? null : JsonU.getString(error, IDC.Payload.MESSAGE));
-        responseBase.setServerErrorDataJson((error == null) ? null : JsonU.toJson(error, false));
+        responseBase.setServerErrorCode((error == null) ? 0 : JsonSource.getInt(error, IDC.Payload.CODE));
+        responseBase.setServerErrorMessage((error == null) ? null : JsonSource.getString(error, IDC.Payload.MESSAGE));
+        responseBase.setServerErrorDataJson((error == null) ? null : JsonIO.write(error, false));
         if (responseBase.getServerErrorDataJson() != null) {
             logger.severe(responseBase.getServerErrorDataJson());
         }
@@ -265,16 +261,16 @@ public abstract class AgentTransactionBase {
     private void processResponseErrorServer(final String cid) throws IonicServerException {
         switch (responseBase.getServerErrorCode()) {
             case SERVER_ERROR_HFPHASH_DENIED:
-                throwException(AgentErrorModuleConstants.ISAGENT_FPHASH_DENIED.value(), responseBase, cid);
-                break;
+                throw new IonicServerException(SdkError.ISAGENT_FPHASH_DENIED, cid, responseBase);
+                //break;
             case SERVER_ERROR_CID_TIMESTAMP_DENIED:
-                throwException(AgentErrorModuleConstants.ISAGENT_CID_TIMESTAMP_DENIED.value(), responseBase, cid);
-                break;
+                throw new IonicServerException(SdkError.ISAGENT_CID_TIMESTAMP_DENIED, cid, responseBase);
+                //break;
             case SERVER_OK:
                 processResponseErrorHttp(cid);
                 break;
             default:
-                throwException(AgentErrorModuleConstants.ISAGENT_REQUESTFAILED.value(), responseBase, cid);
+                throw new IonicServerException(SdkError.ISAGENT_REQUESTFAILED, cid, responseBase);
         }
     }
 
@@ -294,7 +290,7 @@ public abstract class AgentTransactionBase {
      */
     private void processResponseErrorHttp(final String cid) throws IonicServerException {
         if (AgentTransactionUtil.isHttpErrorCode(responseBase.getHttpResponseCode())) {
-            throwException(AgentErrorModuleConstants.ISAGENT_REQUESTFAILED.value(), responseBase, cid);
+            throw new IonicServerException(SdkError.ISAGENT_REQUESTFAILED, cid, responseBase);
         } else {
             processResponseErrorData(cid);
         }
@@ -316,24 +312,10 @@ public abstract class AgentTransactionBase {
      */
     private void processResponseErrorData(final String cid) throws IonicServerException {
         final JsonObject jsonPayload = responseBase.getJsonPayload();
-        if (jsonPayload.getJsonObject(IDC.Payload.DATA) == null) {
-            throwException(AgentErrorModuleConstants.ISAGENT_BADRESPONSE.value(), responseBase, cid);
+        final JsonValue.ValueType valueType = JsonSource.getValueType(jsonPayload, IDC.Payload.DATA);
+        if (!JsonValue.ValueType.OBJECT.equals(valueType)) {
+            throw new IonicServerException(SdkError.ISAGENT_BADRESPONSE, cid, responseBase);
         }
-    }
-
-    /**
-     * Create and throw a new ServerException object containing the relevant data from the server response.
-     *
-     * @param errorCode    the client error code to pass to the caller
-     * @param responseBase the class containing the server response information
-     * @param cid          the request conversation ID
-     * @throws IonicServerException always
-     */
-    private static void throwException(
-            final int errorCode, final AgentResponseBase responseBase, final String cid) throws IonicServerException {
-        throw new IonicServerException(errorCode, responseBase.getHttpResponseCode(),
-                responseBase.getServerErrorCode(), responseBase.getServerErrorMessage(),
-                responseBase.getServerErrorDataJson(), cid);
     }
 
     /**

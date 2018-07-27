@@ -1,16 +1,16 @@
 package com.ionic.sdk.core.datastructures;
 
 import com.ionic.sdk.agent.data.MetadataMap;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.error.SdkError;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
 
 import javax.json.JsonException;
 import javax.json.JsonObject;
-import javax.json.JsonString;
 import javax.json.JsonValue;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Utilities for managing data exchanged with IDC.
@@ -38,19 +38,14 @@ public final class DataUtil {
     public static MetadataMap toMetadataMap(final String data) throws IonicException {
         final MetadataMap metadataMap = new MetadataMap();
         try {
-            final JsonObject jsonObject = JsonU.getJsonObject(data);
-            final Set<Map.Entry<String, JsonValue>> entries = jsonObject.entrySet();
-            for (Map.Entry<String, JsonValue> entry : entries) {
-                final String key = entry.getKey();
-                final JsonValue value = entry.getValue();
-                if (value instanceof JsonString) {
-                    metadataMap.put(key, ((JsonString) value).getString());
-                } else {
-                    metadataMap.put(key, value.toString());
-                }
+            final JsonObject jsonObject = JsonIO.readObject(data);
+            final Iterator<Map.Entry<String, JsonValue>> iterator = JsonSource.getIterator(jsonObject);
+            while (iterator.hasNext()) {
+                final Map.Entry<String, JsonValue> entry = iterator.next();
+                metadataMap.put(entry.getKey(), JsonSource.toString(entry.getValue()));
             }
         } catch (JsonException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_PARSEFAILED.value(), e);
+            throw new IonicException(SdkError.ISAGENT_PARSEFAILED, e);
         }
         return metadataMap;
     }

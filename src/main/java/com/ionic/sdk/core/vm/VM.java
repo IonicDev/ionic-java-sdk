@@ -75,6 +75,11 @@ public final class VM {
         public static final String OS_VERSION = "os.version";
 
         /**
+         * The system property key associated with the home folder of the current user.
+         */
+        public static final String USER_HOME = "user.home";
+
+        /**
          * The system property key associated with the current user.
          */
         public static final String USER_NAME = "user.name";
@@ -104,6 +109,24 @@ public final class VM {
     public static long getTimestamp() {
         final File folderJavaHome = new File(System.getProperty(Sys.JAVA_HOME));
         return folderJavaHome.lastModified();
+    }
+
+    /**
+     * Read the Java system property used to denote the home folder for the active user.
+     *
+     * @return the native operating system home folder for the active user
+     */
+    public static String getUserHome() {
+        return System.getProperty(Sys.USER_HOME);
+    }
+
+    /**
+     * Read the Java system property used to denote the active operating system.
+     *
+     * @return the native operating system hosting this running VM
+     */
+    public static String getOsName() {
+        return System.getProperty(Sys.OS_NAME);
     }
 
     /**

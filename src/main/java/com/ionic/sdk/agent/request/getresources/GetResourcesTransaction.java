@@ -13,7 +13,8 @@ import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
 import com.ionic.sdk.httpclient.HttpResponse;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -67,7 +68,7 @@ public class GetResourcesTransaction extends AgentTransactionBase {
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
         final String cid = message.getCid();
         // assemble the secured (outer) HTTP payload
-        final String envelope = JsonU.toJson(jsonMessage, false);
+        final String envelope = JsonIO.write(jsonMessage, false);
         //logger.finest(envelope);  // plaintext json; IDC http entity (for debugging)
         final AesGcmCipher cipher = new AesGcmCipher();
         cipher.setKey(activeProfile.getAesCdIdcProfileKey());
@@ -77,12 +78,12 @@ public class GetResourcesTransaction extends AgentTransactionBase {
                 .add(IDC.Payload.CID, cid)
                 .add(IDC.Payload.ENVELOPE, envelopeSecureBase64)
                 .build();
-        logger.fine(JsonU.toJson(payload, true));
+        logger.fine(JsonIO.write(payload, true));
         // assemble the HTTP request to be sent to the server
         final URL url = AgentTransactionUtil.getProfileUrl(activeProfile);
         final String resource = String.format(IDC.Resource.RESOURCES_GET, IDC.Resource.SERVER_API_V23);
         final ByteArrayInputStream bis = new ByteArrayInputStream(
-                Transcoder.utf8().decode(JsonU.toJson(payload, false)));
+                Transcoder.utf8().decode(JsonIO.write(payload, false)));
         return new HttpRequest(url, Http.Method.POST, resource, getHttpHeaders(), bis);
     }
 
@@ -102,14 +103,15 @@ public class GetResourcesTransaction extends AgentTransactionBase {
         //final GetResourcesRequest request = (GetResourcesRequest) getRequestBase();
         final GetResourcesResponse response = (GetResourcesResponse) getResponseBase();
         //final String cid = response.getConversationId();
-        final JsonObject jsonData = response.getJsonPayload().getJsonObject(IDC.Payload.DATA);
-        final JsonArray jsonResponses = jsonData.getJsonArray(IDC.Payload.RESPONSES);
+        final JsonObject jsonPayload = response.getJsonPayload();
+        final JsonObject jsonData = JsonSource.getJsonObject(jsonPayload, IDC.Payload.DATA);
+        final JsonArray jsonResponses = JsonSource.getJsonArray(jsonData, IDC.Payload.RESPONSES);
         for (JsonValue value : jsonResponses) {
             // deserialize each response key into a user-consumable object
-            final JsonObject jsonResponse = (JsonObject) value;
-            final String id = JsonU.getString(jsonResponse, IDC.Payload.ID);
-            final String data = JsonU.getString(jsonResponse, IDC.Payload.DATA);
-            final String error = JsonU.getString(jsonResponse, IDC.Payload.ERROR);
+            final JsonObject jsonResponse = JsonSource.toJsonObject(value, IDC.Payload.RESPONSES);
+            final String id = JsonSource.getString(jsonResponse, IDC.Payload.ID);
+            final String data = JsonSource.getString(jsonResponse, IDC.Payload.DATA);
+            final String error = JsonSource.getString(jsonResponse, IDC.Payload.ERROR);
             response.add(new GetResourcesResponse.Resource(id, data, error));
         }
     }

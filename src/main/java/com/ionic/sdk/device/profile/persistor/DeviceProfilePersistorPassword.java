@@ -1,9 +1,9 @@
 package com.ionic.sdk.device.profile.persistor;
 
+import com.ionic.sdk.cipher.aes.AesCipher;
 import com.ionic.sdk.cipher.aes.AesGcmCipher;
 import com.ionic.sdk.core.codec.BytesTranscoder;
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.core.rng.RNG;
 import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.error.IonicException;
 
@@ -59,12 +59,12 @@ public class DeviceProfilePersistorPassword extends DeviceProfilePersistorBase {
     public final void setPassword(final String password) throws IonicException {
         final BytesTranscoder utConverter = Transcoder.utf8();
 
-        final byte[] salt = RNG.fill(new byte[CryptoUtils.SALT_BYTES]);
+        final byte[] salt = new byte[0];  // mimic current C++ behavior
         final int iterations = 2000;
 
         // derive a key from the password using PBKDF2
         final byte[] hashBytes = CryptoUtils.pbkdf2ToBytes(
-                utConverter.decode(password), salt, iterations, CryptoUtils.HASH_BYTES);
+                utConverter.decode(password), salt, iterations, AesCipher.KEY_BYTES);
 
         cipherCast.setKey(hashBytes);
         // set a hard-coded, known auth data

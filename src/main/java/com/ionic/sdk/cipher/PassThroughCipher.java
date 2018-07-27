@@ -2,6 +2,7 @@ package com.ionic.sdk.cipher;
 
 import javax.crypto.Cipher;
 
+import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.error.IonicException;
 
 /**
@@ -28,6 +29,17 @@ public class PassThroughCipher extends CipherAbstract {
     public final byte[] encrypt(final byte[] plainText) throws IonicException {
         // TODO Auto-generated method stub
         return plainText;
+    }
+
+    /**
+     * @param plainText - The bytes we want encrypted.
+     * @return returns the input.
+     * @throws IonicException - thrown if an encrypt fails.
+     */
+    @Override
+    public final byte[] encrypt(final String plainText) throws IonicException {
+        // TODO Auto-generated method stub
+        return Transcoder.utf8().decode(plainText);
     }
 
     /**

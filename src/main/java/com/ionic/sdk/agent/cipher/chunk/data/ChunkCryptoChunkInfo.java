@@ -8,27 +8,38 @@ public class ChunkCryptoChunkInfo {
     /**
      * Determines whether the chunk is encrypted or not.
      */
-    private final boolean isEncrypted;
+    private boolean isEncrypted;
 
     /**
      * Gets the key ID that was used to encrypt the data chunk.
      */
-    private final String keyId;
+    private String keyId;
 
     /**
      * Determines the cipher ID of the data chunk.
      */
-    private final String cipherId;
+    private String cipherId;
 
     /**
      * Gets the starting index of the payload section of the data chunk.
      */
-    private final long payloadStart;
+    private long payloadStart;
 
     /**
      * Gets the size of the payload section of the data chunk.
      */
-    private final long payloadSize;
+    private long payloadSize;
+
+    /**
+     * Constructor.
+     */
+    public ChunkCryptoChunkInfo() {
+        this.isEncrypted = false;
+        this.keyId = "";
+        this.cipherId = "";
+        this.payloadStart = 0;
+        this.payloadSize = 0;
+    }
 
     /**
      * Constructor.
@@ -58,12 +69,30 @@ public class ChunkCryptoChunkInfo {
     }
 
     /**
+     * Sets whether the chunk is encrypted or not.
+     *
+     * @param encrypted the chunk encryption status
+     */
+    public final void setEncrypted(final boolean encrypted) {
+        isEncrypted = encrypted;
+    }
+
+    /**
      * Gets the key ID that was used to encrypt the data chunk.
      *
      * @return the id of the Ionic crypto key
      */
     public final String getKeyId() {
         return keyId;
+    }
+
+    /**
+     * Sets the key ID that was used to encrypt the data chunk.
+     *
+     * @param keyId the id of the Ionic crypto key
+     */
+    public final void setKeyId(final String keyId) {
+        this.keyId = keyId;
     }
 
     /**
@@ -76,6 +105,15 @@ public class ChunkCryptoChunkInfo {
     }
 
     /**
+     * Determines the cipher ID of the data chunk.
+     *
+     * @param cipherId the type of cipher used to encrypt the chunk
+     */
+    public final void setCipherId(final String cipherId) {
+        this.cipherId = cipherId;
+    }
+
+    /**
      * Gets the starting index of the payload section of the data chunk.
      *
      * @return the payload starting index
@@ -85,11 +123,29 @@ public class ChunkCryptoChunkInfo {
     }
 
     /**
+     * Sets the starting index of the payload section of the data chunk.
+     *
+     * @param payloadStart the payload starting index
+     */
+    public final void setPayloadStart(final long payloadStart) {
+        this.payloadStart = payloadStart;
+    }
+
+    /**
      * Gets the size of the payload section of the data chunk.
      *
      * @return the payload size
      */
     public final long getPayloadSize() {
         return payloadSize;
+    }
+
+    /**
+     * Sets the size of the payload section of the data chunk.
+     *
+     * @param payloadSize the payload size
+     */
+    public final void setPayloadSize(final long payloadSize) {
+        this.payloadSize = payloadSize;
     }
 }

@@ -4,7 +4,6 @@ import com.ionic.sdk.agent.config.AgentConfig;
 import com.ionic.sdk.agent.data.MetadataHolder;
 import com.ionic.sdk.agent.data.MetadataMap;
 import com.ionic.sdk.agent.hfp.Fingerprint;
-import com.ionic.sdk.agent.key.AgentKey;
 import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.request.createdevice.CreateDeviceRequest;
 import com.ionic.sdk.agent.request.createdevice.CreateDeviceResponse;
@@ -24,8 +23,9 @@ import com.ionic.sdk.agent.request.updatekey.UpdateKeysTransaction;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.device.profile.persistor.DeviceProfilePersistorBase;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.IonicServerException;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.key.KeyServices;
 
 import java.util.ArrayList;
@@ -58,11 +58,6 @@ public class Agent extends MetadataHolder implements KeyServices {
     private AgentConfig agentConfig;
 
     /**
-     * Properties which should be sent to the server with each request from this agent.
-     */
-    private MetadataMap metadata;
-
-    /**
      * The (externally provided) fingerprint associated with this agent instance.
      */
     private Fingerprint fingerprint;
@@ -72,6 +67,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      */
     public Agent() {
         initialized = false;
+        deviceProfiles = new ArrayList<DeviceProfile>();
         agentConfig = new AgentConfig();
     }
 
@@ -232,13 +228,29 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
+     * Remove a device profile from the agent device profile collection.
+     *
+     * @param deviceId The device ID of the profile.
+     * @return Returns true if the profile was found. Returns false if the profile was not found.
+     */
+    public final boolean removeProfile(final String deviceId) {
+        DeviceProfile deviceProfileToRemove = null;
+        for (final DeviceProfile deviceProfile : deviceProfiles) {
+            if (deviceProfile.getDeviceId().equals(deviceId)) {
+                deviceProfileToRemove = deviceProfile;
+            }
+        }
+        return deviceProfiles.remove(deviceProfileToRemove);
+    }
+
+    /**
      * Load device profiles using the default profile persistor. Attempts to load device profiles using the default
      * profile persistor.
      *
      * @throws IonicException always, as the Java 2.0 SDK does not implement a (platform-specific) default persistor
      */
     public final void loadProfiles() throws IonicException {
-        throw new IonicException(AgentErrorModuleConstants.ISAGENT_NO_DEVICE_PROFILE.value());
+        throw new IonicException(SdkError.ISAGENT_NO_DEVICE_PROFILE);
     }
 
     /**
@@ -278,7 +290,7 @@ public class Agent extends MetadataHolder implements KeyServices {
             // load to local stack data.  if loading failed due to resource not found
             // (i.e. the storage file or other resource does not exist) then we do not
             // consider this an error. per the c++ sdk (ISAgent.cpp#617)
-            if (e.getReturnCode() != AgentErrorModuleConstants.ISAGENT_RESOURCE_NOT_FOUND.value()) {
+            if (e.getReturnCode() != SdkError.ISAGENT_RESOURCE_NOT_FOUND) {
                 throw e;
             }
         }
@@ -294,7 +306,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException always, as the Java 2.0 SDK does not implement a (platform-specific) default persistor
      */
     public final void saveProfiles() throws IonicException {
-        throw new IonicException(AgentErrorModuleConstants.ISAGENT_NO_DEVICE_PROFILE.value());
+        throw new IonicException(SdkError.ISAGENT_NO_DEVICE_PROFILE);
     }
 
     /**
@@ -370,17 +382,6 @@ public class Agent extends MetadataHolder implements KeyServices {
      */
     @Override
     public final CreateKeysResponse createKeys(final CreateKeysRequest request) throws IonicException {
-        return createKeysInternal(request);
-    }
-
-    /**
-     * Creates one or more protection keys through Ionic.com.
-     *
-     * @param request The protection key request input data object.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
-    private CreateKeysResponse createKeysInternal(final CreateKeysRequest request) throws IonicException {
         final CreateKeysResponse response = new CreateKeysResponse();
         final CreateKeysTransaction transaction = new CreateKeysTransaction(this, request, response);
         transaction.run();
@@ -388,7 +389,7 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Creates a single protection key with **immutable** key attributes through Ionic.com.
+     * Creates a single protection key with **immutable** and mutable key attributes through Ionic.com.
      *
      * @param attributes        The **immutable** protection key attributes to use for creating the protection key.
      * @param mutableAttributes The mutable protection key attributes to use for creating the protection key.
@@ -403,11 +404,11 @@ public class Agent extends MetadataHolder implements KeyServices {
         final CreateKeysRequest request = new CreateKeysRequest();
         request.setMetadata(metadata);
         request.add(new CreateKeysRequest.Key(IDC.Payload.REF, 1, attributes, mutableAttributes));
-        return createKeysInternal(request);
+        return createKeyInternal(request);
     }
 
     /**
-     * Creates a single protection key with **immutable** key attributes through Ionic.com.
+     * Creates a single protection key with **immutable** and mutable key attributes through Ionic.com.
      *
      * @param attributes        The **immutable** protection key attributes to use for creating the protection key.
      * @param mutableAttributes The mutable protection key attributes to use for creating the protection key.
@@ -415,11 +416,11 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException if an error occurs
      */
     @Override
-    public final CreateKeysResponse createKey(
-            final KeyAttributesMap attributes, final KeyAttributesMap mutableAttributes) throws IonicException {
+    public final CreateKeysResponse createKey(final KeyAttributesMap attributes,
+                                              final KeyAttributesMap mutableAttributes) throws IonicException {
         final CreateKeysRequest request = new CreateKeysRequest();
         request.add(new CreateKeysRequest.Key(IDC.Payload.REF, 1, attributes, mutableAttributes));
-        return createKeysInternal(request);
+        return createKeyInternal(request);
     }
 
     /**
@@ -431,12 +432,12 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException if an error occurs
      */
     @Override
-    public final CreateKeysResponse createKey(
-            final KeyAttributesMap attributes, final MetadataMap metadata) throws IonicException {
+    public final CreateKeysResponse createKey(final KeyAttributesMap attributes,
+                                              final MetadataMap metadata) throws IonicException {
         final CreateKeysRequest request = new CreateKeysRequest();
         request.setMetadata(metadata);
         request.add(new CreateKeysRequest.Key(IDC.Payload.REF, 1, attributes, new KeyAttributesMap()));
-        return createKeysInternal(request);
+        return createKeyInternal(request);
     }
 
     /**
@@ -450,11 +451,11 @@ public class Agent extends MetadataHolder implements KeyServices {
     public final CreateKeysResponse createKey(final KeyAttributesMap attributes) throws IonicException {
         final CreateKeysRequest request = new CreateKeysRequest();
         request.add(new CreateKeysRequest.Key(IDC.Payload.REF, 1, attributes, new KeyAttributesMap()));
-        return createKeysInternal(request);
+        return createKeyInternal(request);
     }
 
     /**
-     * Creates a single protection key without any key attributes through Ionic.com.
+     * Creates a single protection key without key attributes through Ionic.com.
      *
      * @param metadata The metadata properties to send along with the HTTP request.
      * @return The protection key response output data object.
@@ -465,11 +466,11 @@ public class Agent extends MetadataHolder implements KeyServices {
         final CreateKeysRequest request = new CreateKeysRequest();
         request.setMetadata(metadata);
         request.add(new CreateKeysRequest.Key(IDC.Payload.REF, 1, new KeyAttributesMap(), new KeyAttributesMap()));
-        return createKeysInternal(request);
+        return createKeyInternal(request);
     }
 
     /**
-     * Creates a single protection key without any key attributes through Ionic.com.
+     * Creates a single protection key without key attributes through Ionic.com.
      *
      * @return The protection key response output data object.
      * @throws IonicException if an error occurs
@@ -478,7 +479,26 @@ public class Agent extends MetadataHolder implements KeyServices {
     public final CreateKeysResponse createKey() throws IonicException {
         final CreateKeysRequest request = new CreateKeysRequest();
         request.add(new CreateKeysRequest.Key(IDC.Payload.REF, 1, new KeyAttributesMap(), new KeyAttributesMap()));
-        return createKeysInternal(request);
+        return createKeyInternal(request);
+    }
+
+    /**
+     * Creates one or more protection keys through Ionic.com.
+     *
+     * @param request The protection key request input data object.
+     * @return The protection key response output data object.
+     * @throws IonicException if an error occurs
+     */
+    private CreateKeysResponse createKeyInternal(final CreateKeysRequest request) throws IonicException {
+        final CreateKeysResponse response = new CreateKeysResponse();
+        final CreateKeysTransaction transaction = new CreateKeysTransaction(this, request, response);
+        transaction.run();
+        // response validation (reference implementation symmetry)
+        if (response.getKeys().isEmpty()) {
+            throw new IonicException(SdkError.ISAGENT_KEY_DENIED,
+                    new IonicServerException(SdkError.ISAGENT_MISSINGVALUE, response.getConversationId(), response));
+        }
+        return response;
     }
 
     /**
@@ -566,34 +586,30 @@ public class Agent extends MetadataHolder implements KeyServices {
     /**
      * Updates a single protection key from Ionic.com.
      *
-     * @param key         key to update
-     * @param forceUpdate instruction for server to unconditionally overwrite the existing mutable attributes
-     * @param metadata    The metadata properties to send along with the HTTP request.
+     * @param key      key to update
+     * @param metadata The metadata properties to send along with the HTTP request.
      * @return The protection key response output data object.
      * @throws IonicException if an error occurs
      */
     @Override
     public final UpdateKeysResponse updateKey(
-            final AgentKey key, final boolean forceUpdate, final MetadataMap metadata) throws IonicException {
+            final UpdateKeysRequest.Key key, final MetadataMap metadata) throws IonicException {
         final UpdateKeysRequest request = new UpdateKeysRequest();
         request.setMetadata(metadata);
-        request.add(new UpdateKeysRequest.Key(key, forceUpdate));
+        request.addKey(new UpdateKeysRequest.Key(key));
         return updateKeysInternal(request);
     }
 
     /**
      * Updates a single protection key from Ionic.com.
      *
-     * @param key         key to update
-     * @param forceUpdate instruction for server to unconditionally overwrite the existing mutable attributes
+     * @param key key to update
      * @return The protection key response output data object.
      * @throws IonicException if an error occurs
      */
-    @Override
-    public final UpdateKeysResponse updateKey(final AgentKey key, final boolean forceUpdate) throws IonicException {
+    public final UpdateKeysResponse updateKey(final UpdateKeysRequest.Key key) throws IonicException {
         final UpdateKeysRequest request = new UpdateKeysRequest();
-        request.setMetadata(new MetadataMap());
-        request.add(new UpdateKeysRequest.Key(key, forceUpdate));
+        request.addKey(new UpdateKeysRequest.Key(key));
         return updateKeysInternal(request);
     }
 
@@ -611,7 +627,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      */
     public final GetResourcesResponse getResource(final GetResourcesRequest.Resource resource) throws IonicException {
         final GetResourcesRequest request = new GetResourcesRequest();
-        request.setMetadata(metadata);
+        request.setMetadata(getMetadata());
         request.add(resource);
         return getResourcesInternal(request);
     }
@@ -654,7 +670,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException always, as the Java 2.0 SDK does not implement a (platform-specific) default persistor
      */
     public final void initialize() throws IonicException {
-        throw new IonicException(AgentErrorModuleConstants.ISAGENT_NO_DEVICE_PROFILE.value());
+        throw new IonicException(SdkError.ISAGENT_NO_DEVICE_PROFILE);
     }
 
     /**
@@ -664,7 +680,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException always, as the Java 2.0 SDK does not implement a (platform-specific) default persistor
      */
     public final void initialize(final AgentConfig agentConfig) throws IonicException {
-        throw new IonicException(AgentErrorModuleConstants.ISAGENT_NO_DEVICE_PROFILE.value());
+        throw new IonicException(SdkError.ISAGENT_NO_DEVICE_PROFILE);
     }
 
     /**
@@ -733,13 +749,14 @@ public class Agent extends MetadataHolder implements KeyServices {
     private void initializeInternal(final AgentConfig agentConfig, final DeviceProfilePersistorBase persistor,
                                     final MetadataMap metadata, final Fingerprint fingerprint) throws IonicException {
         if (initialized) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_DOUBLEINIT.value());
+            throw new IonicException(SdkError.ISAGENT_DOUBLEINIT);
         }
-        AgentSdk.initialize(null);
+        AgentSdk.initialize();
         loadProfilesInternal(persistor);
         this.initialized = true;
         this.agentConfig = agentConfig;
-        this.metadata = metadata;
+        setMetadata(metadata);
+        setMetadata(IDC.Metadata.IONIC_AGENT, SdkVersion.getAgentString());
         this.fingerprint = fingerprint;
     }
 
@@ -751,4 +768,11 @@ public class Agent extends MetadataHolder implements KeyServices {
     public final boolean isInitialized() {
         return initialized;
     }
+
+    /**
+     * This string constant represents the key origin ID for keys that originate
+     * from an Ionic key server. Outside of advanced use cases by an SDK consumer, this is
+     * the only key origin string that will ever be used.
+     */
+    public static final String KEYORIGIN_IONIC_KEYSERVER = IDC.Metadata.KEYORIGIN_IONIC;
 }

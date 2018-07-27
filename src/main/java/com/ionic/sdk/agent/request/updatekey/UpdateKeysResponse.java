@@ -1,7 +1,10 @@
 package com.ionic.sdk.agent.request.updatekey;
 
 import com.ionic.sdk.agent.key.AgentKey;
+import com.ionic.sdk.agent.key.KeyAttributesMap;
+import com.ionic.sdk.agent.key.KeyObligationsMap;
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
+import com.ionic.sdk.core.value.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,12 +107,21 @@ public class UpdateKeysResponse extends AgentResponseBase {
         /**
          * The device id associated with the creation request.
          */
-        private final String deviceId;
+        private String deviceId;
 
         /**
          * The origin of the associated key.
          */
-        private final String origin;
+        private String origin;
+
+        /**
+         * Constructor.
+         */
+        public Key() {
+            super();
+            this.deviceId = "";
+            this.origin = "";
+        }
 
         /**
          * Constructor.
@@ -125,6 +137,63 @@ public class UpdateKeysResponse extends AgentResponseBase {
         }
 
         /**
+         * Constructor.
+         *
+         * @param id       the specified key id to initialize with.
+         * @param key      the specified key data to initialize with.
+         * @param deviceId the associated Ionic device id
+         * @throws NullPointerException When keyId or keyBytes are null.
+         */
+        public Key(final String id, final byte[] key, final String deviceId) {
+            super(id, key);
+            this.setDeviceId(deviceId);
+        }
+
+        /**
+         * Constructor.
+         *
+         * @param id                the specified key id to initialize with.
+         * @param key               the specified key data to initialize with.
+         * @param deviceId          the associated Ionic device id
+         * @param attributes        the specified key attributes to initialize with.
+         * @param mutableAttributes the specified mutable attributes to initialize with.
+         * @param obligations       the specified key obligations to initialize with.
+         * @param keyOrigin         the origin of the key
+         */
+        public Key(final String id, final byte[] key, final String deviceId, final KeyAttributesMap attributes,
+                   final KeyAttributesMap mutableAttributes, final KeyObligationsMap obligations,
+                   final String keyOrigin) {
+            super(id, key, attributes, mutableAttributes, obligations);
+            this.setDeviceId(deviceId);
+            this.setOrigin(keyOrigin);
+        }
+
+        /**
+         * Constructor.
+         *
+         * @param id                                   the specified key id to initialize with.
+         * @param key                                  the specified key data to initialize with.
+         * @param deviceId                             the associated Ionic device id
+         * @param attributes                           the specified key attributes to initialize with.
+         * @param mutableAttributes                    the specified mutable attributes to initialize with.
+         * @param obligations                          the specified key obligations to initialize with.
+         * @param keyOrigin                            the origin of the key
+         * @param attributesSigBase64FromServer        the server signature applied to the immutable attributes
+         * @param mutableAttributesSigBase64FromServer the server signature applied to the mutable attributes
+         */
+        @SuppressWarnings({"checkstyle:parameternumber"})  // Java JNI SDK API compatibility
+        public Key(final String id, final byte[] key, final String deviceId, final KeyAttributesMap attributes,
+                   final KeyAttributesMap mutableAttributes, final KeyObligationsMap obligations,
+                   final String keyOrigin,
+                   final String attributesSigBase64FromServer, final String mutableAttributesSigBase64FromServer) {
+            super(id, key, attributes, mutableAttributes, obligations);
+            this.setDeviceId(deviceId);
+            this.setOrigin(keyOrigin);
+            this.setAttributesSigBase64FromServer(attributesSigBase64FromServer);
+            this.setMutableAttributesSigBase64FromServer(mutableAttributesSigBase64FromServer);
+        }
+
+        /**
          * @return the device id associated with the creation request
          */
         public final String getDeviceId() {
@@ -132,10 +201,29 @@ public class UpdateKeysResponse extends AgentResponseBase {
         }
 
         /**
+         * Set the device ID.
+         *
+         * @param deviceId the device identifier to associate with this key
+         *                 The key attributes map.
+         */
+        public final void setDeviceId(final String deviceId) {
+            this.deviceId = Value.defaultOnEmpty(deviceId, "");
+        }
+
+        /**
          * @return the origin of the associated key
          */
         public final String getOrigin() {
             return origin;
+        }
+
+        /**
+         * Set the origin string for this cryptography key.
+         *
+         * @param origin the origin identifier (typically Agent.KEYORIGIN_IONIC_KEYSERVER)
+         */
+        public final void setOrigin(final String origin) {
+            this.origin = Value.defaultOnEmpty(origin, "");
         }
     }
 
@@ -147,22 +235,22 @@ public class UpdateKeysResponse extends AgentResponseBase {
         /**
          * A String denoting the id of the key.
          */
-        private final String keyId;
+        private String keyId;
 
         /**
          * The client error code (SDK client side error code).
          */
-        private final int clientError;
+        private int clientError;
 
         /**
          * The server error code provided by an Ionic server.
          */
-        private final int serverError;
+        private int serverError;
 
         /**
          * The server error message string provided by an Ionic server.
          */
-        private final String serverMessage;
+        private String serverMessage;
 
         /**
          * Constructor.
@@ -188,10 +276,28 @@ public class UpdateKeysResponse extends AgentResponseBase {
         }
 
         /**
+         * Set the key ID (key tag).
+         *
+         * @param keyId The key ID (also known as the key tag)
+         */
+        public final void setKeyId(final String keyId) {
+            this.keyId = keyId;
+        }
+
+        /**
          * @return The client error code (SDK client side error code).
          */
         public final int getClientError() {
             return clientError;
+        }
+
+        /**
+         * Set the client error code (SDK client side error code).
+         *
+         * @param clientError The client error code (SDK client side error code)
+         */
+        public final void setClientError(final int clientError) {
+            this.clientError = clientError;
         }
 
         /**
@@ -202,10 +308,28 @@ public class UpdateKeysResponse extends AgentResponseBase {
         }
 
         /**
+         * Set the server error code provided by an Ionic server.
+         *
+         * @param serverError the server error code provided by an Ionic server
+         */
+        public final void setServerError(final int serverError) {
+            this.serverError = serverError;
+        }
+
+        /**
          * @return The server error message string provided by an Ionic server.
          */
         public final String getServerMessage() {
             return serverMessage;
+        }
+
+        /**
+         * Set the server error message string provided by an Ionic server.
+         *
+         * @param serverMessage the server error message string provided by an Ionic server
+         */
+        public final void setServerMessage(final String serverMessage) {
+            this.serverMessage = serverMessage;
         }
     }
 }

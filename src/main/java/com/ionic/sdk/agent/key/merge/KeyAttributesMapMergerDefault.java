@@ -1,7 +1,7 @@
 package com.ionic.sdk.agent.key.merge;
 
 import com.ionic.sdk.agent.key.KeyAttributesMap;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
+import com.ionic.sdk.error.SdkError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +27,26 @@ public class KeyAttributesMapMergerDefault implements KeyAttributesMapMerger {
      *                                 key create, fetch, or update operation.
      * @param currentServerAttributes  The attributes as they are currently known to the server.
      * @param clientAttributes         The attributes known to the client.
+     * @return The output attributes resulting from the merge operation.
+     */
+    public final KeyAttributesMap mergeKeyAttributeMaps(final boolean attributesAreMutable,
+                                                        final KeyAttributesMap originalServerAttributes,
+                                                        final KeyAttributesMap currentServerAttributes,
+                                                        final KeyAttributesMap clientAttributes) {
+        final KeyAttributesMap mergedAttributes = new KeyAttributesMap(currentServerAttributes);
+        mergeKeyAttributeMapsInternal(attributesAreMutable, originalServerAttributes,
+                currentServerAttributes, clientAttributes, mergedAttributes);
+        return mergedAttributes;
+    }
+
+    /**
+     * Perform key attribute merge operation.
+     *
+     * @param attributesAreMutable     Specifies if the attributes being merged are mutable or not.
+     * @param originalServerAttributes The attributes originally received from the server during a past
+     *                                 key create, fetch, or update operation.
+     * @param currentServerAttributes  The attributes as they are currently known to the server.
+     * @param clientAttributes         The attributes known to the client.
      * @param mergedAttributes         The output attributes resulting from the merge operation.
      * @return An error code indicating the status of the operation.
      */
@@ -36,6 +56,26 @@ public class KeyAttributesMapMergerDefault implements KeyAttributesMapMerger {
                                            final KeyAttributesMap currentServerAttributes,
                                            final KeyAttributesMap clientAttributes,
                                            final KeyAttributesMap mergedAttributes) {
+        return mergeKeyAttributeMapsInternal(attributesAreMutable,
+                originalServerAttributes, currentServerAttributes, clientAttributes, mergedAttributes);
+    }
+
+    /**
+     * Perform key attribute merge operation.
+     *
+     * @param attributesAreMutable     Specifies if the attributes being merged are mutable or not.
+     * @param originalServerAttributes The attributes originally received from the server during a past
+     *                                 key create, fetch, or update operation.
+     * @param currentServerAttributes  The attributes as they are currently known to the server.
+     * @param clientAttributes         The attributes known to the client.
+     * @param mergedAttributes         The output attributes resulting from the merge operation.
+     * @return An error code indicating the status of the operation.
+     */
+    private int mergeKeyAttributeMapsInternal(final boolean attributesAreMutable,
+                                              final KeyAttributesMap originalServerAttributes,
+                                              final KeyAttributesMap currentServerAttributes,
+                                              final KeyAttributesMap clientAttributes,
+                                              final KeyAttributesMap mergedAttributes) {
         // Trying to model as closely as possible the existing C++ implementation.  One gotcha was that the C++
         // algorithm depended on the ability to examine the collection element at the iterator cursor.  Using
         // ListIterator and adjusting the logic as needed.  Also changed KeyAttributesMap to derive from TreeMap, so
@@ -101,7 +141,7 @@ public class KeyAttributesMapMergerDefault implements KeyAttributesMapMerger {
         mergedAttributes.clear();
         mergedAttributes.putAll(finalAttributes);
         logger.finest(String.format("mergedAttributes = %s", mergedAttributes.toString()));
-        return AgentErrorModuleConstants.ISAGENT_OK.value();
+        return SdkError.ISAGENT_OK;
     }
 
     /**

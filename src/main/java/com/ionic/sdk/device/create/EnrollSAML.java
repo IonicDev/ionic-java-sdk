@@ -7,8 +7,8 @@ import com.ionic.sdk.agent.request.createdevice.CreateDeviceResponse;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.io.Stream;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpClient;
 import com.ionic.sdk.httpclient.HttpClientFactory;
@@ -45,8 +45,7 @@ public final class EnrollSAML {
     public EnrollSAML(final String url) throws IonicException {
         this.url = AgentTransactionUtil.getProfileUrl(url);
         final AgentConfig config = new AgentConfig();
-        this.httpClient = HttpClientFactory.create(config.getHttpImpl(),
-                config.getHttpTimeoutSecs(), config.getMaxRedirects(), this.url.getProtocol());
+        this.httpClient = HttpClientFactory.create(config, this.url.getProtocol());
     }
 
     /**
@@ -67,7 +66,7 @@ public final class EnrollSAML {
             final HttpResponse httpResponse4 = retrievePubkey(httpResponse3);
             return createDevice(httpResponse3, httpResponse4, deviceProfileName);
         } catch (IOException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_REQUESTFAILED.value(), e);
+            throw new IonicException(SdkError.ISAGENT_REQUESTFAILED, e);
         }
     }
 
@@ -82,7 +81,7 @@ public final class EnrollSAML {
     private HttpResponse initiateTransaction(final URL url) throws IOException, IonicException {
         final HttpRequest httpRequest = new HttpRequest(url, Http.Method.GET, url.getFile());
         final HttpResponse httpResponse = httpClient.execute(httpRequest);
-        require(!AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode()), REQUEST_FAILED);
+        require(!AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode()), SdkError.ISAGENT_REQUESTFAILED);
         return httpResponse;
     }
 
@@ -100,15 +99,15 @@ public final class EnrollSAML {
             final HttpResponse httpResponse1, final String user, final String pass) throws IOException, IonicException {
         final String samlRedirect = httpResponse1.getHttpHeaders().getHeaderValue(Header.X_SAML_REDIRECT);
         final String samlRequest = httpResponse1.getHttpHeaders().getHeaderValue(Header.X_SAML_REQUEST);
-        require((samlRedirect != null), INVALID_VALUE);
-        require((samlRequest != null), INVALID_VALUE);
+        require((samlRedirect != null), SdkError.ISAGENT_INVALIDVALUE);
+        require((samlRequest != null), SdkError.ISAGENT_INVALIDVALUE);
         final URL url2 = AgentTransactionUtil.getProfileUrl(samlRedirect);
         final byte[] entity = Transcoder.utf8().decode(String.format(Payload.SAML_REQUEST,
                 HttpUtils.urlEncode(user), HttpUtils.urlEncode(pass), HttpUtils.urlEncode(samlRequest)));
         final HttpRequest httpRequest = new HttpRequest(
                 url2, Http.Method.POST, url2.getFile(), new HttpHeaders(), new ByteArrayInputStream(entity));
         final HttpResponse httpResponse = httpClient.execute(httpRequest);
-        require(!AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode()), REQUEST_FAILED);
+        require(!AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode()), SdkError.ISAGENT_REQUESTFAILED);
         return httpResponse;
     }
 
@@ -131,7 +130,7 @@ public final class EnrollSAML {
         final HttpRequest httpRequest = new HttpRequest(
                 url3, Http.Method.POST, url3.getFile(), new HttpHeaders(), new ByteArrayInputStream(entity));
         final HttpResponse httpResponse = httpClient.execute(httpRequest);
-        require(!AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode()), REQUEST_FAILED);
+        require(!AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode()), SdkError.ISAGENT_REQUESTFAILED);
         return httpResponse;
     }
 
@@ -148,7 +147,7 @@ public final class EnrollSAML {
         final URL url4 = AgentTransactionUtil.getProfileUrl(urlPubkey);
         final HttpRequest httpRequest = new HttpRequest(url4, Http.Method.GET, url4.getFile());
         final HttpResponse httpResponse = httpClient.execute(httpRequest);
-        require(!AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode()), REQUEST_FAILED);
+        require(!AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode()), SdkError.ISAGENT_REQUESTFAILED);
         return httpResponse;
     }
 
@@ -190,16 +189,6 @@ public final class EnrollSAML {
             throw new IonicException(errorCode);
         }
     }
-
-    /**
-     * Shorthand for a {@link AgentErrorModuleConstants} constant.
-     */
-    private static final int INVALID_VALUE = AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value();
-
-    /**
-     * Shorthand for a {@link AgentErrorModuleConstants} constant.
-     */
-    private static final int REQUEST_FAILED = AgentErrorModuleConstants.ISAGENT_REQUESTFAILED.value();
 
     /**
      * Text names associated with http headers used in device enrollment.

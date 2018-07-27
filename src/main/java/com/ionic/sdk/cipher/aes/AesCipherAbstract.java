@@ -43,12 +43,12 @@ public abstract class AesCipherAbstract extends CipherAbstract {
     }
 
     /**
-     * Get the required length of the AES cipher.
+     * Get the required length of the AES cipher (in bytes).
      *
-     * @return The required length of the AES cipher. Providing a key of any other length will result in an error being
-     * returned during any encryption / decryption operation.
+     * @return The required length of the AES cipher. Providing a key of any other length will result in an error
+     * being returned during any encryption / decryption operation.
      */
     public static int getCipherKeyLen() {
-        return AesCipher.KEY_BITS;
+        return AesCipher.KEY_BYTES;
     }
 }

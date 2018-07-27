@@ -1,8 +1,8 @@
 package com.ionic.sdk.device;
 
 import com.ionic.sdk.core.io.Stream;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,7 @@ public final class DeviceUtils {
         try {
             return Stream.read(file);
         } catch (IOException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_OPENFILE.value());
+            throw new IonicException(SdkError.ISAGENT_OPENFILE);
         }
     }
 
@@ -45,7 +45,7 @@ public final class DeviceUtils {
         try {
             Stream.write(file, bytes);
         } catch (IOException e) {
-            throw new IonicException(AgentErrorModuleConstants.ISAGENT_OPENFILE.value());
+            throw new IonicException(SdkError.ISAGENT_OPENFILE);
         }
     }
 }

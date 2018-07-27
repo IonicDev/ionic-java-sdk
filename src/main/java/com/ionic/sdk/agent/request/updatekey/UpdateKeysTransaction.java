@@ -11,10 +11,13 @@ import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.IonicServerException;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
 import com.ionic.sdk.httpclient.HttpResponse;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -22,6 +25,7 @@ import javax.json.JsonObject;
 import javax.json.JsonValue;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -69,7 +73,7 @@ public class UpdateKeysTransaction extends AgentTransactionBase {
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
         final String cid = message.getCid();
         // assemble the secured (outer) HTTP payload
-        final String envelope = JsonU.toJson(jsonMessage, false);
+        final String envelope = JsonIO.write(jsonMessage, false);
         //logger.finest(envelope);  // plaintext json; IDC http entity (for debugging)
         final AesGcmCipher cipher = new AesGcmCipher();
         cipher.setKey(activeProfile.getAesCdIdcProfileKey());
@@ -79,12 +83,12 @@ public class UpdateKeysTransaction extends AgentTransactionBase {
                 .add(IDC.Payload.CID, cid)
                 .add(IDC.Payload.ENVELOPE, envelopeSecureBase64)
                 .build();
-        logger.fine(JsonU.toJson(payload, true));
+        logger.fine(JsonIO.write(payload, true));
         // assemble the HTTP request to be sent to the server
         final URL url = AgentTransactionUtil.getProfileUrl(activeProfile);
         final String resource = String.format(IDC.Resource.KEYS_UPDATE, IDC.Resource.SERVER_API_V24);
         final ByteArrayInputStream bis = new ByteArrayInputStream(
-                Transcoder.utf8().decode(JsonU.toJson(payload, false)));
+                Transcoder.utf8().decode(JsonIO.write(payload, false)));
         return new HttpRequest(url, Http.Method.POST, resource, getHttpHeaders(), bis);
     }
 
@@ -104,21 +108,22 @@ public class UpdateKeysTransaction extends AgentTransactionBase {
         final UpdateKeysRequest request = (UpdateKeysRequest) getRequestBase();
         final UpdateKeysResponse response = (UpdateKeysResponse) getResponseBase();
         //final String cid = response.getConversationId();
-        final JsonObject jsonData = response.getJsonPayload().getJsonObject(IDC.Payload.DATA);
+        final JsonObject jsonPayload = response.getJsonPayload();
+        final JsonObject jsonData = JsonSource.getJsonObject(jsonPayload, IDC.Payload.DATA);
         // populate the keys into the response
-        final JsonArray jsonProtectionKeys = jsonData.getJsonArray(IDC.Payload.PROTECTION_KEYS);
+        final JsonArray jsonProtectionKeys = JsonSource.getJsonArray(jsonData, IDC.Payload.PROTECTION_KEYS);
         for (JsonValue value : jsonProtectionKeys) {
             // deserialize each response key into a user-consumable object
-            final JsonObject jsonProtectionKey = (JsonObject) value;
-            final String id = JsonU.getString(jsonProtectionKey, IDC.Payload.ID);
+            final JsonObject jsonProtectionKey = JsonSource.toJsonObject(value, IDC.Payload.PROTECTION_KEYS);
+            final String id = JsonSource.getString(jsonProtectionKey, IDC.Payload.ID);
             final UpdateKeysRequest.Key keyQ = request.getKey(id);
             final String csigQ = "";
             final String msigQ = message.getMsigs().getProperty(id, "");
-            final String prevcsig = keyQ.isForceUpdate() ? "" : keyQ.getAttributesSigBase64FromServer();
-            final String prevmsig = keyQ.isForceUpdate() ? "" : keyQ.getMutableAttributesSigBase64FromServer();
-            final String csig = JsonU.getString(jsonProtectionKey, IDC.Payload.CSIG);
-            final String msig = JsonU.getString(jsonProtectionKey, IDC.Payload.MSIG);
-            final String sigs = JsonU.getString(jsonProtectionKey, IDC.Payload.SIGS);
+            final String prevcsig = keyQ.getForceUpdate() ? "" : keyQ.getAttributesSigBase64FromServer();
+            final String prevmsig = keyQ.getForceUpdate() ? "" : keyQ.getMutableAttributesSigBase64FromServer();
+            final String csig = JsonSource.getString(jsonProtectionKey, IDC.Payload.CSIG);
+            final String msig = JsonSource.getString(jsonProtectionKey, IDC.Payload.MSIG);
+            final String sigs = JsonSource.getString(jsonProtectionKey, IDC.Payload.SIGS);
             // verify each received response key
             final String macR = Value.join(IDC.Signature.DELIMITER_COMMA, prevcsig, csigQ, prevmsig, msigQ);
             final String mac = Value.join(IDC.Signature.DELIMITER, keyQ.getId(), macR);
@@ -130,16 +135,22 @@ public class UpdateKeysTransaction extends AgentTransactionBase {
             response.add(keyA);
         }
         // populate the errors into the response
-        final JsonObject jsonErrors = jsonData.getJsonObject(IDC.Payload.ERROR_MAP);
+        final JsonObject jsonErrors = JsonSource.getJsonObjectNullable(jsonData, IDC.Payload.ERROR_MAP);
         if (jsonErrors != null) {
-            for (Map.Entry<String, JsonValue> entry : jsonErrors.entrySet()) {
+            final Iterator<Map.Entry<String, JsonValue>> iterator = JsonSource.getIterator(jsonErrors);
+            while (iterator.hasNext()) {
+                final Map.Entry<String, JsonValue> entry = iterator.next();
                 // deserialize each response key into a user-consumable object
                 final String keyId = entry.getKey();
-                final JsonObject error = (JsonObject) entry.getValue();
-                final int serverCode = JsonU.getInt(error, IDC.Payload.CODE);
-                final String serverMessage = JsonU.getString(error, IDC.Payload.MESSAGE);
+                final JsonObject error = JsonSource.toJsonObject(entry.getValue(), IDC.Payload.ERROR_MAP);
+                final int serverCode = JsonSource.getInt(error, IDC.Payload.CODE);
+                final String serverMessage = JsonSource.getString(error, IDC.Payload.MESSAGE);
                 response.add(new UpdateKeysResponse.IonicError(keyId, 0, serverCode, serverMessage));
             }
+        }
+        if ((JsonSource.isSize(jsonProtectionKeys, 0)) && (jsonErrors != null)) {
+            throw new IonicException(SdkError.ISAGENT_REQUESTFAILED, new IonicServerException(
+                    SdkError.ISAGENT_STALE_KEY_ATTRIBUTES, message.getCid(), response));
         }
     }
 }

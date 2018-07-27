@@ -4,6 +4,7 @@ import com.ionic.sdk.agent.key.AgentKey;
 import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.key.KeyObligationsMap;
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
+import com.ionic.sdk.core.value.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,21 @@ public class CreateKeysResponse extends AgentResponseBase {
     }
 
     /**
+     * @param refId the reference to search for in the server response
+     * @return the key record, if present, matching the specified key identifier
+     */
+    public final Key findKey(final String refId) {
+        Key key = null;
+        for (Key keyIt : keyResponses) {
+            if (refId.equals(keyIt.getRefId())) {
+                key = keyIt;
+                break;
+            }
+        }
+        return key;
+    }
+
+    /**
      * Add a key response object to the {@link CreateKeysResponse}.
      *
      * @param key the object containing the parameters of the key response
@@ -50,23 +66,23 @@ public class CreateKeysResponse extends AgentResponseBase {
         /**
          * The client supplied id associated with this key.
          */
-        private final String refId;
+        private String refId;
 
         /**
          * The device id associated with the creation request.
          */
-        private final String deviceId;
+        private String deviceId;
 
         /**
          * The origin of the associated key.
          */
-        private final String origin;
+        private String origin;
 
         /**
          * Constructor.
          */
         public Key() {
-            this(null, null, null, null, null, null, null, null, null, null);
+            this(null, "", new byte[0], null, null, null, null, null, null, null);
         }
 
         /**
@@ -100,6 +116,25 @@ public class CreateKeysResponse extends AgentResponseBase {
         /**
          * Constructor.
          *
+         * @param refId             the client key id
+         * @param id                the server key id
+         * @param key               the crypto key bytes
+         * @param deviceId          the associated Ionic device id
+         * @param attributes        the attributes for the key
+         * @param mutableAttributes the updatable attributes for the key
+         * @param keyObligations    the obligations for the key
+         * @param origin            the origin of the key
+         */
+        @SuppressWarnings({"checkstyle:parameternumber"})  // ability to efficiently instantiate from server response
+        public Key(final String refId, final String id, final byte[] key, final String deviceId,
+                   final KeyAttributesMap attributes, final KeyAttributesMap mutableAttributes,
+                   final KeyObligationsMap keyObligations, final String origin) {
+            this(refId, id, key, deviceId, attributes, mutableAttributes, keyObligations, origin, null, null);
+        }
+
+        /**
+         * Constructor.
+         *
          * @param refId                the client key id
          * @param id                   the server key id
          * @param key                  the crypto key bytes
@@ -116,24 +151,33 @@ public class CreateKeysResponse extends AgentResponseBase {
                    final KeyAttributesMap attributes, final KeyAttributesMap mutableAttributes,
                    final KeyObligationsMap keyObligations, final String origin,
                    final String attributesSig, final String mutableAttributesSig) {
-            this.refId = refId;
+            this.refId = Value.defaultOnEmpty(refId, "");
             setId(id);
             setKey(key);
-            this.deviceId = deviceId;
+            this.deviceId = Value.defaultOnEmpty(deviceId, "");
             setAttributesMap(attributes);
-            setMutableAttributes(mutableAttributes);
-            setMutableAttributesFromServer(mutableAttributes);
+            setMutableAttributesMap(mutableAttributes);
+            setMutableAttributesMapFromServer(mutableAttributes);
             setObligationsMap(keyObligations);
-            this.origin = origin;
+            this.origin = Value.defaultOnEmpty(origin, "");
             setAttributesSigBase64FromServer(attributesSig);
             setMutableAttributesSigBase64FromServer(mutableAttributesSig);
         }
 
         /**
-         * @return the client key id associated with this key.
+         * @return the client reference associated with this key.
          */
         public final String getRefId() {
             return refId;
+        }
+
+        /**
+         * Set the client reference for this key, in the context of this CreateKeys server operation.
+         *
+         * @param refId a reference to be used to associate response keys with the corresponding request.
+         */
+        public final void setRefId(final String refId) {
+            this.refId = Value.defaultOnEmpty(refId, "");
         }
 
         /**
@@ -144,10 +188,28 @@ public class CreateKeysResponse extends AgentResponseBase {
         }
 
         /**
+         * Set the device id associated with the creation request.
+         *
+         * @param deviceId the device id associated with the creation request
+         */
+        public final void setDeviceId(final String deviceId) {
+            this.deviceId = Value.defaultOnEmpty(deviceId, "");
+        }
+
+        /**
          * @return the origin of the associated key
          */
         public final String getOrigin() {
             return origin;
+        }
+
+        /**
+         * Set the origin of the associated key.
+         *
+         * @param origin the origin of the associated key
+         */
+        public final void setOrigin(final String origin) {
+            this.origin = Value.defaultOnEmpty(origin, "");
         }
     }
 }

@@ -4,20 +4,20 @@ import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.cipher.aes.AesCipher;
 import com.ionic.sdk.cipher.aes.AesGcmCipher;
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.core.rng.RNG;
+import com.ionic.sdk.core.rng.CryptoRng;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.crypto.shamir.Scheme;
-import com.ionic.sdk.error.AgentErrorModuleConstants;
-import com.ionic.sdk.error.CryptoErrorModuleConstants;
 import com.ionic.sdk.error.IonicException;
-import com.ionic.sdk.json.JsonU;
+import com.ionic.sdk.error.SdkError;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
+import com.ionic.sdk.json.JsonTarget;
 
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-import javax.json.JsonString;
 import javax.json.JsonValue;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -86,7 +86,7 @@ public final class SecretShareGenerator {
             } else if (threshold < labels.size()) {
                 createThresholdKeyFromInputs(labels, threshold, secretIt, shares);
             } else {
-                throw new IonicException(AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value());
+                throw new IonicException(SdkError.ISAGENT_INVALIDVALUE);
             }
             //logger.finest(String.format("BUCKET, SECRET_IT=[%s]", Transcoder.hex().encode(secretIt)));
             //logger.finest(String.format("BUCKET, SECRET BEFORE=[%s]", Transcoder.hex().encode(secret)));
@@ -96,15 +96,15 @@ public final class SecretShareGenerator {
         //logger.finest("GENERATE, AFTER BUCKETS");
         final JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
         for (final byte[] share : shares) {
-            jsonArrayBuilder.add(CryptoUtils.binToBase64(share));
+            JsonTarget.addNotNull(jsonArrayBuilder, CryptoUtils.binToBase64(share));
         }
-        final byte[] salt = RNG.fill(new byte[SALT_BITS / Byte.SIZE]);
+        final byte[] salt = new CryptoRng().rand(new byte[SALT_BITS / Byte.SIZE]);
         final byte[] secretFinal = CryptoUtils.pbkdf2ToBytes(secret, salt, PBKDF_ITERATIONS, secret.length);
         final JsonObject jsonPersist = Json.createObjectBuilder()
                 .add(IDC.SSKP.SHARES, jsonArrayBuilder.build())
                 .add(IDC.SSKP.SALT, CryptoUtils.binToBase64(salt))
                 .build();
-        return new SecretShareKey(CryptoUtils.binToHex(secretFinal), JsonU.toJson(jsonPersist, true));
+        return new SecretShareKey(CryptoUtils.binToHex(secretFinal), JsonIO.write(jsonPersist, true));
     }
 
     @SuppressWarnings({"checkstyle:javadocmethod"})
@@ -117,16 +117,16 @@ public final class SecretShareGenerator {
      * @throws javax.json.JsonException on problems parsing the secret share bytes
      */
     public SecretShareKey recover(final String data) throws IonicException {
-        final JsonObject jsonPersist = JsonU.getJsonObject(data);
-        final JsonArray jsonShares = jsonPersist.getJsonArray(IDC.SSKP.SHARES);
-        final JsonString jsonSalt = jsonPersist.getJsonString(IDC.SSKP.SALT);
+        final JsonObject jsonPersist = JsonIO.readObject(data);
+        final JsonArray jsonShares = JsonSource.getJsonArray(jsonPersist, IDC.SSKP.SHARES);
+        final String jsonSalt = JsonSource.getString(jsonPersist, IDC.SSKP.SALT);
 
         final List<byte[]> shares = new ArrayList<byte[]>();
         for (final JsonValue jsonValue : jsonShares) {
-            final JsonString jsonShare = (JsonString) jsonValue;
-            shares.add(CryptoUtils.base64ToBin(jsonShare.getString()));
+            final String jsonShare = JsonSource.toString(jsonValue);
+            shares.add(CryptoUtils.base64ToBin(jsonShare));
         }
-        final byte[] salt = CryptoUtils.base64ToBin(jsonSalt.getString());
+        final byte[] salt = CryptoUtils.base64ToBin(jsonSalt);
         final byte[] secret = new byte[AesCipher.KEY_BYTES];
         //logger.finest(String.format("RECOVER, BEFORE BUCKETS, SALT=[%s]", Transcoder.hex().encode(salt)));
         for (final SecretShareBucket bucket : buckets) {
@@ -139,7 +139,7 @@ public final class SecretShareGenerator {
             } else if (threshold < labels.size()) {
                 restoreThresholdKeyFromInputs(labels, threshold, secretIt, shares);
             } else {
-                throw new IonicException(AgentErrorModuleConstants.ISAGENT_INVALIDVALUE.value());
+                throw new IonicException(SdkError.ISAGENT_INVALIDVALUE);
             }
             //logger.finest(String.format("BUCKET, SECRET_IT=[%s]", Transcoder.hex().encode(secretIt)));
             //logger.finest(String.format("BUCKET, SECRET BEFORE=[%s]", Transcoder.hex().encode(secret)));
@@ -193,7 +193,7 @@ public final class SecretShareGenerator {
         final byte[] salt = Transcoder.utf8().decode(Value.joinCollection(IDC.Message.DELIMITER, keys));
         //logger.finest(String.format("CREATE(THRESHOLD), SALT=[%s]", Transcoder.utf8().encode(salt)));
         // create a secret
-        RNG.fill(secret);
+        new CryptoRng().rand(secret);
         //logger.finest(String.format("CREATE(THRESHOLD), KEY=[%s]", Transcoder.hex().encode(secret)));
         // split the secret
         final Scheme scheme = new Scheme(keys.size(), threshold);
@@ -206,7 +206,8 @@ public final class SecretShareGenerator {
             //logger.fine(String.format("CREATE(THRESHOLD), PROP_VALUE=[%s]", Transcoder.hex().encode(value)));
             // javax.crypto.spec.PBEKeySpec requires value, salt to be non-null and non-empty so we create
             // a random value to guarantee that API call will succeed, and that the field will not match
-            final byte[] valuePBKDF = (Value.isEmpty(value) ? RNG.fill(new byte[SALT_BITS / Byte.SIZE]) : value);
+            final byte[] valuePBKDF = (Value.isEmpty(value)
+                    ? new CryptoRng().rand(new byte[SALT_BITS / Byte.SIZE]) : value);
             final byte[] secretIt = CryptoUtils.pbkdf2ToBytes(valuePBKDF, salt, PBKDF_ITERATIONS, secret.length);
             //logger.finest(String.format("CREATE(THRESHOLD), SECRET_IT=[%s]", Transcoder.hex().encode(secretIt)));
             cipher.setKey(secretIt);
@@ -244,7 +245,8 @@ public final class SecretShareGenerator {
             //logger.finest(String.format("RECOVER(THRESHOLD), PROP_VALUE=[%s]", Transcoder.hex().encode(value)));
             // javax.crypto.spec.PBEKeySpec requires value, salt to be non-null and non-empty so we create
             // a random value to guarantee that API call will succeed, and that the field will not match
-            final byte[] valuePBKDF = (Value.isEmpty(value) ? RNG.fill(new byte[SALT_BITS / Byte.SIZE]) : value);
+            final byte[] valuePBKDF = (Value.isEmpty(value)
+                    ? new CryptoRng().rand(new byte[SALT_BITS / Byte.SIZE]) : value);
             final byte[] secretIt = CryptoUtils.pbkdf2ToBytes(valuePBKDF, salt, PBKDF_ITERATIONS, secret.length);
             //logger.finest(String.format("RECOVER(THRESHOLD), SECRET_IT=[%s]", Transcoder.hex().encode(secretIt)));
             cipher.setKey(secretIt);
@@ -270,7 +272,7 @@ public final class SecretShareGenerator {
             //logger.finest(String.format("RECOVER, FINAL, SECRET=[%s]", Transcoder.hex().encode(secretPart)));
             System.arraycopy(secretPart, 0, secret, 0, secretPart.length);
         } else {
-            throw new IonicException(CryptoErrorModuleConstants.ISCRYPTO_ERROR.value(), new GeneralSecurityException(
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, new GeneralSecurityException(
                     String.format("Unable to recover key; %d shares decrypted, %d needed.", parts.size(), threshold)));
         }
     }

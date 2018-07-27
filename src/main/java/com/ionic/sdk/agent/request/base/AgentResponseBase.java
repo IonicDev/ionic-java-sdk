@@ -1,5 +1,7 @@
 package com.ionic.sdk.agent.request.base;
 
+import com.ionic.sdk.core.value.Value;
+
 import javax.json.JsonObject;
 
 /**
@@ -38,6 +40,13 @@ public class AgentResponseBase {
      * transaction integrity.
      */
     private String cid;
+
+    /**
+     * Constructor.
+     */
+    public AgentResponseBase() {
+        this.cid = "";
+    }
 
     /**
      * @return the HTTP status code from the corresponding server response
@@ -132,6 +141,6 @@ public class AgentResponseBase {
      * @param cid the Ionic conversation ID
      */
     public final void setConversationId(final String cid) {
-        this.cid = cid;
+        this.cid = Value.defaultOnEmpty(cid, "");
     }
 }

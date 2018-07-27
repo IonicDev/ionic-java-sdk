@@ -1,5 +1,7 @@
 package com.ionic.sdk.core.value;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Collection;
 
 /**
@@ -143,6 +145,37 @@ public final class Value {
             buffer.append((buffer.length() == 0) ? "" : connector);
             buffer.append(valueIt);
         }
+    }
+
+    /**
+     * Convert input string into integral representation.
+     *
+     * @param value        the string which should be converted
+     * @param valueDefault the default value, on non-parsable input
+     * @return the integral representation of the input value, if it can be parsed
+     */
+    public static int toInt(final String value, final int valueDefault) {
+        Number number;
+        try {
+            number = ((value == null) ? valueDefault : NumberFormat.getInstance().parse(value));
+        } catch (ParseException e) {
+            number = valueDefault;
+        }
+        return number.intValue();
+    }
+
+    /**
+     * Copy specified portion of the input byte array into a new byte array.
+     *
+     * @param bytes    the source bytes from which to copy
+     * @param position the starting index of the source byte array from which to copy
+     * @param length   the number of bytes to copy
+     * @return a newly allocated byte array containing the copied bytes
+     */
+    public static byte[] arraycopy(final byte[] bytes, final int position, final int length) {
+        final byte[] bytesCopy = new byte[length];
+        System.arraycopy(bytes, position, bytesCopy, 0, length);
+        return bytesCopy;
     }
 
     /**

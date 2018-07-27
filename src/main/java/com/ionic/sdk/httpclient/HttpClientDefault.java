@@ -1,5 +1,6 @@
 package com.ionic.sdk.httpclient;
 
+import com.ionic.sdk.agent.config.AgentConfig;
 import com.ionic.sdk.core.date.DateTime;
 import com.ionic.sdk.core.io.Stream;
 import com.ionic.sdk.httpclient.proxy.ProxyManager;
@@ -20,14 +21,9 @@ import java.util.logging.Logger;
 public final class HttpClientDefault implements HttpClient {
 
     /**
-     * The number of seconds to wait after making a server request for a response.
+     * The configuration settings associated with the agent instance in use.
      */
-    private final int httpTimeoutSecs;
-
-    /**
-     * The maximum number of HTTP redirects.
-     */
-    private final int maxRedirects;
+    private final AgentConfig agentConfig;
 
     /**
      * The proxy configured for this client object (if no configuration, Proxy.NO_PROXY).
@@ -42,13 +38,11 @@ public final class HttpClientDefault implements HttpClient {
     /**
      * Constructor.
      *
-     * @param httpTimeoutSecs the number of seconds to wait after making a server request for a response
-     * @param maxRedirects    the maximum number of HTTP redirects
-     * @param protocol        the protocol to be checked for proxy configuration (e.g. "http", "https")
+     * @param agentConfig the configuration settings associated with the agent instance in use
+     * @param protocol    the protocol to be checked for proxy configuration (e.g. "http", "https")
      */
-    public HttpClientDefault(final int httpTimeoutSecs, final int maxRedirects, final String protocol) {
-        this.httpTimeoutSecs = httpTimeoutSecs;
-        this.maxRedirects = maxRedirects;
+    public HttpClientDefault(final AgentConfig agentConfig, final String protocol) {
+        this.agentConfig = agentConfig;
         this.proxy = ProxyManager.getProxy(protocol);
     }
 
@@ -61,8 +55,9 @@ public final class HttpClientDefault implements HttpClient {
      */
     @Override
     public HttpResponse execute(final HttpRequest httpRequest) throws IOException {
+        final int httpTimeoutSecs = agentConfig.getHttpTimeoutSecs();
         // https://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html
-        System.setProperty(Http.Network.MAX_REDIRECTS, Integer.toString(maxRedirects));
+        System.setProperty(Http.Network.MAX_REDIRECTS, Integer.toString(agentConfig.getMaxRedirects()));
         final URL url = httpRequest.getUrl();
         final String resource = httpRequest.getResource();
         final URL urlRequest = new URL(url.getProtocol(), url.getHost(), url.getPort(), resource);
@@ -89,6 +84,7 @@ public final class HttpClientDefault implements HttpClient {
         connection.setDoInput(true);
         connection.setDoOutput(entity != null);
         for (final HttpHeader httpHeader : httpRequest.getHttpHeaders()) {
+            logger.finest(String.format("request header: [%s]=[%s]", httpHeader.getName(), httpHeader.getValue()));
             connection.setRequestProperty(httpHeader.getName(), httpHeader.getValue());
         }
         logger.finest(String.format("ready to connect, HttpURLConnection = %s", connection));
@@ -119,6 +115,7 @@ public final class HttpClientDefault implements HttpClient {
         for (final Map.Entry<String, List<String>> entry : headerFields.entrySet()) {
             final String name = entry.getKey();
             for (final String value : entry.getValue()) {
+                logger.finest(String.format("response header: [%s]=[%s]", name, value));
                 httpHeadersResponse.add(new HttpHeader(name, value));
             }
         }

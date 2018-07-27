@@ -1,21 +1,10 @@
 package com.ionic.sdk.json;
 
-import com.ionic.sdk.core.codec.Transcoder;
+import com.ionic.sdk.error.IonicException;
 
-import javax.json.Json;
 import javax.json.JsonArray;
-import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.json.JsonString;
-import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
-import javax.json.stream.JsonGenerator;
-import java.io.ByteArrayOutputStream;
-import java.io.StringReader;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Utility methods for working with objects from the javax.json library.
@@ -37,16 +26,7 @@ public final class JsonU {
      * @return a human readable representation of the source data
      */
     public static String toJson(final JsonObject jsonObject, final boolean pretty) {
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        final Map<String, Boolean> config = new TreeMap<String, Boolean>();
-        if (pretty) {
-            config.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
-        }
-        final JsonWriterFactory writerFactory = javax.json.Json.createWriterFactory(config);
-        try (final JsonWriter writer = writerFactory.createWriter(os)) {
-            writer.writeObject(jsonObject);
-        }
-        return Transcoder.utf8().encode(os.toByteArray());
+        return JsonIO.write(jsonObject, pretty);
     }
 
     /**
@@ -57,8 +37,7 @@ public final class JsonU {
      * @return the json value associated with the name, or null if not present
      */
     public static String getString(final JsonObject jsonObject, final String name) {
-        final JsonString jsonString = jsonObject.getJsonString(name);
-        return (jsonString == null) ? null : jsonString.getString();
+        return JsonSource.getString(jsonObject, name);
     }
 
     /**
@@ -69,8 +48,7 @@ public final class JsonU {
      * @return the json value associated with the name, or 0 if not present
      */
     public static int getInt(final JsonObject jsonObject, final String name) {
-        final JsonNumber jsonNumber = jsonObject.getJsonNumber(name);
-        return (jsonNumber == null) ? 0 : jsonNumber.intValue();
+        return JsonSource.getInt(jsonObject, name);
     }
 
     /**
@@ -78,11 +56,10 @@ public final class JsonU {
      *
      * @param jsonString a string that can be parsed into a JsonObject
      * @return the JsonObject representation of the input string
+     * @throws IonicException on failure parsing the input json
      */
-    public static JsonObject getJsonObject(final String jsonString) {
-        try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
-            return jsonReader.readObject();
-        }
+    public static JsonObject getJsonObject(final String jsonString) throws IonicException {
+        return JsonIO.readObject(jsonString);
     }
 
     /**
@@ -90,11 +67,10 @@ public final class JsonU {
      *
      * @param jsonString a string that can be parsed into a JsonArray
      * @return the JsonArray representation of the input string
+     * @throws IonicException on failure parsing the input json
      */
-    public static JsonArray getJsonArray(final String jsonString) {
-        try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
-            return jsonReader.readArray();
-        }
+    public static JsonArray getJsonArray(final String jsonString) throws IonicException {
+        return JsonIO.readArray(jsonString);
     }
 
     /**
@@ -105,8 +81,6 @@ public final class JsonU {
      * @param value         the attribute value
      */
     public static void addNotNull(final JsonObjectBuilder objectBuilder, final String name, final String value) {
-        if (value != null) {
-            objectBuilder.add(name, value);
-        }
+        JsonTarget.addNotNull(objectBuilder, name, value);
     }
 }
