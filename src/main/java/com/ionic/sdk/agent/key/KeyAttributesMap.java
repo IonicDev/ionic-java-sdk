@@ -123,7 +123,7 @@ public final class KeyAttributesMap extends TreeMap<String, List<String>> {
      */
     @Deprecated
     public boolean hasKey(final String key) {
-        return ((key != null) && (this.containsKey(key)));
+        return ((key != null) && this.containsKey(key));
     }
 
     /**

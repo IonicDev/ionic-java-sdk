@@ -86,6 +86,16 @@ public final class AgentSdk {
         }
     }
 
+    @Override
+    public String toString() {
+        return getClass().getName() + DELIMITER_AT + Integer.toHexString(hashCode());
+    }
+
+    /**
+     * Delimiter that can be used when joining strings together.
+     */
+    public static final String DELIMITER_AT = "@";
+
     /**
      * Helper to guard against double init.
      * <p>

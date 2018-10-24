@@ -42,7 +42,23 @@ public final class SdkVersion {
     }
 
     /**
+     * Define the SDK major version number.
+     */
+    public static final int IONIC_SDK_MAJOR = 0;
+
+    /**
+     * Define the SDK minor version number.
+     */
+    public static final int IONIC_SDK_MINOR = 0;
+
+    /**
+     * Define the SDK patch version number.
+     */
+    public static final int IONIC_SDK_PATCH = 0;
+
+    /**
      * The built in Ionic SDK version used as a fallback when the version cannot be loaded from the jar manifest.
      */
-    private static final String VERSION = "2.2.1+000000";
+    private static final String VERSION = String.format("%d.%d.%d+000000",
+            IONIC_SDK_MAJOR, IONIC_SDK_MINOR, IONIC_SDK_PATCH);
 }

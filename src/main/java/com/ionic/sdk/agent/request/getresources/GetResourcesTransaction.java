@@ -62,14 +62,15 @@ public class GetResourcesTransaction extends AgentTransactionBase {
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
         final Agent agent = getAgent();
-        final DeviceProfile activeProfile = agent.getActiveProfile();
         this.message = new GetResourcesMessage(agent);
         final GetResourcesRequest request = (GetResourcesRequest) getRequestBase();
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
         final String cid = message.getCid();
-        // assemble the secured (outer) HTTP payload
+        final String resource = String.format(IDC.Resource.RESOURCES_GET, IDC.Resource.SERVER_API_V23);
         final String envelope = JsonIO.write(jsonMessage, false);
         //logger.finest(envelope);  // plaintext json; IDC http entity (for debugging)
+        // assemble the secured (outer) HTTP payload
+        final DeviceProfile activeProfile = agent.getActiveProfile();
         final AesGcmCipher cipher = new AesGcmCipher();
         cipher.setKey(activeProfile.getAesCdIdcProfileKey());
         cipher.setAuthData(Transcoder.utf8().decode(cid));
@@ -78,10 +79,10 @@ public class GetResourcesTransaction extends AgentTransactionBase {
                 .add(IDC.Payload.CID, cid)
                 .add(IDC.Payload.ENVELOPE, envelopeSecureBase64)
                 .build();
-        logger.fine(JsonIO.write(payload, true));
+        final String entitySecure = JsonIO.write(payload, false);
+        logger.fine(entitySecure);
         // assemble the HTTP request to be sent to the server
         final URL url = AgentTransactionUtil.getProfileUrl(activeProfile);
-        final String resource = String.format(IDC.Resource.RESOURCES_GET, IDC.Resource.SERVER_API_V23);
         final ByteArrayInputStream bis = new ByteArrayInputStream(
                 Transcoder.utf8().decode(JsonIO.write(payload, false)));
         return new HttpRequest(url, Http.Method.POST, resource, getHttpHeaders(), bis);
@@ -90,13 +91,15 @@ public class GetResourcesTransaction extends AgentTransactionBase {
     /**
      * Parse and process the server response to the client request.
      *
+     * @param httpRequest  the server request
      * @param httpResponse the server response
      * @throws IonicException on errors in the server response
      */
     @Override
-    protected final void parseHttpResponse(final HttpResponse httpResponse) throws IonicException {
+    protected final void parseHttpResponse(
+            final HttpRequest httpRequest, final HttpResponse httpResponse) throws IonicException {
         // unwrap the server response
-        parseHttpResponseBase(httpResponse, message.getCid());
+        parseHttpResponseBase(httpRequest, httpResponse, message.getCid());
         // apply logic specific to the response type
         //final Agent agent = getAgent();
         //final DeviceProfile activeProfile = agent.getActiveProfile();

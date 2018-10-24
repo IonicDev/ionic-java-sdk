@@ -9,8 +9,6 @@ import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.key.KeyServices;
 
-import java.io.IOException;
-
 /**
  * Wrapper object used to abstract Ionic cryptography operations.
  */
@@ -229,7 +227,8 @@ public class ChunkCipherAuto extends ChunkCipherAbstract {
             }
         }
         // no cipher found that understands this data
-        throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, new IOException(cipherText));
+        final int errorCode = SdkError.ISAGENT_INVALIDVALUE;
+        throw new IonicException(errorCode, new IonicException(errorCode, cipherText));
     }
 
     /**
@@ -244,7 +243,8 @@ public class ChunkCipherAuto extends ChunkCipherAbstract {
     protected final byte[] decryptInternal(final AgentKey key, final String cipherTextBase64) throws IonicException {
         // this function must be implemented in order to satisfy the inheritance contract, but is not valid
         // in context (implemented only in versioned chunk ciphers)
-        throw new IonicException(SdkError.ISCHUNKCRYPTO_ERROR, new IOException(cipherTextBase64));
+        final int errorCode = SdkError.ISCHUNKCRYPTO_ERROR;
+        throw new IonicException(errorCode, new IonicException(errorCode, cipherTextBase64));
     }
 
     /**

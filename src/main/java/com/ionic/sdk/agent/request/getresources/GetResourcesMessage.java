@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Encapsulation of helper logic associated with GetKeys SDK API.  Includes state associated with request, and
+ * Encapsulation of helper logic associated with GetResources SDK API.  Includes state associated with request, and
  * conversion of request object into json representation, for submission to IDC.
  */
 public class GetResourcesMessage extends MessageBase {
@@ -28,8 +28,8 @@ public class GetResourcesMessage extends MessageBase {
      * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
      * @throws IonicException on random number generation failure
      */
-    public GetResourcesMessage(final Agent agent) throws IonicException {
-        super(agent, AgentTransactionUtil.generateConversationId(agent.getActiveProfile().getDeviceId()));
+    GetResourcesMessage(final Agent agent) throws IonicException {
+        super(agent, AgentTransactionUtil.generateConversationId(agent.getActiveProfile(), null));
     }
 
     /**

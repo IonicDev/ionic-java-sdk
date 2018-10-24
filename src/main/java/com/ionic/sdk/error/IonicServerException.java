@@ -20,6 +20,7 @@ public final class IonicServerException extends ServerException {
      *
      * @return the SDK error code
      */
+    @Override
     public int getReturnCode() {
         return super.getReturnCode();
     }

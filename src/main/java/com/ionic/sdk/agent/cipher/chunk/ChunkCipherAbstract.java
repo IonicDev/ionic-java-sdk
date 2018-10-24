@@ -14,7 +14,6 @@ import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.key.KeyServices;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -112,7 +111,8 @@ public abstract class ChunkCipherAbstract {
             final String cipherTextBase64 = denormalize(cipherText.substring(cipherTextStart, cipherTextEnd));
             return decryptInternal(keyId, cipherTextBase64, decryptAttributes);
         } else {
-            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, new IOException(cipherText));
+            final int errorCode = SdkError.ISAGENT_INVALIDVALUE;
+            throw new IonicException(errorCode, new IonicException(errorCode, cipherText));
         }
     }
 
@@ -140,7 +140,8 @@ public abstract class ChunkCipherAbstract {
         }
         final List<GetKeysResponse.Key> getKeys = getKeysResponse.getKeys();
         if (getKeys.isEmpty()) {
-            throw new IonicException(SdkError.ISAGENT_KEY_DENIED, new IOException(cipherTextBase64));
+            final int errorCode = SdkError.ISAGENT_KEY_DENIED;
+            throw new IonicException(errorCode, new IonicException(errorCode, cipherTextBase64));
         }
         // capture response key
         final GetKeysResponse.Key getKey = getKeys.iterator().next();
@@ -149,7 +150,8 @@ public abstract class ChunkCipherAbstract {
         decryptAttributes.setMutableAttributes(getKey.getMutableAttributesMap());
         final String keyId = getKey.getId();
         if (!keyIdQ.equals(keyId)) {
-            throw new IonicException(SdkError.ISAGENT_BADRESPONSE, new IOException(cipherTextBase64));
+            final int errorCode = SdkError.ISAGENT_BADRESPONSE;
+            throw new IonicException(errorCode, new IonicException(errorCode, cipherTextBase64));
         }
         return decryptInternal(getKey, cipherTextBase64);
     }
@@ -219,7 +221,7 @@ public abstract class ChunkCipherAbstract {
      * @param data the text data to be inspected
      * @return an info object which may be used to decrypt the parameter data; or null if the data is not understood
      */
-    public abstract ChunkCryptoChunkInfo getChunkInfo(final String data);
+    public abstract ChunkCryptoChunkInfo getChunkInfo(String data);
 
     /**
      * Encrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -228,7 +230,7 @@ public abstract class ChunkCipherAbstract {
      * @return the Ionic encoded encrypted representation of the input
      * @throws IonicException on cryptography errors
      */
-    public abstract String encrypt(final String plainText) throws IonicException;
+    public abstract String encrypt(String plainText) throws IonicException;
 
     /**
      * Encrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -239,7 +241,7 @@ public abstract class ChunkCipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public abstract String encrypt(
-            final String plainText, final ChunkCryptoEncryptAttributes encryptAttributes) throws IonicException;
+            String plainText, ChunkCryptoEncryptAttributes encryptAttributes) throws IonicException;
 
     /**
      * Encrypt some bytes, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -248,7 +250,7 @@ public abstract class ChunkCipherAbstract {
      * @return the Ionic encoded encrypted representation of the input
      * @throws IonicException on cryptography errors
      */
-    public abstract String encrypt(final byte[] plainText) throws IonicException;
+    public abstract String encrypt(byte[] plainText) throws IonicException;
 
     /**
      * Encrypt some bytes, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -259,7 +261,7 @@ public abstract class ChunkCipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public abstract String encrypt(
-            final byte[] plainText, final ChunkCryptoEncryptAttributes encryptAttributes) throws IonicException;
+            byte[] plainText, ChunkCryptoEncryptAttributes encryptAttributes) throws IonicException;
 
     /**
      * Encrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -269,7 +271,7 @@ public abstract class ChunkCipherAbstract {
      * @return the Ionic encoded encrypted representation of the input
      * @throws IonicException on cryptography errors
      */
-    protected abstract String encryptInternal(final AgentKey key, final byte[] plainText) throws IonicException;
+    protected abstract String encryptInternal(AgentKey key, byte[] plainText) throws IonicException;
 
     /**
      * Decrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -278,7 +280,7 @@ public abstract class ChunkCipherAbstract {
      * @return the plainText representation of the input
      * @throws IonicException on cryptography errors
      */
-    public abstract String decrypt(final String cipherText) throws IonicException;
+    public abstract String decrypt(String cipherText) throws IonicException;
 
     /**
      * Decrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -289,7 +291,7 @@ public abstract class ChunkCipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public abstract String decrypt(
-            final String cipherText, final ChunkCryptoDecryptAttributes decryptAttributes) throws IonicException;
+            String cipherText, ChunkCryptoDecryptAttributes decryptAttributes) throws IonicException;
 
     /**
      * Decrypt some bytes, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -298,7 +300,7 @@ public abstract class ChunkCipherAbstract {
      * @return the plainText representation of the input
      * @throws IonicException on cryptography errors
      */
-    public abstract String decrypt(final byte[] cipherText) throws IonicException;
+    public abstract String decrypt(byte[] cipherText) throws IonicException;
 
     /**
      * Decrypt some bytes, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -309,7 +311,7 @@ public abstract class ChunkCipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public abstract String decrypt(
-            final byte[] cipherText, final ChunkCryptoDecryptAttributes decryptAttributes) throws IonicException;
+            byte[] cipherText, ChunkCryptoDecryptAttributes decryptAttributes) throws IonicException;
 
     /**
      * Decrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -318,7 +320,7 @@ public abstract class ChunkCipherAbstract {
      * @return the plainText representation of the input
      * @throws IonicException on cryptography errors
      */
-    public abstract byte[] decryptToBytes(final String cipherText) throws IonicException;
+    public abstract byte[] decryptToBytes(String cipherText) throws IonicException;
 
     /**
      * Decrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -329,7 +331,7 @@ public abstract class ChunkCipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public abstract byte[] decryptToBytes(
-            final String cipherText, final ChunkCryptoDecryptAttributes decryptAttributes) throws IonicException;
+            String cipherText, ChunkCryptoDecryptAttributes decryptAttributes) throws IonicException;
 
     /**
      * Decrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
@@ -339,7 +341,7 @@ public abstract class ChunkCipherAbstract {
      * @return the plainText representation of the input
      * @throws IonicException on cryptography errors
      */
-    protected abstract byte[] decryptInternal(final AgentKey key, final String cipherTextBase64) throws IonicException;
+    protected abstract byte[] decryptInternal(AgentKey key, String cipherTextBase64) throws IonicException;
 
     /**
      * ChunkCipher strips base64 padding ('=') from ciphertext embedded in a formatted ChunkCipher string.  This

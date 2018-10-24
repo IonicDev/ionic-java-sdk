@@ -32,6 +32,22 @@ public final class Stream {
     }
 
     /**
+     * Completely read the content of the <code>InputStream</code>, writing the content to the
+     * <code>OutputStream</code>.
+     *
+     * @param is the source data stream from which to read
+     * @param os the target data stream to which to write
+     * @throws IOException
+     *             if an I/O error occurs
+     */
+    public static void transmit(final InputStream is, final OutputStream os) throws IOException {
+        int b;
+        while ((b = is.read()) >= 0) {
+            os.write(b);
+        }
+    }
+
+    /**
      * Completely read the requested resource from the parameter URL.
      *
      * @param url
@@ -41,27 +57,9 @@ public final class Stream {
      *             if an I/O error occurs
      */
     public static byte[] read(final URL url) throws IOException {
-        try (BufferedInputStream is = new BufferedInputStream(url.openStream())) {
-            return readInternal(is);
+        try (BufferedInputStream bis = new BufferedInputStream(url.openStream())) {
+            return readInternal(bis, Integer.MAX_VALUE);
         }
-    }
-
-    /**
-     * Completely read the underlying resource from the parameter stream.
-     *
-     * @param is
-     *            the stream from which to read
-     * @return a byte[] containing the content of the stream
-     * @throws IOException
-     *             if an I/O error occurs
-     */
-    private static byte[] readInternal(final BufferedInputStream is) throws IOException {
-        final ByteArrayOutputStream os = new ByteArrayOutputStream();
-        int b;
-        while ((b = is.read()) >= 0) {
-            os.write(b);
-        }
-        return os.toByteArray();
     }
 
     /**
@@ -75,8 +73,23 @@ public final class Stream {
      */
     public static byte[] read(final InputStream is) throws IOException {
         try (BufferedInputStream bis = new BufferedInputStream(is)) {
-            return readInternal(bis);
+            return readInternal(bis, Integer.MAX_VALUE);
         }
+    }
+
+    /**
+     * Completely read the underlying resource from the parameter stream.
+     *
+     * @param bis
+     *            the stream from which to read
+     * @param length
+     *            the maximum size (in bytes) requested in the context of this operation
+     * @return a byte[] containing the content of the stream
+     * @throws IOException
+     *             if an I/O error occurs
+     */
+    public static byte[] read(final BufferedInputStream bis, final int length) throws IOException {
+        return readInternal(bis, length);
     }
 
     /**
@@ -89,9 +102,33 @@ public final class Stream {
      *             if an I/O error occurs
      */
     public static byte[] read(final File file) throws IOException {
-        try (BufferedInputStream is = new BufferedInputStream(new FileInputStream(file))) {
-            return readInternal(is);
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+            return readInternal(bis, Integer.MAX_VALUE);
         }
+    }
+
+    /**
+     * Completely read the underlying resource from the parameter stream.
+     *
+     * @param is
+     *            the stream from which to read
+     * @param length
+     *            the maximum size (in bytes) requested in the context of this operation
+     * @return a byte[] containing the content of the stream
+     * @throws IOException
+     *             if an I/O error occurs
+     */
+    private static byte[] readInternal(final BufferedInputStream is, final int length) throws IOException {
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        int count = 0;
+        int b;
+        while ((b = is.read()) >= 0) {
+            os.write(b);
+            if (++count >= length) {
+                break;
+            }
+        }
+        return os.toByteArray();
     }
 
     /**

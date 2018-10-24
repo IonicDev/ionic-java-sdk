@@ -51,7 +51,7 @@ public abstract class CipherAbstract {
      * @return array of bytes representing the ciphertext
      * @throws IonicException on cryptography errors
      */
-    public abstract byte[] encrypt(final byte[] plainText) throws IonicException;
+    public abstract byte[] encrypt(byte[] plainText) throws IonicException;
 
     /**
      * Encrypt a string and return the result as a byte array.
@@ -60,7 +60,7 @@ public abstract class CipherAbstract {
      * @return An array of bytes representing the ciphertext.
      * @throws IonicException on cryptography errors
      */
-    public abstract byte[] encrypt(final String plainText) throws IonicException;
+    public abstract byte[] encrypt(String plainText) throws IonicException;
 
     /**
      * Encrypt a byte array and return the result as a base64-encoded string.
@@ -102,7 +102,7 @@ public abstract class CipherAbstract {
      * @return array of bytes representing the decrypted plaintext
      * @throws IonicException on cryptography errors
      */
-    public abstract byte[] decrypt(final byte[] cipherText) throws IonicException;
+    public abstract byte[] decrypt(byte[] cipherText) throws IonicException;
 
     /**
      * Decrypt a previously-encrypted byte array and return the result as a string.

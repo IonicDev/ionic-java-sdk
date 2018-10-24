@@ -9,7 +9,8 @@ import java.util.ResourceBundle;
 public final class SdkError implements
         ChunkCryptoErrorModuleConstants,
         AgentErrorModuleConstants,
-        CryptoErrorModuleConstants {
+        CryptoErrorModuleConstants,
+        FileCryptoErrorModuleConstants {
 
     /**
      * Constructor.

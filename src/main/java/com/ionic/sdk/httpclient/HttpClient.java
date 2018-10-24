@@ -14,5 +14,5 @@ public interface HttpClient {
      * @return the response received from the server
      * @throws IOException if an I/O error occurs
      */
-    HttpResponse execute(final HttpRequest httpRequest) throws IOException;
+    HttpResponse execute(HttpRequest httpRequest) throws IOException;
 }

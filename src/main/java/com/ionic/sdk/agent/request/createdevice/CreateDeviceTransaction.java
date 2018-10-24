@@ -20,6 +20,7 @@ import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
@@ -67,7 +68,11 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
             final Agent agent, final AgentRequestBase requestBase,
             final AgentResponseBase responseBase) throws IonicException {
         super(agent, requestBase, responseBase);
-        this.rsaKeyHolder = new RsaKeyGenerator().generate(RsaCipher.KEY_BITS);
+        int errorCode = SdkError.ISAGENT_ERROR;
+        SdkData.checkTrue(requestBase instanceof CreateDeviceRequest, errorCode, SdkError.getErrorString(errorCode));
+        final CreateDeviceRequest request = (CreateDeviceRequest) requestBase;
+        final RsaKeyHolder keyHolder = request.getRsaKeyHolder();
+        this.rsaKeyHolder = ((keyHolder == null) ? new RsaKeyGenerator().generate(RsaCipher.KEY_BITS) : keyHolder);
         this.aesKeyHolder = new AesKeyGenerator().generate();
     }
 
@@ -123,12 +128,13 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
                 .add(IDC.Payload.P, payloadSecureB64)
                 .add(IDC.Payload.S, aesSessionKeyB64)
                 .build();
-        logger.fine(JsonIO.write(jsonRequestRoot, false));
+        final String entitySecure = JsonIO.write(jsonRequestRoot, false);
+        logger.fine(entitySecure);
+        final String resource = String.format(IDC.Resource.DEVICE_CREATE,
+                IDC.Resource.SERVER_API_V22, request.getEtag());
         // assemble the HTTP request to be sent to the server
         final URL url = AgentTransactionUtil.getProfileUrl(request.getServer());
         logger.fine(request.getServer());
-        final String resource = String.format(IDC.Resource.DEVICE_CREATE,
-                IDC.Resource.SERVER_API_V22, request.getEtag());
         final ByteArrayInputStream bis = new ByteArrayInputStream(
                 Transcoder.utf8().decode(JsonIO.write(jsonRequestRoot, false)));
         return new HttpRequest(url, Http.Method.POST, resource, getHttpHeaders(), bis);
@@ -137,20 +143,22 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
     /**
      * Parse and process the server response to the client request.
      *
+     * @param httpRequest  the server request
      * @param httpResponse the server response
      * @throws IonicException on errors in the server response
      */
     @Override
-    protected final void parseHttpResponse(final HttpResponse httpResponse) throws IonicException {
+    protected final void parseHttpResponse(
+            final HttpRequest httpRequest, final HttpResponse httpResponse) throws IonicException {
         // unwrap the server response
-        parseHttpResponseBase(httpResponse, null);
+        parseHttpResponseBase(httpRequest, httpResponse, null);
         try {
+            // deserialize, validate server response entity
+            final String entity = Transcoder.utf8().encode(Stream.read(httpResponse.getEntity()));
+            logger.fine(entity);
             final CreateDeviceRequest request = (CreateDeviceRequest) getRequestBase();
             final CreateDeviceResponse response = (CreateDeviceResponse) getResponseBase();
-            final byte[] entityResponse = Stream.read(httpResponse.getEntity());
-            //logger.fine(new UTF8().encode(entityResponse));
-
-            final JsonObject json = JsonIO.readObject(entityResponse);
+            final JsonObject json = JsonIO.readObject(entity, SdkError.ISAGENT_PARSEFAILED);
             final String cid = JsonSource.getString(json, IDC.Payload.CID);
             logger.finest(cid);
             final String deviceId = JsonSource.getString(json, IDC.Payload.DEVICE_ID);

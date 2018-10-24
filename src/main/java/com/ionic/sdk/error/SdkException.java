@@ -75,4 +75,16 @@ public class SdkException extends Exception {
         super(message, cause);
         this.errorCode = -1;
     }
+
+    /**
+     * Initializes the exception with an SDK error code.
+     *
+     * @param errorCode the SDK error code
+     * @param message   the text description of the error
+     * @param cause     the underlying cause of this exception, if any
+     */
+    public SdkException(final int errorCode, final String message, final Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
 }

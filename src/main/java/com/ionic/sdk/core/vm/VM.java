@@ -56,6 +56,11 @@ public final class VM {
         public static final String JAVA_VERSION = "java.version";
 
         /**
+         * The system property key associated with the OS newline sequence of the in-use JRE.
+         */
+        public static final String LINE_SEPARATOR = "line.separator";
+
+        /**
          * The system property key associated with the operating system architecture.
          * <p>
          * (e.g. x86, i386, amd64, ppc)
@@ -101,6 +106,16 @@ public final class VM {
     }
 
     /**
+     * Check if the given JVM system property is set.
+     *
+     * @param key the system property key to check
+     * @return true iff the given property has a setting
+     */
+    public static boolean isSetSysProp(final String key) {
+        return (System.getProperty(key) != null);
+    }
+
+    /**
      * Read the timestamp associated with the home folder of the in-use JVM.
      *
      * @return A long value representing the time the file was last modified
@@ -118,6 +133,15 @@ public final class VM {
      */
     public static String getUserHome() {
         return System.getProperty(Sys.USER_HOME);
+    }
+
+    /**
+     * Read the Java system property used to denote the line separator of the active operating system.
+     *
+     * @return the line separator character sequence
+     */
+    public static String getEol() {
+        return System.getProperty(Sys.LINE_SEPARATOR);
     }
 
     /**

@@ -29,6 +29,16 @@ public final class CryptoUtils {
     public static final String HMAC_ALGORITHM = "HmacSHA256";
 
     /**
+     * Length in bytes of SHA256 hashes.
+     */
+    public static final int SHA256_DIGEST_SIZE = 32;
+
+    /**
+     * Length in bytes of SHA512 hashes.
+     */
+    public static final int SHA512_DIGEST_SIZE = 64;
+
+    /**
      * Constructor.
      * http://checkstyle.sourceforge.net/config_design.html#FinalClass
      */

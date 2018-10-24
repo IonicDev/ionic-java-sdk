@@ -10,13 +10,13 @@ import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.core.vm.VM;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.json.JsonTarget;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -42,34 +42,22 @@ public final class AgentTransactionUtil {
      * Generate a unique id to be used to identify a particular server transaction, and to help secure its content
      * during transit.
      *
-     * @param deviceId the id associated with the active record in the Secure Enrollment Profile.
+     * @param activeProfile the active profile in the Secure Enrollment Profile
+     * @param extra         additional token to append to the CID
      * @return a string to be used in context of a server transaction
-     * @throws IonicException on random number generation failure
+     * @throws IonicException on device misconfiguration; random number generation failure
      */
-    public static String generateConversationId(final String deviceId) throws IonicException {
+    public static String generateConversationId(
+            final DeviceProfile activeProfile, final String extra) throws IonicException {
+        SdkData.checkNotNull(activeProfile, DeviceProfile.class.getName());
+        final String deviceId = activeProfile.getDeviceId();
+        SdkData.checkNotNull(deviceId, IDC.Payload.DEVICE_ID);
         final String date = Long.toString(new Date().getTime());
         // generate a conversation nonce
         final byte[] bytes = new CryptoRng().rand(new byte[Integer.SIZE / Byte.SIZE]);
         final String nonce = Transcoder.base64().encode(bytes).replace(Transcoder.BASE64_PAD, "");
         // generate a conversation id
-        return Value.join(IDC.Message.DELIMITER, IDC.Message.CID, deviceId, date, nonce);
-    }
-
-    /**
-     * Generate a unique id to be used to identify a particular server transaction, and to help secure its content
-     * during transit.
-     *
-     * @param deviceId the id associated with the active record in the Secure Enrollment Profile.
-     * @return a string to be used in context of a server transaction
-     * @throws IonicException on random number generation failure
-     */
-    public static String generateConversationIdV(final String deviceId) throws IonicException {
-        final String date = Long.toString(new Date().getTime());
-        // generate a conversation nonce
-        final byte[] bytes = new CryptoRng().rand(new byte[Integer.SIZE / Byte.SIZE]);
-        final String nonce = Transcoder.base64().encode(bytes).replace(Transcoder.BASE64_PAD, "");
-        // generate a conversation id
-        return Value.join(IDC.Message.DELIMITER, IDC.Message.CID, deviceId, date, nonce, IDC.Message.SERVER_API_CID);
+        return Value.join(IDC.Message.DELIMITER, IDC.Message.CID, deviceId, date, nonce, extra);
     }
 
     /**
@@ -83,6 +71,16 @@ public final class AgentTransactionUtil {
     }
 
     /**
+     * HTTP code is an error if it is not in the 200-299 range.
+     *
+     * @param statusCode an http status code received in an http server response
+     * @return true, iff status code is in the range of http success codes
+     */
+    public static boolean isHttpSuccessCode(final int statusCode) {
+        return ((statusCode >= HttpURLConnection.HTTP_OK) && (statusCode < HttpURLConnection.HTTP_MULT_CHOICE));
+    }
+
+    /**
      * Wrap the creation of a URL from the server setting in a device profile.
      *
      * @param deviceProfile the descriptor for an IDC SDK endpoint
@@ -90,6 +88,7 @@ public final class AgentTransactionUtil {
      * @throws IonicException if the server setting cannot be converted to a URL
      */
     public static URL getProfileUrl(final DeviceProfile deviceProfile) throws IonicException {
+        SdkData.checkNotNull(deviceProfile, DeviceProfile.class.getName());
         return getProfileUrlInternal(deviceProfile.getServer());
     }
 
@@ -161,11 +160,12 @@ public final class AgentTransactionUtil {
      * @param actual   the actual value
      * @throws IonicException on expectation failure
      */
-    public static void checkEqual(final String cid, final String expected, final String actual) throws IonicException {
+    public static void checkEqual(
+            final String cid, final String expected, final String actual) throws IonicException {
         if (!Value.isEqual(expected, actual)) {
-            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, new IOException(
-                    String.format("Expectation failed (conversation ID %s expected %s, actual %s).",
-                            cid, expected, actual)));
+            final int error = SdkError.ISAGENT_INVALIDVALUE;
+            throw new IonicException(error, Value.join(VM.getEol(), SdkError.getErrorString(error), String.format(
+                    "Expectation failed (conversation ID %s expected %s, actual %s).", cid, expected, actual)));
         }
     }
 
@@ -177,10 +177,12 @@ public final class AgentTransactionUtil {
      * @param value the value to check for validity
      * @throws IonicException on null value
      */
-    public static void checkNotNull(final String cid, final String name, final String value) throws IonicException {
+    public static void checkNotNull(
+            final String cid, final String name, final String value) throws IonicException {
         if (value == null) {
-            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE,
-                    new IOException(String.format("Null value detected (conversation ID %s, name %s).", cid, name)));
+            final int error = SdkError.ISAGENT_INVALIDVALUE;
+            throw new IonicException(error, Value.join(VM.getEol(), SdkError.getErrorString(error), String.format(
+                    "Null value detected (conversation ID %s, name %s).", cid, name)));
         }
     }
 }

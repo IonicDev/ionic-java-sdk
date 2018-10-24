@@ -76,6 +76,8 @@ public enum SdkModule {
             module = MODULE_ISAGENT;
         } else if (isInRange(errorCode, CryptoErrorModuleConstants.ISCRYPTO_ERROR_BASE, BLOCK_SIZE)) {
             module = MODULE_ISCRYPTO;
+        } else if (isInRange(errorCode, FileCryptoErrorModuleConstants.ISFILECRYPTO_ERROR_BASE, BLOCK_SIZE)) {
+            module = MODULE_ISFILECRYPTO;
         }
         return module;
     }

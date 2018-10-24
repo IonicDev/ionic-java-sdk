@@ -1,6 +1,7 @@
 package com.ionic.sdk.json;
 
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -59,7 +60,7 @@ public final class JsonU {
      * @throws IonicException on failure parsing the input json
      */
     public static JsonObject getJsonObject(final String jsonString) throws IonicException {
-        return JsonIO.readObject(jsonString);
+        return JsonIO.readObject(jsonString, SdkError.ISAGENT_PARSEFAILED);
     }
 
     /**

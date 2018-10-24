@@ -117,7 +117,7 @@ public final class SecretShareGenerator {
      * @throws javax.json.JsonException on problems parsing the secret share bytes
      */
     public SecretShareKey recover(final String data) throws IonicException {
-        final JsonObject jsonPersist = JsonIO.readObject(data);
+        final JsonObject jsonPersist = JsonIO.readObject(data, SdkError.ISAGENT_PARSEFAILED);
         final JsonArray jsonShares = JsonSource.getJsonArray(jsonPersist, IDC.SSKP.SHARES);
         final String jsonSalt = JsonSource.getString(jsonPersist, IDC.SSKP.SALT);
 

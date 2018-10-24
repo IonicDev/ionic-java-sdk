@@ -13,18 +13,28 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
 /**
- * Cipher that implements AES GCM mode encryption / decryption.
+ * Cipher that implements AES CTR mode encryption / decryption.
  */
 public class AesCtrCipher extends AesCipherAbstract {
 
     /**
-     * Construct an instance of an Ionic AES GCM-mode cipher.
+     * Construct an instance of an Ionic AES CTR-mode cipher.
      *
      * @throws IonicException on cryptography errors
      */
     public AesCtrCipher() throws IonicException {
+        this(null);
+    }
+
+    /**
+     * Construct an instance of an Ionic AES CTR-mode cipher.
+     *
+     * @param cipherKey the raw bytes of the key
+     * @throws IonicException on cryptography errors
+     */
+    public AesCtrCipher(final byte[] cipherKey) throws IonicException {
         super(getCipherInstance());
-        setKey(null);
+        setKey(cipherKey);
     }
 
     /**
@@ -81,8 +91,7 @@ public class AesCtrCipher extends AesCipherAbstract {
         // encrypt
         final byte[] cipherText = super.encrypt(plainText, null, parameterSpec);
         // package result
-        final byte[] cipherTextIonic = new byte[iv.length + cipherText.length];
-        System.arraycopy(iv, 0, cipherTextIonic, 0, iv.length);
+        final byte[] cipherTextIonic = Arrays.copyOf(iv, (iv.length + cipherText.length));
         System.arraycopy(cipherText, 0, cipherTextIonic, iv.length, cipherText.length);
         return cipherTextIonic;
     }

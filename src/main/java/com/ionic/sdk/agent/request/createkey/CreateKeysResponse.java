@@ -5,6 +5,9 @@ import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.key.KeyObligationsMap;
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
 import com.ionic.sdk.core.value.Value;
+import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,15 @@ public class CreateKeysResponse extends AgentResponseBase {
      */
     public final List<Key> getKeys() {
         return keyResponses;
+    }
+
+    /**
+     * @return the first key in the list of Key objects for an Agent.getKeys() response.
+     * @throws IonicException if no keys are available in the response
+     */
+    public final Key getFirstKey() throws IonicException {
+        SdkData.checkTrue(!keyResponses.isEmpty(), SdkError.ISAGENT_KEY_DENIED);
+        return keyResponses.iterator().next();
     }
 
     /**
@@ -72,11 +84,6 @@ public class CreateKeysResponse extends AgentResponseBase {
          * The device id associated with the creation request.
          */
         private String deviceId;
-
-        /**
-         * The origin of the associated key.
-         */
-        private String origin;
 
         /**
          * Constructor.
@@ -159,7 +166,7 @@ public class CreateKeysResponse extends AgentResponseBase {
             setMutableAttributesMap(mutableAttributes);
             setMutableAttributesMapFromServer(mutableAttributes);
             setObligationsMap(keyObligations);
-            this.origin = Value.defaultOnEmpty(origin, "");
+            setOrigin(Value.defaultOnEmpty(origin, ""));
             setAttributesSigBase64FromServer(attributesSig);
             setMutableAttributesSigBase64FromServer(mutableAttributesSig);
         }
@@ -194,22 +201,6 @@ public class CreateKeysResponse extends AgentResponseBase {
          */
         public final void setDeviceId(final String deviceId) {
             this.deviceId = Value.defaultOnEmpty(deviceId, "");
-        }
-
-        /**
-         * @return the origin of the associated key
-         */
-        public final String getOrigin() {
-            return origin;
-        }
-
-        /**
-         * Set the origin of the associated key.
-         *
-         * @param origin the origin of the associated key
-         */
-        public final void setOrigin(final String origin) {
-            this.origin = Value.defaultOnEmpty(origin, "");
         }
     }
 }

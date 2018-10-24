@@ -18,6 +18,8 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Utility methods for serialization / deserialization of json messages using the javax.json library.
@@ -56,9 +58,36 @@ public final class JsonIO {
      * @throws IonicException on failure parsing the input json
      */
     public static JsonObject readObject(final byte[] jsonBytes) throws IonicException {
+        return readObjectInternal(jsonBytes, null);
+    }
+
+    /**
+     * A helper function that converts a byte array into a JsonObject.  The byte array is assumed to be a
+     * string encoded using the UTF-8 encoding.
+     *
+     * @param jsonBytes a byte array that can be parsed into a JsonObject
+     * @param level     the level at which JsonException should be logged, if encountered
+     * @return the JsonObject representation of the input string
+     * @throws IonicException on failure parsing the input json
+     */
+    public static JsonObject readObject(final byte[] jsonBytes, final Level level) throws IonicException {
+        return readObjectInternal(jsonBytes, level);
+    }
+
+    /**
+     * A helper function that converts a byte array into a JsonObject.  The byte array is assumed to be a
+     * string encoded using the UTF-8 encoding.
+     *
+     * @param jsonBytes a byte array that can be parsed into a JsonObject
+     * @param level     the level at which JsonException should be logged, if encountered
+     * @return the JsonObject representation of the input string
+     * @throws IonicException on failure parsing the input json
+     */
+    private static JsonObject readObjectInternal(final byte[] jsonBytes, final Level level) throws IonicException {
         try (JsonReader jsonReader = Json.createReader(new ByteArrayInputStream(jsonBytes))) {
             return jsonReader.readObject();
         } catch (JsonException e) {
+            handleJsonException(Transcoder.utf8().encode(jsonBytes), level, e);
             throw new IonicException(SdkError.ISAGENT_PARSEFAILED, e);
         }
     }
@@ -67,14 +96,15 @@ public final class JsonIO {
      * A helper function that converts a string into a JsonObject.
      *
      * @param jsonString a string that can be parsed into a JsonObject
+     * @param errorCode  the error code to return on parse failure
      * @return the JsonObject representation of the input string
      * @throws IonicException on failure parsing the input json
      */
-    public static JsonObject readObject(final String jsonString) throws IonicException {
+    public static JsonObject readObject(final String jsonString, final int errorCode) throws IonicException {
         try (JsonReader jsonReader = Json.createReader(new StringReader(jsonString))) {
             return jsonReader.readObject();
         } catch (JsonException e) {
-            throw new IonicException(SdkError.ISAGENT_PARSEFAILED, e);
+            throw new IonicException(errorCode, e);
         }
     }
 
@@ -94,6 +124,19 @@ public final class JsonIO {
     }
 
     /**
+     * On <code>JsonException</code>, conditionally log exception detail.
+     *
+     * @param message text to include in log message
+     * @param level   the level at which JsonException should be logged
+     * @param e       exception to be wrapped
+     */
+    private static void handleJsonException(final String message, final Level level, final JsonException e) {
+        if (level != null) {
+            Logger.getLogger(JsonIO.class.getName()).log(level, message, e);
+        }
+    }
+
+    /**
      * This is how we can serialize javax.json objects.
      *
      * @param jsonObject the container for the source json data
@@ -107,7 +150,7 @@ public final class JsonIO {
             config.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
         }
         final JsonWriterFactory writerFactory = javax.json.Json.createWriterFactory(config);
-        try (final JsonWriter writer = writerFactory.createWriter(os)) {
+        try (JsonWriter writer = writerFactory.createWriter(os)) {
             writer.writeObject(jsonObject);
         }
         return Transcoder.utf8().encode(os.toByteArray());
@@ -127,7 +170,7 @@ public final class JsonIO {
             config.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
         }
         final JsonWriterFactory writerFactory = javax.json.Json.createWriterFactory(config);
-        try (final JsonWriter writer = writerFactory.createWriter(os)) {
+        try (JsonWriter writer = writerFactory.createWriter(os)) {
             writer.writeArray(jsonArray);
         }
         return Transcoder.utf8().encode(os.toByteArray());
