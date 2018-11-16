@@ -1,5 +1,7 @@
 package com.ionic.sdk.agent.key;
 
+import com.ionic.sdk.core.value.Value;
+
 import java.util.Objects;
 
 /**
@@ -47,6 +49,11 @@ public class AgentKey implements KeyBase, KeyMetadata {
      * The key obligations.
      */
     private KeyObligationsMap keyObligations;
+
+    /**
+     * The origin of the associated key.
+     */
+    private String origin;
 
     /**
      * Constructs an empty AgentKey.
@@ -352,5 +359,33 @@ public class AgentKey implements KeyBase, KeyMetadata {
      */
     public final void setMutableAttributesSigBase64FromServer(final String mutableAttributesSigBase64FromServer) {
         this.mutableAttributesSigBase64FromServer = mutableAttributesSigBase64FromServer;
+    }
+
+    /**
+     * The key origin is a string which identifies where the key data came from during the key creation
+     * transaction. When the key comes from Ionic key infrastucture (by far the most common situation), the origin
+     * string will be "ionic-keyserver" (available as string constant
+     * {@link com.ionic.sdk.agent.Agent#KEYORIGIN_IONIC_KEYSERVER}).
+     * <p>
+     * However, for advanced use cases where an application may originate keys from somewhere else, the
+     * application may set this origin string to one of its choice in order to indicate where the key came from.
+     * <p>
+     * IMPORTANT:
+     * The string prefix "ionic-" is reserved for exclusive use by Ionic code. All other possible string values
+     * are freely available for use.
+     *
+     * @return the origin of the associated key
+     */
+    public final String getOrigin() {
+        return origin;
+    }
+
+    /**
+     * Set the origin of the associated key.
+     *
+     * @param origin the origin of the associated key
+     */
+    public final void setOrigin(final String origin) {
+        this.origin = Value.defaultOnEmpty(origin, "");
     }
 }

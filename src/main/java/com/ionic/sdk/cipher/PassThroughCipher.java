@@ -17,7 +17,6 @@ public class PassThroughCipher extends CipherAbstract {
      */
     public PassThroughCipher(final Cipher cipher) {
         super(cipher);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -27,7 +26,6 @@ public class PassThroughCipher extends CipherAbstract {
      */
     @Override
     public final byte[] encrypt(final byte[] plainText) throws IonicException {
-        // TODO Auto-generated method stub
         return plainText;
     }
 
@@ -38,7 +36,6 @@ public class PassThroughCipher extends CipherAbstract {
      */
     @Override
     public final byte[] encrypt(final String plainText) throws IonicException {
-        // TODO Auto-generated method stub
         return Transcoder.utf8().decode(plainText);
     }
 
@@ -49,8 +46,6 @@ public class PassThroughCipher extends CipherAbstract {
      */
     @Override
     public final byte[] decrypt(final byte[] cipherText) throws IonicException {
-        // TODO Auto-generated method stub
         return cipherText;
     }
-
 }

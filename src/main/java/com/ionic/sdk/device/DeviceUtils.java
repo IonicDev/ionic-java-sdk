@@ -1,11 +1,16 @@
 package com.ionic.sdk.device;
 
 import com.ionic.sdk.core.io.Stream;
+import com.ionic.sdk.core.res.Resource;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * Utility class containing various useful functions for an Ionic-enabled device context.
@@ -17,6 +22,51 @@ public final class DeviceUtils {
      * http://checkstyle.sourceforge.net/config_design.html#FinalClass
      */
     private DeviceUtils() {
+    }
+
+    /**
+     * Read a single byte from the parameter input stream.
+     *
+     * @param is the input stream from which to read
+     * @return the next byte of data, or <code>-1</code> if the end of the stream is reached
+     * @throws IonicException on stream read error
+     */
+    public static int readByte(final InputStream is) throws IonicException {
+        try {
+            return is.read();
+        } catch (IOException e) {
+            throw new IonicException(SdkError.ISFILECRYPTO_EOF);
+        }
+    }
+
+    /**
+     * Completely read the requested resource from the parameter URL.
+     *
+     * @param url the location of the resource
+     * @return a byte[] containing the content of the resource
+     * @throws IonicException if an I/O error occurs
+     */
+    public static byte[] read(final URL url) throws IonicException {
+        try {
+            return Stream.read(url);
+        } catch (IOException e) {
+            throw new IonicException(SdkError.ISAGENT_OPENFILE);
+        }
+    }
+
+    /**
+     * Completely read the requested resource from the parameter stream.
+     *
+     * @param is the stream containing the resource content
+     * @return a byte[] containing the content of the resource
+     * @throws IonicException if an I/O error occurs
+     */
+    public static byte[] read(final InputStream is) throws IonicException {
+        try {
+            return Stream.read(is);
+        } catch (IOException e) {
+            throw new IonicException(SdkError.ISAGENT_OPENFILE);
+        }
     }
 
     /**
@@ -46,6 +96,23 @@ public final class DeviceUtils {
             Stream.write(file, bytes);
         } catch (IOException e) {
             throw new IonicException(SdkError.ISAGENT_OPENFILE);
+        }
+    }
+
+    /**
+     * Resolve a classpath resource to its filesystem location.
+     *
+     * @param resource the path of a resource expected to be on the JRE process classpath
+     * @return the corresponding filesystem path of the resource
+     * @throws IonicException on failure to locate the resource
+     */
+    public static File toFile(final String resource) throws IonicException {
+        final URL url = Resource.resolve(resource);
+        SdkData.checkTrue((url != null), SdkError.ISAGENT_RESOURCE_NOT_FOUND, URL.class.getName());
+        try {
+            return new File(url.toURI());
+        } catch (URISyntaxException e) {
+            throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND);
         }
     }
 }

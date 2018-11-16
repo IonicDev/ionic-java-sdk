@@ -1,7 +1,5 @@
 package com.ionic.sdk.error;
 
-import java.io.IOException;
-
 /**
  * Utility functions for validating preconditions within the Ionic SDK code.
  */
@@ -23,7 +21,8 @@ public final class SdkData {
      */
     public static void checkNotNull(final Object value, final String message) throws IonicException {
         if (value == null) {
-            throw new IonicException(SdkError.ISAGENT_NULL_INPUT, new IOException(message));
+            final int error = SdkError.ISAGENT_NULL_INPUT;
+            throw new IonicException(error, new IonicException(error, message));
         }
     }
 
@@ -45,12 +44,25 @@ public final class SdkData {
      *
      * @param value   the value to check
      * @param error   the error code associated with check failure
+     * @throws IonicException on false value
+     */
+    public static void checkTrue(final boolean value, final int error) throws IonicException {
+        if (!value) {
+            throw new IonicException(error);
+        }
+    }
+
+    /**
+     * Validate input value.  Value must be true.
+     *
+     * @param value   the value to check
+     * @param error   the error code associated with check failure
      * @param message the message associated with check failure
      * @throws IonicException on false value
      */
     public static void checkTrue(final boolean value, final int error, final String message) throws IonicException {
         if (!value) {
-            throw new IonicException(error, new IOException(message));
+            throw new IonicException(error, new IonicException(error, message));
         }
     }
 }

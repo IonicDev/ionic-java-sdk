@@ -33,5 +33,5 @@ package com.ionic.sdk.agent.key;
       * @param keyBytes
       *      The key bytes.
       */
-     void setKey(final byte[] keyBytes);
+     void setKey(byte[] keyBytes);
  }

@@ -30,7 +30,7 @@ public final class HttpClientFactory {
      */
     public static HttpClient create(final AgentConfig agentConfig, final String protocol) throws IonicException {
         SdkData.checkNotNull(agentConfig, AgentConfig.class.getName());
-        return (Value.isEmpty(agentConfig.getHttpImpl()))
+        return Value.isEmpty(agentConfig.getHttpImpl())
                 ? new HttpClientDefault(agentConfig, protocol)
                 : createReflect(agentConfig.getHttpImpl(), agentConfig, protocol);
     }

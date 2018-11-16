@@ -143,4 +143,11 @@ public class AgentResponseBase {
     public final void setConversationId(final String cid) {
         this.cid = Value.defaultOnEmpty(cid, "");
     }
+
+    /**
+     * @return whether server response payload requires a "data" component
+     */
+    protected boolean isDataRequired() {
+        return true;
+    }
 }

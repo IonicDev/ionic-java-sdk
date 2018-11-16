@@ -76,13 +76,6 @@ public interface CryptoErrorModuleConstants {
      int ISCRYPTO_SEED_OVERFLOW = 50009;
 
     /**
-     * Not supported.
-     * The attempted operation is not supported.  It may have been deprecated or not applicable for a variation
-     * of the interface.
-     */
-     int ISCRYPTO_NOT_SUPPORTED = 50010;
-
-    /**
      * Fatal error.
      * A fatal error has occurred and the module will no longer be usable.
      * This will happen if any POST test, healthcheck test, or any other operational

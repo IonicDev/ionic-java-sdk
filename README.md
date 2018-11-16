@@ -11,9 +11,56 @@ In general, you should not need to build the SDK from this source.
 
 Additional [Ionic developer](https://dev.ionic.com) resources are available, as are a general introduction to the Ionic platform [introduction](https://dev.ionic.com/platform/intro).
 
-Visit [Getting Started Tutorial](https://dev.ionic.com/tutorials/getting-started/sdk-setup) for a guide.
+Visit [Getting Started Tutorial](https://dev.ionic.com/getting-started) for a guide.
 
 ## Release Notes
+
+### 2.3.0
+The 2.3 release of the Ionic Java (JVM) SDK introduces support for cryptographic operations on selected file formats.  This version allows encryption and decryption of the Ionic "generic" and "csv" formats.    Subsequent releases will extend support to include "OpenXML" and "PDF" formats.
+
+The release also adds new capabilities including
+- The ability to transmit messages to the Ionic server through the Ionic messagin API,
+- Support for running the DPAPI persistor in the context of a 32-bit Java runtime hosted in a 64-bit operating system.
+
+Finally, the release corrects a few defects that were identified in the 2.2 release.
+
+#### New Features
+##### File Crypto Support
+The Ionic SDK implements a canonical encryption format for several common file types: OpenXML, PDF, and CSV.   In addition, the SDK defines a "Generic" format that can be used to encode any filetype.   This release provides support for two of these formats, *Generic*, and *CSV* from the Java SDK.  The remaining two formats, *OpenXML* and *PDF* will be supported in a subsequent release.
+
+File encryption operations are accessed through a set of "encrypt" and "decrypt" methods stemming from the `FileCipherAbstract` base class.  Specifically, two instantiable classes are now available:
+
+```public GenericFileCipher(KeyServices agent)```
+
+```public CsvFileCipher(KeyServices agent)```
+
+##### Messaging API
+Java applications can now choose to record arbitrary messages in the Ionic back-end server.  These messages can subsequently be retrieved programmatically through a separate RESTful API and can be used for various types of down-stream analysis of the application's behavior. See
+
+```agent.logMessage```.
+
+##### Mixed-environment capability
+In the previous (2.2.1) release, Java applications  using the "DPAPI" (Windows-specific) persistor would not operate correctly if deployed in a particular operating environment, namely, a 32-bit Java runtime operating in a 64-bit Windows system.   This combination is now supported.
+
+#### Known Issues
+None
+
+#### Corrected Issues
+
+##### Plaintext Persistor Error
+In prior releases, an attempt to open a persistor that failed due to an inability to find or open the specified file, resulted in the following error message: "An active device profile has not been set".   This condition now yields a more appropriate message, "Resource not found".
+
+##### Error message when encountering invalid device information
+An attempt to load an existing persistor can fail if any of the referenced device identifiers are invalid.  The exception thrown in this condition now includes a more specific error message containing the invalid device id.
+
+##### Null-pointer exception when loading persistor without active profile
+Attempting to load a persistor in which no active profile was defined could lead to a null-pointer exception.  This issue has been addressed.
+
+#### Other notes
+
+##### Error reported when opening an empty persistor file
+When an application attempts to load an empty persistor file, Java will return a "parse failed" error condition.   Note that this is a slightly different behavior than is found in the older "JNI" implementation in which this condition results in a "failure to open file" message.
+
 
 ### 2.2.1
 

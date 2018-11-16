@@ -8,6 +8,7 @@ import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.json.JsonIO;
 import com.ionic.sdk.json.JsonSource;
 import com.ionic.sdk.json.JsonTarget;
@@ -34,8 +35,9 @@ public class GetKeysMessage extends MessageBase {
      * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
      * @throws IonicException on random number generation failure
      */
-    public GetKeysMessage(final Agent agent) throws IonicException {
-        super(agent, AgentTransactionUtil.generateConversationIdV(agent.getActiveProfile().getDeviceId()));
+    GetKeysMessage(final Agent agent) throws IonicException {
+        super(agent, AgentTransactionUtil.generateConversationId(
+                agent.getActiveProfile(), IDC.Message.SERVER_API_CID));
     }
 
     /**
@@ -75,7 +77,7 @@ public class GetKeysMessage extends MessageBase {
                                                final byte[] keyBytes) throws IonicException {
         final KeyAttributesMap keyAttributes = new KeyAttributesMap();
         if (!Value.isEmpty(attrs)) {
-            final JsonObject jsonObject = JsonIO.readObject(attrs);
+            final JsonObject jsonObject = JsonIO.readObject(attrs, SdkError.ISAGENT_PARSEFAILED);
             final Iterator<Map.Entry<String, JsonValue>> iterator = JsonSource.getIterator(jsonObject);
             while (iterator.hasNext()) {
                 final Map.Entry<String, JsonValue> entry = iterator.next();

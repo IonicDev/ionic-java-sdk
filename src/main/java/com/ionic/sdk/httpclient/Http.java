@@ -32,6 +32,22 @@ public class Http {
     }
 
     /**
+     * States associated with an HTTP exchange.
+     */
+    public static class State {
+
+        /**
+         * The request sent by the client to the server.
+         */
+        public static final String REQUEST = "q";
+
+        /**
+         * The response sent by the server to the client.
+         */
+        public static final String RESPONSE = "p";
+    }
+
+    /**
      * Text names associated with the ISHTTP request/response headers.
      */
     public static class Header {
@@ -54,7 +70,12 @@ public class Http {
         /**
          * Indicate to the server that the request entity is syntactically valid json.
          */
-        public static final String CONTENT_TYPE_VALUE = "application/json; charset=utf-8";
+        public static final String CONTENT_TYPE_CLIENT = "application/json; charset=utf-8";
+
+        /**
+         * Expected content type specified in server response.  (Charset is implied to be 'utf-8').
+         */
+        public static final String CONTENT_TYPE_SERVER = "application/json";
 
         /**
          * The response headers may contain this header, which identifies the application servicing the client request.

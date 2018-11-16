@@ -220,6 +220,29 @@ public interface AgentErrorModuleConstants {
     int ISAGENT_STALE_KEY_ATTRIBUTES = 40031;
 
     /**
+     * A keys update request contains two or more entries with the same key id.
+     * <p>
+     * This is a user error.
+     */
+    int ISAGENT_DUPLICATE_KEY = 40032;
+
+    /**
+     * A header was not found in the specified data.
+     * <p>
+     * This may happen if the data version is older and special handling for this error may be necessary to
+     * support previous SDK versions existing on the system.
+     */
+    int ISAGENT_HEADER_NOT_FOUND = 40033;
+
+    /**
+     * An HTTPS secure connection was not achieved.
+     * <p>
+     * This commonly happens when the device OS is either setup without TLS 1.x, or is intentionally
+     * set to use a weaker security standard. Ionic servers require at least TLS 1.0.
+     */
+    int ISAGENT_NO_SECURE_CONNECTION = 40034;
+
+    /**
      * error code range base.
      */
     int ISAGENT_ERROR_BASE_JAVA = 42000;

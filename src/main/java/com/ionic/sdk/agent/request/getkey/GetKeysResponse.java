@@ -5,6 +5,9 @@ import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.key.KeyObligationsMap;
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
 import com.ionic.sdk.core.value.Value;
+import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +47,30 @@ public class GetKeysResponse extends AgentResponseBase {
      */
     public final List<Key> getKeys() {
         return keys;
+    }
+
+    /**
+     * @return the first key in the list of Key objects for an Agent.getKeys() response.
+     * @throws IonicException if no keys are available in the response
+     */
+    public final Key getFirstKey() throws IonicException {
+        SdkData.checkTrue(!keys.isEmpty(), SdkError.ISAGENT_KEY_DENIED);
+        return keys.iterator().next();
+    }
+
+    /**
+     * @param id the id to search for in the server response
+     * @return the key record, if present, matching the specified key identifier
+     */
+    public final Key findKey(final String id) {
+        Key key = null;
+        for (Key keyIt : keys) {
+            if (id.equals(keyIt.getId())) {
+                key = keyIt;
+                break;
+            }
+        }
+        return key;
     }
 
     /**
@@ -147,11 +174,6 @@ public class GetKeysResponse extends AgentResponseBase {
         private String deviceId;
 
         /**
-         * The key origin string.
-         */
-        private String origin;
-
-        /**
          * Constructor.
          */
         public Key() {
@@ -228,7 +250,7 @@ public class GetKeysResponse extends AgentResponseBase {
             setMutableAttributesMap(mutableAttributes);
             setMutableAttributesMapFromServer(mutableAttributes);
             setObligationsMap(obligations);
-            this.origin = Value.defaultOnEmpty(origin, "");
+            setOrigin(Value.defaultOnEmpty(origin, ""));
             setAttributesSigBase64FromServer(attributesSig);
             setMutableAttributesSigBase64FromServer(mutableAttributesSig);
         }
@@ -247,22 +269,6 @@ public class GetKeysResponse extends AgentResponseBase {
          */
         public final void setDeviceId(final String deviceId) {
             this.deviceId = Value.defaultOnEmpty(deviceId, "");
-        }
-
-        /**
-         * @return the key origin string
-         */
-        public final String getOrigin() {
-            return origin;
-        }
-
-        /**
-         * Set the origin string for this cryptography key.
-         *
-         * @param origin the origin identifier (typically Agent.KEYORIGIN_IONIC_KEYSERVER)
-         */
-        public final void setOrigin(final String origin) {
-            this.origin = Value.defaultOnEmpty(origin, "");
         }
     }
 
@@ -419,7 +425,7 @@ public class GetKeysResponse extends AgentResponseBase {
          */
         public QueryResult(final String keyId, final List<String> mappedIdList) {
             this.keyId = keyId;
-            this.errorCode = -1;
+            this.errorCode = 0;
             this.errorMessage = null;
             this.mappedIdList = new ArrayList<String>(mappedIdList);
         }
@@ -468,7 +474,7 @@ public class GetKeysResponse extends AgentResponseBase {
          *
          * @param errorCode the error code provided by an Ionic server
          */
-        public final void getErrorCode(final int errorCode) {
+        public final void setErrorCode(final int errorCode) {
             this.errorCode = errorCode;
         }
 

@@ -1,6 +1,7 @@
 package com.ionic.sdk.agent.request.createdevice;
 
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
+import com.ionic.sdk.cipher.rsa.model.RsaKeyHolder;
 
 /**
  * Represents the input for an Agent.getResources() request.
@@ -38,6 +39,11 @@ public final class CreateDeviceRequest extends AgentRequestBase {
     private final String eiRsaPublicKey;
 
     /**
+     * The client asymmetric key pair used in the context of the request.
+     */
+    private RsaKeyHolder rsaKeyHolder;
+
+    /**
      * Constructor.
      *
      * @param deviceProfileName the text label to be associated with the device profile to be created
@@ -55,6 +61,7 @@ public final class CreateDeviceRequest extends AgentRequestBase {
         this.token = token;
         this.uidAuth = uidAuth;
         this.eiRsaPublicKey = eiRsaPublicKey;
+        this.rsaKeyHolder = null;
     }
 
 
@@ -98,5 +105,19 @@ public final class CreateDeviceRequest extends AgentRequestBase {
      */
     public String getEiRsaPublicKey() {
         return eiRsaPublicKey;
+    }
+
+    /**
+     * @return the client asymmetric key pair used in the context of the request
+     */
+    public RsaKeyHolder getRsaKeyHolder() {
+        return rsaKeyHolder;
+    }
+
+    /**
+     * @param rsaKeyHolder the client asymmetric key pair used in the context of the request
+     */
+    public void setRsaKeyHolder(final RsaKeyHolder rsaKeyHolder) {
+        this.rsaKeyHolder = rsaKeyHolder;
     }
 }

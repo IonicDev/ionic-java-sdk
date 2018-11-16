@@ -73,7 +73,7 @@ public final class RsaKeyGenerator {
         if (privateKey instanceof RSAPrivateCrtKey) {
             return generatePublicKeyInternal((RSAPrivateCrtKey) privateKey);
         } else {
-            throw new IonicException(SdkError.ISCRYPTO_NOT_SUPPORTED, privateKey.getClass().getName());
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, privateKey.getClass().getName());
         }
     }
 

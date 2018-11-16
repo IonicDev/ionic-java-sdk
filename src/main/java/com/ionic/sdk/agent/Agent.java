@@ -17,6 +17,9 @@ import com.ionic.sdk.agent.request.getkey.GetKeysTransaction;
 import com.ionic.sdk.agent.request.getresources.GetResourcesRequest;
 import com.ionic.sdk.agent.request.getresources.GetResourcesResponse;
 import com.ionic.sdk.agent.request.getresources.GetResourcesTransaction;
+import com.ionic.sdk.agent.request.logmessage.LogMessagesRequest;
+import com.ionic.sdk.agent.request.logmessage.LogMessagesResponse;
+import com.ionic.sdk.agent.request.logmessage.LogMessagesTransaction;
 import com.ionic.sdk.agent.request.updatekey.UpdateKeysRequest;
 import com.ionic.sdk.agent.request.updatekey.UpdateKeysResponse;
 import com.ionic.sdk.agent.request.updatekey.UpdateKeysTransaction;
@@ -66,9 +69,18 @@ public class Agent extends MetadataHolder implements KeyServices {
      * Default constructor.
      */
     public Agent() {
-        initialized = false;
-        deviceProfiles = new ArrayList<DeviceProfile>();
-        agentConfig = new AgentConfig();
+        this(new AgentConfig());
+    }
+
+    /**
+     * Convenience constructor that allows for instantiation of an uninitialized Agent with configuration.
+     *
+     * @param agentConfig the configuration of this agent
+     */
+    public Agent(final AgentConfig agentConfig) {
+        this.initialized = false;
+        this.deviceProfiles = new ArrayList<DeviceProfile>();
+        this.agentConfig = agentConfig;
     }
 
     /**
@@ -79,7 +91,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      */
     public Agent(final DeviceProfilePersistorBase persistor) throws IonicException {
         this();
-        initializeInternal(new AgentConfig(), persistor, new MetadataMap(), new Fingerprint(null));
+        initializeInternal(agentConfig, persistor, new MetadataMap(), new Fingerprint(null));
     }
 
     /**
@@ -665,6 +677,64 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
+     * Logs one or more messages to Ionic.com. This method makes an HTTP call to
+     * Ionic.com to post one or more log messages.
+     *
+     * @param request the message request input data object
+     * @return the response output data object
+     * @throws IonicException if an error occurs during servicing of the request
+     */
+    public final LogMessagesResponse logMessages(final LogMessagesRequest request) throws IonicException {
+        return logMessageInternal(request);
+    }
+
+    /**
+     * Logs one or more messages to Ionic.com. This method makes an HTTP call to
+     * Ionic.com to post one or more log messages.
+     *
+     * @param message  the message request input data object
+     * @param metadata the metadata properties to send along with the HTTP request
+     * @return the response output data object
+     * @throws IonicException if an error occurs during servicing of the request
+     */
+    public final LogMessagesResponse logMessage(final LogMessagesRequest.Message message, final MetadataMap metadata)
+            throws IonicException {
+        final LogMessagesRequest request = new LogMessagesRequest();
+        request.setMetadata(metadata);
+        request.add(message);
+        return logMessageInternal(request);
+    }
+
+    /**
+     * Logs one or more messages to Ionic.com. This method makes an HTTP call to
+     * Ionic.com to post one or more log messages.
+     *
+     * @param message the message request input data object
+     * @return the response output data object
+     * @throws IonicException if an error occurs during servicing of the request
+     */
+    public final LogMessagesResponse logMessage(final LogMessagesRequest.Message message) throws IonicException {
+        final LogMessagesRequest request = new LogMessagesRequest();
+        request.add(message);
+        return logMessageInternal(request);
+    }
+
+    /**
+     * Logs one or more messages to Ionic.com. This method makes an HTTP call to Ionic.com to post one or more
+     * log messages.
+     *
+     * @param request the log message request input data object
+     * @return the response output data object
+     * @throws IonicException if an error occurs during servicing of the request
+     */
+    private LogMessagesResponse logMessageInternal(final LogMessagesRequest request) throws IonicException {
+        final LogMessagesResponse response = new LogMessagesResponse();
+        final LogMessagesTransaction transaction = new LogMessagesTransaction(this, request, response);
+        transaction.run();
+        return response;
+    }
+
+    /**
      * Initialize the agent with default configuration and default profile loader.
      *
      * @throws IonicException always, as the Java 2.0 SDK does not implement a (platform-specific) default persistor
@@ -691,7 +761,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException if an error occurs
      */
     public final void initialize(final DeviceProfilePersistorBase persistor) throws IonicException {
-        initializeInternal(new AgentConfig(), persistor, new MetadataMap(), new Fingerprint(null));
+        initializeInternal(agentConfig, persistor, new MetadataMap(), new Fingerprint(null));
     }
 
     /**
@@ -713,7 +783,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException if an error occurs
      */
     public final void initializeWithoutProfiles() throws IonicException {
-        initializeWithoutProfilesInternal(new AgentConfig());
+        initializeWithoutProfilesInternal(agentConfig);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.ionic.sdk.cipher.aes;
 
 import com.ionic.sdk.cipher.CipherAbstract;
 import com.ionic.sdk.core.codec.Transcoder;
+import com.ionic.sdk.core.value.Value;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -26,7 +27,7 @@ public abstract class AesCipherAbstract extends CipherAbstract {
      * @param cipherKey the raw bytes of the key
      */
     public final void setKey(final byte[] cipherKey) {
-        if (cipherKey != null) {
+        if (!Value.isEmpty(cipherKey)) {
             setKeyNative(new SecretKeySpec(cipherKey, AesCipher.ALGORITHM));
         }
     }
@@ -37,7 +38,7 @@ public abstract class AesCipherAbstract extends CipherAbstract {
      * @param cipherKey the hex-encoded representation of the key bytes
      */
     public final void setKeyHex(final String cipherKey) {
-        if (cipherKey != null) {
+        if (!Value.isEmpty(cipherKey)) {
             setKeyNative(new SecretKeySpec(Transcoder.hex().decode(cipherKey), AesCipher.ALGORITHM));
         }
     }

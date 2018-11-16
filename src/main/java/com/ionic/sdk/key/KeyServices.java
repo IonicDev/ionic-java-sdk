@@ -145,13 +145,4 @@ public interface KeyServices {
      * @throws IonicException if an error occurs
      */
     UpdateKeysResponse updateKey(UpdateKeysRequest.Key key, MetadataMap metadata) throws IonicException;
-
-    /**
-     * Updates a single protection key from Ionic.com.
-     *
-     * @param key key to update
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
-    UpdateKeysResponse updateKey(UpdateKeysRequest.Key key) throws IonicException;
 }

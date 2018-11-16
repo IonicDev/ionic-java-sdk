@@ -172,8 +172,8 @@ public class KeyAttributesMapMergerDefault implements KeyAttributesMapMerger {
         // values vector. this is done by seeing which values inside of vecClientValuesInOut
         // do not exist inside of vecOriginalServerValuesIn
         for (String currentClientValue : currentClientValues) {
-            if ((!originalServerValues.contains(currentClientValue))
-                    && (!finalValues.contains(currentClientValue))) {
+            if (!originalServerValues.contains(currentClientValue)
+                    && !finalValues.contains(currentClientValue)) {
                 finalValues.add(currentClientValue);
             }
         }

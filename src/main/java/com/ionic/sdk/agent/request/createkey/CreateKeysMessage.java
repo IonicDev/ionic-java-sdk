@@ -41,7 +41,8 @@ public class CreateKeysMessage extends MessageBase {
      * @throws IonicException on random number generation failure
      */
     public CreateKeysMessage(final Agent agent) throws IonicException {
-        super(agent, AgentTransactionUtil.generateConversationIdV(agent.getActiveProfile().getDeviceId()));
+        super(agent, AgentTransactionUtil.generateConversationId(
+                agent.getActiveProfile(), IDC.Message.SERVER_API_CID));
         this.csigs = new Properties();
         this.msigs = new Properties();
     }

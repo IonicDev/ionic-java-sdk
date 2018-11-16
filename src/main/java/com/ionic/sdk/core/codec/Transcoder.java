@@ -57,7 +57,7 @@ public final class Transcoder {
     private static TranscoderFactory getFactory() {
         final String className = (Version.isJava7() ? IMPL_JRE7 : IMPL_JRE8);
         try {
-            return (TranscoderFactory) Class.forName(className).getDeclaredConstructor().newInstance();
+            return Class.forName(className).asSubclass(TranscoderFactory.class).getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException(e);
         }

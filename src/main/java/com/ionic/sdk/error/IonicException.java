@@ -15,6 +15,7 @@ public class IonicException extends SdkException {
      */
     // In Ionic SDK 2.1, this needs to be final, as IonicException is a leaf class.  When SdkException is removed,
     // IonicServerException will derive from IonicException, and this method will not be final.
+    @Override
     public final int getReturnCode() {
         return super.getReturnCode();
     }
@@ -80,5 +81,16 @@ public class IonicException extends SdkException {
      */
     public IonicException(final String message, final Throwable cause) {
         super(message, cause);
+    }
+
+    /**
+     * Initializes the exception with an SDK error code.
+     *
+     * @param errorCode the SDK error code
+     * @param message   the text description of the error
+     * @param cause     the underlying cause of this exception, if any
+     */
+    public IonicException(final int errorCode, final String message, final Throwable cause) {
+        super(errorCode, message, cause);
     }
 }

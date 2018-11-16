@@ -38,7 +38,7 @@ public final class DataUtil {
     public static MetadataMap toMetadataMap(final String data) throws IonicException {
         final MetadataMap metadataMap = new MetadataMap();
         try {
-            final JsonObject jsonObject = JsonIO.readObject(data);
+            final JsonObject jsonObject = JsonIO.readObject(data, SdkError.ISAGENT_PARSEFAILED);
             final Iterator<Map.Entry<String, JsonValue>> iterator = JsonSource.getIterator(jsonObject);
             while (iterator.hasNext()) {
                 final Map.Entry<String, JsonValue> entry = iterator.next();

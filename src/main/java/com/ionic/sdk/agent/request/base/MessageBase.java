@@ -48,10 +48,13 @@ public abstract class MessageBase {
      *
      * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
      * @param cid   the conversation id associated with the client request
+     * @throws IonicException on NULL input
      */
-    public MessageBase(final Agent agent, final String cid) {
+    public MessageBase(final Agent agent, final String cid) throws IonicException {
         this.agent = agent;
         this.cid = cid;
+        SdkData.checkNotNull(agent, Agent.class.getName());
+        SdkData.checkNotNull(cid, IDC.Payload.CID);
     }
 
     /**
@@ -216,5 +219,5 @@ public abstract class MessageBase {
      * @return a {@link JsonObject} to be incorporated into the request payload
      * @throws IonicException on errors
      */
-    protected abstract JsonObject getJsonData(final AgentRequestBase requestBase) throws IonicException;
+    protected abstract JsonValue getJsonData(AgentRequestBase requestBase) throws IonicException;
 }

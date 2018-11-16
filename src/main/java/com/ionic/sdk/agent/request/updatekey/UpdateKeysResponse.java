@@ -110,17 +110,12 @@ public class UpdateKeysResponse extends AgentResponseBase {
         private String deviceId;
 
         /**
-         * The origin of the associated key.
-         */
-        private String origin;
-
-        /**
          * Constructor.
          */
         public Key() {
             super();
             this.deviceId = "";
-            this.origin = "";
+            setOrigin("");
         }
 
         /**
@@ -133,7 +128,7 @@ public class UpdateKeysResponse extends AgentResponseBase {
         public Key(final AgentKey agentKey, final String deviceId, final String origin) {
             super(agentKey);
             this.deviceId = deviceId;
-            this.origin = origin;
+            setOrigin(origin);
         }
 
         /**
@@ -208,22 +203,6 @@ public class UpdateKeysResponse extends AgentResponseBase {
          */
         public final void setDeviceId(final String deviceId) {
             this.deviceId = Value.defaultOnEmpty(deviceId, "");
-        }
-
-        /**
-         * @return the origin of the associated key
-         */
-        public final String getOrigin() {
-            return origin;
-        }
-
-        /**
-         * Set the origin string for this cryptography key.
-         *
-         * @param origin the origin identifier (typically Agent.KEYORIGIN_IONIC_KEYSERVER)
-         */
-        public final void setOrigin(final String origin) {
-            this.origin = Value.defaultOnEmpty(origin, "");
         }
     }
 

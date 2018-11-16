@@ -93,7 +93,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     }
 
     /**
-     * changes the file path of a device profile. This method has a sid3 effect of
+     * changes the file path of a device profile. This method has a side effect of
      * reloading the active device profile and device profile list from the the new
      * file path.
      *
@@ -193,7 +193,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     private static void saveAllProfilesToFile(final List<DeviceProfile> profiles, final String activeProfile,
             final String filePath, final CipherAbstract cipher) throws IonicException {
         final File folder = new File(filePath).getParentFile();
-        if ((folder != null) && (!folder.exists()) && (!folder.mkdirs())) {
+        if ((folder != null) && !folder.exists() && !folder.mkdirs()) {
             throw new IonicException(SdkError.ISAGENT_OPENFILE);
         }
         Stream.writeToDisk(filePath, saveAllProfilesToJson(profiles, activeProfile, cipher));

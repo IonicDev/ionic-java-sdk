@@ -50,6 +50,11 @@ public final class IDC {
         /**
          * Resource for GetResources requests (substitute server api version).
          */
+        public static final String MESSAGES_PUT = "/%s/messages";
+
+        /**
+         * Resource for GetResources requests (substitute server api version).
+         */
         public static final String RESOURCES_GET = "/%s/resources";
 
         /**
@@ -247,6 +252,11 @@ public final class IDC {
          * Request / response JSON attribute name.
          */
         public static final String MESSAGE = "message";
+
+        /**
+         * Request / response JSON attribute name.
+         */
+        public static final String MESSAGE_TYPE = "message_type";
 
         /**
          * Request / response JSON attribute name.

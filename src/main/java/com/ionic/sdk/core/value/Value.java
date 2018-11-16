@@ -69,7 +69,7 @@ public final class Value {
      * @return true iff the two objects are either (1) both null, or (2) both strings, and equal to each other
      */
     public static boolean isEqual(final String left, final String right) {
-        return (left == null) ? (right == null) : (left.equals(right));
+        return (left == null) ? (right == null) : left.equals(right);
     }
 
     /**
@@ -80,7 +80,7 @@ public final class Value {
      * @return true iff the two objects are either (1) both null, or (2) both strings, and equal to each other
      */
     public static boolean isEqualIgnoreCase(final String left, final String right) {
-        return (left == null) ? (right == null) : (left.equalsIgnoreCase(right));
+        return (left == null) ? (right == null) : left.equalsIgnoreCase(right);
     }
 
     /**
@@ -165,21 +165,27 @@ public final class Value {
     }
 
     /**
-     * Copy specified portion of the input byte array into a new byte array.
+     * Generate a string consisting of <code>count</code> occurrences of <code>value</code>.
      *
-     * @param bytes    the source bytes from which to copy
-     * @param position the starting index of the source byte array from which to copy
-     * @param length   the number of bytes to copy
-     * @return a newly allocated byte array containing the copied bytes
+     * @param value the base string to use
+     * @param count the number of repeated occurrences in the resulting string
+     * @return a string containing repeated occurrences of value
      */
-    public static byte[] arraycopy(final byte[] bytes, final int position, final int length) {
-        final byte[] bytesCopy = new byte[length];
-        System.arraycopy(bytes, position, bytesCopy, 0, length);
-        return bytesCopy;
+    public static String generate(final String value, final int count) {
+        final StringBuilder buffer = new StringBuilder();
+        for (int i = 0; (i < count); ++i) {
+            buffer.append(value);
+        }
+        return buffer.toString();
     }
 
     /**
      * Delimiter that can be used when joining strings together.
      */
     public static final String DELIMITER_SLASH = "/";
+
+    /**
+     * Delimiter that can be used when joining filename tokens together.
+     */
+    public static final String DOT = ".";
 }

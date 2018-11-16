@@ -38,8 +38,9 @@ public class UpdateKeysMessage extends MessageBase {
      * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
      * @throws IonicException on random number generation failure
      */
-    public UpdateKeysMessage(final Agent agent) throws IonicException {
-        super(agent, AgentTransactionUtil.generateConversationIdV(agent.getActiveProfile().getDeviceId()));
+    UpdateKeysMessage(final Agent agent) throws IonicException {
+        super(agent, AgentTransactionUtil.generateConversationId(
+                agent.getActiveProfile(), IDC.Message.SERVER_API_CID));
         this.msigs = new Properties();
     }
 

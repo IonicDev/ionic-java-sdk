@@ -3,6 +3,7 @@ package com.ionic.sdk.crypto.env;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.hash.Hash;
+import com.ionic.sdk.core.io.FileSystem;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.core.vm.Network;
 import com.ionic.sdk.device.DeviceUtils;
@@ -92,15 +93,13 @@ public final class Environment {
         final Collection<String> value = new TreeSet<String>();
         final Pattern pattern = Pattern.compile(filter);
         final File folder = new File(path);
-        final String[] filenames = folder.list();
-        if (filenames != null) {
-            for (String filename : filenames) {
-                if (pattern.matcher(filename).matches()) {
-                    value.add(filename);
-                }
+        final Collection<File> files = FileSystem.listFiles(folder, false);
+        for (File file : files) {
+            if (pattern.matcher(file.getName()).matches()) {
+                value.add(file.getName());
             }
         }
-        return (value.isEmpty()) ? defaultValue : Value.joinCollection(IDC.Message.DELIMITER, value);
+        return value.isEmpty() ? defaultValue : Value.joinCollection(IDC.Message.DELIMITER, value);
     }
 
     /**
