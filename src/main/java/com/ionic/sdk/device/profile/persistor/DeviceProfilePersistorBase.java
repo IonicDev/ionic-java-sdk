@@ -309,12 +309,12 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
             final JsonObject value = JsonSource.toJsonObject(jsonProfile, DeviceFields.FIELD_PROFILES);
             final DeviceProfile profile = new DeviceProfile();
 
-            String deviceName;
-            String deviceId;
-            String server;
-            String aesCdIdcKeyHex;
-            String aesCdEiKeyHex;
-            int timeStamp;
+            final String deviceName;
+            final String deviceId;
+            final String server;
+            final String aesCdIdcKeyHex;
+            final String aesCdEiKeyHex;
+            final int timeStamp;
             try {
                 deviceName = JsonSource.getString(value, DeviceFields.FIELD_NAME);
                 deviceId = JsonSource.getString(value, DeviceFields.FIELD_DEVICE_ID);

@@ -85,7 +85,7 @@ public final class CsvSignerFile {
             while (!match) {
                 match = finderEOL.match(byteBuffer.get());
             }
-            int endLine = byteBuffer.position();
+            final int endLine = byteBuffer.position();
             final byte[] bytes = Arrays.copyOfRange(byteBuffer.array(), beginLine, (endLine - countDelimiter));
             bos.write(Transcoder.base64().decode(Transcoder.utf8().encode(bytes)));
         }

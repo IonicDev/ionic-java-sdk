@@ -16,6 +16,16 @@ public enum CipherFamily {
     FAMILY_GENERIC,
 
     /**
+     * Represents the OpenXML cipher family implemented by {@link com.ionic.sdk.agent.cipher.file.OpenXmlFileCipher}.
+     */
+    FAMILY_OPENXML,
+
+    /**
+     * Represents the PDF cipher family implemented by {@link com.ionic.sdk.agent.cipher.file.PdfFileCipher}.
+     */
+    FAMILY_PDF,
+
+    /**
      * Represents the CSV cipher family implemented by {@link com.ionic.sdk.agent.cipher.file.CsvFileCipher}.
      */
     FAMILY_CSV,

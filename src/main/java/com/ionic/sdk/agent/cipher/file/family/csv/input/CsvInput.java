@@ -11,6 +11,7 @@ import com.ionic.sdk.key.KeyServices;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * Wrap an input stream with logic to manage the Ionic augmentation of the content (header, content representation).
@@ -22,6 +23,11 @@ public final class CsvInput {
      * The raw input data stream containing the protected file content.
      */
     private final BufferedInputStream sourceStream;
+
+    /**
+     * The length of the resource to be decrypted.
+     */
+    private final long sizeInput;
 
     /**
      * Key services implementation; used to broker key transactions and crypto operations.
@@ -37,10 +43,12 @@ public final class CsvInput {
      * Constructor.
      *
      * @param inputStream the raw input data containing the protected file content
+     * @param sizeInput   the length of the resource to be decrypted
      * @param agent       the key services implementation; used to provide keys for cryptography operations
      */
-    public CsvInput(final InputStream inputStream, final KeyServices agent) {
+    public CsvInput(final InputStream inputStream, final long sizeInput, final KeyServices agent) {
         this.sourceStream = new BufferedInputStream(inputStream);
+        this.sizeInput = sizeInput;
         this.agent = agent;
     }
 
@@ -59,7 +67,7 @@ public final class CsvInput {
         final String ionicHeader = new CsvHeaderInput().read(sourceStream);
         if (ionicHeader.contains(FileCipher.Csv.V10.VERSION_1_0_STRING)) {
             // alternate CsvBodyOutput implementation can be substituted here
-            bodyInput = new Csv10BodyInput(sourceStream, agent, fileInfo, decryptAttributes);
+            bodyInput = new Csv10BodyInput(sourceStream, sizeInput, agent, fileInfo, decryptAttributes);
         } else {
             throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         }
@@ -90,7 +98,7 @@ public final class CsvInput {
      * @throws IOException    on failure reading from the stream
      * @throws IonicException on failure to decrypt the content
      */
-    public byte[] read() throws IOException, IonicException {
+    public ByteBuffer read() throws IOException, IonicException {
         if (bodyInput == null) {
             throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         } else {

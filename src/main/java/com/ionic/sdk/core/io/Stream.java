@@ -94,6 +94,22 @@ public final class Stream {
 
     /**
      * Completely read the requested resource from the parameter file.
+     * <p>
+     * If an unprivileged file is being accessed, the alternate API {@link #read(File)} is recommended.  It
+     * is more performant, but does require that the file length be known before the read begins.
+     *
+     * @param file the location of the resource
+     * @return a byte[] containing the content of the resource
+     * @throws IOException if an I/O error occurs
+     */
+    public static byte[] readSlow(final File file) throws IOException {
+        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+            return readInternal(bis, Integer.MAX_VALUE);
+        }
+    }
+
+    /**
+     * Completely read the requested resource from the parameter file.
      *
      * @param file
      *            the location of the resource
@@ -102,9 +118,18 @@ public final class Stream {
      *             if an I/O error occurs
      */
     public static byte[] read(final File file) throws IOException {
-        try (BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
-            return readInternal(bis, Integer.MAX_VALUE);
+        final byte[] fileDataBytes = new byte[(int) file.length()];
+
+        final FileInputStream is = new FileInputStream(file);
+        try {
+            final int readLen = is.read(fileDataBytes);
+            if (readLen < file.length()) {
+                throw new IOException(file.getName());
+            }
+        } finally {
+            is.close();
         }
+        return fileDataBytes;
     }
 
     /**

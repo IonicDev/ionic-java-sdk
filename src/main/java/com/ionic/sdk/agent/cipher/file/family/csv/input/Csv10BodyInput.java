@@ -17,6 +17,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -46,6 +47,11 @@ final class Csv10BodyInput implements CsvBodyInput {
     private final ByteQueueInputStream targetStream;
 
     /**
+     * The buffer to hold a plaintext block (source buffer for encryption, target buffer for decryption).
+     */
+    private ByteBuffer plainText;
+
+    /**
      * Wrapped cipher implementing protection of CSV content.
      */
     private final GenericInput genericInput;
@@ -54,17 +60,19 @@ final class Csv10BodyInput implements CsvBodyInput {
      * Constructor.
      *
      * @param sourceStream the raw input data containing the protected file content
+     * @param sizeInput    the length of the resource to be decrypted
      * @param agent        the key services implementation; used to provide keys for cryptography operations
      * @param fileInfo     the structure into which data about the Ionic state of the file should be written
      * @param attributes   the parameters associated with the decrypt operation
      */
-    Csv10BodyInput(final BufferedInputStream sourceStream, final KeyServices agent,
+    Csv10BodyInput(final BufferedInputStream sourceStream, final long sizeInput, final KeyServices agent,
                    final FileCryptoFileInfo fileInfo, final FileCryptoDecryptAttributes attributes) {
         this.sourceReader = new BufferedReader(new InputStreamReader(sourceStream, StandardCharsets.UTF_8));
         this.fileInfo = fileInfo;
         this.decryptAttributes = attributes;
         this.targetStream = new ByteQueueInputStream(FileCipher.Csv.V10.BLOCK_SIZE);
-        this.genericInput = new GenericInput(targetStream, agent);
+        this.genericInput = new GenericInput(targetStream, sizeInput, agent);
+        this.plainText = genericInput.getPlainText();
     }
 
     @Override
@@ -87,7 +95,7 @@ final class Csv10BodyInput implements CsvBodyInput {
     }
 
     @Override
-    public byte[] read() throws IonicException, IOException {
+    public ByteBuffer read() throws IonicException, IOException {
         final BytesTranscoder transcoderBase64 = Transcoder.base64();
         String line;
         boolean doneEmbedRead = false;
@@ -103,7 +111,8 @@ final class Csv10BodyInput implements CsvBodyInput {
                         FileCipher.Csv.V10.DATA_END_STRING, sourceReader.skip(Long.MAX_VALUE)));
             } else {
                 // write to wrapped buffer
-                targetStream.addBytes(transcoderBase64.decode(line));
+                final byte[] lineBytes = transcoderBase64.decode(line);
+                targetStream.addBytes(lineBytes, 0, lineBytes.length);
                 if (targetStream.available() >= FileCipher.Generic.V12.BLOCK_SIZE_CIPHER) {
                     // there is enough data for the wrapped cipher to extract a complete block
                     doneEmbedRead = true;
@@ -111,15 +120,16 @@ final class Csv10BodyInput implements CsvBodyInput {
             }
         }
         // unidirectional state machine with two states
-        byte[] bytes = new byte[0];
+        plainText.clear();
         if (decryptAttributes.getFamily().equals(CipherFamily.FAMILY_UNKNOWN)) {
+            plainText.limit(0);
             genericInput.init(fileInfo, decryptAttributes);
             fileInfo.setCipherFamily(CipherFamily.FAMILY_CSV);
             fileInfo.setCipherVersion(FileCipher.Csv.V10.LABEL);
         } else {
-            bytes = genericInput.read();
+            plainText = genericInput.read();
         }
-        return bytes;
+        return plainText;
     }
 
     @Override

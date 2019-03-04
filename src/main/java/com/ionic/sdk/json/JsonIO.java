@@ -1,5 +1,6 @@
 package com.ionic.sdk.json;
 
+import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
@@ -24,6 +25,7 @@ import java.util.logging.Logger;
 /**
  * Utility methods for serialization / deserialization of json messages using the javax.json library.
  */
+@InternalUseOnly
 public final class JsonIO {
 
     /**

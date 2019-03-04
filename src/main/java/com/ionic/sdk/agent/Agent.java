@@ -24,6 +24,7 @@ import com.ionic.sdk.agent.request.updatekey.UpdateKeysRequest;
 import com.ionic.sdk.agent.request.updatekey.UpdateKeysResponse;
 import com.ionic.sdk.agent.request.updatekey.UpdateKeysTransaction;
 import com.ionic.sdk.agent.service.IDC;
+import com.ionic.sdk.core.date.DateTime;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.device.profile.persistor.DeviceProfilePersistorBase;
 import com.ionic.sdk.error.IonicException;
@@ -190,7 +191,7 @@ public class Agent extends MetadataHolder implements KeyServices {
         this.deviceProfiles.clear();
         this.deviceProfiles.addAll(profiles);
         final String deviceId = this.activeProfile == null ? null : this.activeProfile.getDeviceId();
-        boolean found = setActiveProfileInternal(deviceId);
+        final boolean found = setActiveProfileInternal(deviceId);
         if (!found) {
             this.activeProfile = null;
         }
@@ -292,7 +293,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException on errors
      */
     private void loadProfilesInternal(final DeviceProfilePersistorBase persistor) throws IonicException {
-        String[] activeProfileParam = new String[1];
+        final String[] activeProfileParam = new String[1];
         List<DeviceProfile> deviceProfilesInit = new ArrayList<DeviceProfile>();
         try {
             deviceProfilesInit = (persistor == null)
@@ -837,6 +838,66 @@ public class Agent extends MetadataHolder implements KeyServices {
      */
     public final boolean isInitialized() {
         return initialized;
+    }
+
+    /**
+     * Set by calibrateServerTimeOffsetMillis and tracks the basic difference between local UTC and the server UTC.
+     */
+    private static long serverTimeOffsetMillis;
+
+    /**
+     * Calibrate the server offset. Called when the server returns a timestamp denied error,
+     * Agent will calibrate here and retry
+     * @param serverTimeMillis The server time returned from the timestamp denied response
+     */
+    public static void calibrateServerTimeOffsetMillis(final long serverTimeMillis) {
+
+        // get current time on device with millisecond precision
+        final long deviceTimeMillis = System.currentTimeMillis();
+
+        // update server time offset to be the difference between server time millis
+        // and our own device time millis
+        serverTimeOffsetMillis = serverTimeMillis - deviceTimeMillis;
+
+        return;
+    }
+
+    /**
+     * Get the current server time UTC seconds.
+     *
+     * This method returns the current server time UTC seconds.  See getServerTimeUtcMillis()
+     * for more information about how this time value is determined and why it is useful.
+     * @return  Server time in seconds
+     */
+    public static long getServerTimeUtcSecs() {
+        return ((System.currentTimeMillis() + serverTimeOffsetMillis) / DateTime.ONE_SECOND_MILLIS);
+    }
+
+    /**
+     * Get the current server time UTC milliseconds.
+     *
+     * This method returns the current server time UTC milliseconds based on information received
+     * from any communication with Ionic.com. The server time is typically very similar or even
+     * identical to local UTC time, but in some cases it can be substantially different if/when
+     * the local clock is wrong. The server UTC time is a more reliable source of the absolute
+     *  real world UTC time than the local device UTC time.
+     * @return  Server time in milliseconds
+     */
+    public static long getServerTimeUtcMillis() {
+        // get current UTC time on device with millisecond precision
+        final long deviceTimeMillis = System.currentTimeMillis();
+
+        // add server time offset to device UTC time and return
+        final long currentServerTimeUtcSeconds = deviceTimeMillis + serverTimeOffsetMillis;
+        return currentServerTimeUtcSeconds;
+    }
+
+    /**
+     * Get the server offset UTC milliseconds.
+     * @return  The server offset in millliseconds
+     */
+    public static long getServerTimeOffsetMillis() {
+        return serverTimeOffsetMillis;
     }
 
     /**

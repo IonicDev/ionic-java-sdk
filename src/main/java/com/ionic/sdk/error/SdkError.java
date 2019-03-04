@@ -10,7 +10,8 @@ public final class SdkError implements
         ChunkCryptoErrorModuleConstants,
         AgentErrorModuleConstants,
         CryptoErrorModuleConstants,
-        FileCryptoErrorModuleConstants {
+        FileCryptoErrorModuleConstants,
+        KeyVaultErrorModuleConstants {
 
     /**
      * Constructor.

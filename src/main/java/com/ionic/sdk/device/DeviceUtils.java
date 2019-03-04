@@ -35,7 +35,7 @@ public final class DeviceUtils {
         try {
             return is.read();
         } catch (IOException e) {
-            throw new IonicException(SdkError.ISFILECRYPTO_EOF);
+            throw new IonicException(SdkError.ISFILECRYPTO_EOF, e);
         }
     }
 
@@ -50,7 +50,7 @@ public final class DeviceUtils {
         try {
             return Stream.read(url);
         } catch (IOException e) {
-            throw new IonicException(SdkError.ISAGENT_OPENFILE);
+            throw new IonicException(SdkError.ISAGENT_OPENFILE, e);
         }
     }
 
@@ -65,7 +65,25 @@ public final class DeviceUtils {
         try {
             return Stream.read(is);
         } catch (IOException e) {
-            throw new IonicException(SdkError.ISAGENT_OPENFILE);
+            throw new IonicException(SdkError.ISAGENT_OPENFILE, e);
+        }
+    }
+
+    /**
+     * Completely read the requested resource from the parameter file.
+     * <p>
+     * If an unprivileged file is being accessed, the alternate API {@link #read(File)} is recommended.  It
+     * is more performant, but does require that the file length be known before the read begins.
+     *
+     * @param file the location of the resource
+     * @return a byte[] containing the content of the resource
+     * @throws IonicException if an I/O error occurs
+     */
+    public static byte[] readSlow(final File file) throws IonicException {
+        try {
+            return Stream.readSlow(file);
+        } catch (IOException e) {
+            throw new IonicException(SdkError.ISAGENT_OPENFILE, e);
         }
     }
 
@@ -80,7 +98,7 @@ public final class DeviceUtils {
         try {
             return Stream.read(file);
         } catch (IOException e) {
-            throw new IonicException(SdkError.ISAGENT_OPENFILE);
+            throw new IonicException(SdkError.ISAGENT_OPENFILE, e);
         }
     }
 
@@ -95,7 +113,7 @@ public final class DeviceUtils {
         try {
             Stream.write(file, bytes);
         } catch (IOException e) {
-            throw new IonicException(SdkError.ISAGENT_OPENFILE);
+            throw new IonicException(SdkError.ISAGENT_OPENFILE, e);
         }
     }
 
@@ -112,7 +130,7 @@ public final class DeviceUtils {
         try {
             return new File(url.toURI());
         } catch (URISyntaxException e) {
-            throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND);
+            throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND, e);
         }
     }
 }

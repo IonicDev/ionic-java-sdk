@@ -4,6 +4,7 @@ import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.error.IonicException;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Interface presenting methods to manage encryption of file content into a
@@ -29,13 +30,18 @@ interface CsvBodyOutput {
     int getBlockLengthPlain();
 
     /**
+     * @return the {@link ByteBuffer} allocated to hold a plaintext block for this cryptography operation
+     */
+    ByteBuffer getPlainText();
+
+    /**
      * Write the next Ionic-protected block to the output resource.
      *
      * @param block the next plainText block to be written to the stream
      * @throws IOException    on failure writing to the stream
      * @throws IonicException on failure to encrypt the block, or calculate the block signature
      */
-    void write(byte[] block) throws IOException, IonicException;
+    void write(ByteBuffer block) throws IOException, IonicException;
 
     /**
      * Finish processing of the output stream.

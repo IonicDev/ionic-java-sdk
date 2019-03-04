@@ -1,33 +1,30 @@
 package com.ionic.sdk.agent.cipher.file.data;
 
-import com.ionic.sdk.agent.data.MetadataHolder;
-import com.ionic.sdk.agent.key.KeyAttributesMap;
-import com.ionic.sdk.agent.request.getkey.GetKeysResponse;
+import com.ionic.sdk.agent.cipher.data.DecryptAttributes;
+import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 
 /**
- * On an Ionic SDK file decrypt operation, this class provides the ability to receive parameters
- * relevant to the operation.
+ * On an Ionic SDK file decrypt operation, this class provides the ability to specify request metadata that should be
+ * sent to the server along with the cryptography key request.
+ * <p>
+ * The key used for the decryption might have associated cryptography key attributes (fixed and mutable).  This
+ * information is communicated back to the SDK caller in this object.
  * <p>
  * The usage pattern for this object is to supply a fresh instance to each API call.  The Ionic SDK will reject
- * any <code>decrypt()</code> operation that is attempted using a previously used {@link FileCryptoDecryptAttributes}
- * object.
+ * any <code>decrypt()</code> operation that is attempted using a previously used {@link FileCryptoDecryptAttributes}.
  */
-public final class FileCryptoDecryptAttributes extends MetadataHolder {
+public final class FileCryptoDecryptAttributes extends DecryptAttributes {
 
     /**
-     * After decryption, parameters applied to operation.
-     */
-    private GetKeysResponse.Key key;
-
-    /**
-     * The identifier for the file family used in the decryption operation.
+     * The identifier for the Ionic file cipher family used in the decryption operation.
      */
     private CipherFamily cipherFamily;
 
     /**
-     * The identifier for the file family version used in the decryption operation.
+     * The identifier for the Ionic file cipher family version used in the decryption operation.
      */
     private String version;
 
@@ -37,50 +34,49 @@ public final class FileCryptoDecryptAttributes extends MetadataHolder {
     private boolean shouldProvideAccessDeniedPage;
 
     /**
+     * The serialized byte stream to be supplied to the caller when a key request is denied.
+     */
+    private byte[] accessDeniedPage;
+
+    /**
      * Constructor.
      */
     public FileCryptoDecryptAttributes() {
-        this.key = new GetKeysResponse.Key();
         this.cipherFamily = CipherFamily.FAMILY_UNKNOWN;
         this.version = "";
         this.shouldProvideAccessDeniedPage = false;
+        this.accessDeniedPage = null;
     }
 
     /**
-     * @return the id of the key used in the decryption operation
-     */
-    public String getKeyId() {
-        return key.getId();
-    }
-
-    /**
-     * @return the origin of the key used in the decryption operation
-     */
-    public String getKeyOrigin() {
-        return key.getOrigin();
-    }
-
-    /**
-     * Setter.
+     * Set the version of the file cipher used during the decryption operation.
+     * <p>
+     * Ionic SDK clients should not call this function.  Any value set prior to the decryption operation will cause
+     * an {@link com.ionic.sdk.error.IonicException} to be thrown by the operation.
      *
-     * @param version the file family version to be used in the decryption operation
+     * @param version the Ionic file cipher family version used in the decryption operation
      */
+    @InternalUseOnly
     public void setVersion(final String version) {
         this.version = version;
     }
 
     /**
-     * @return the file family version to be used in the decryption operation
+     * @return the Ionic file cipher family version used in the decryption operation
      */
     public String getVersion() {
         return version;
     }
 
     /**
-     * Setter.
+     * Set the CipherFamily associated with the decryption.
+     * <p>
+     * Ionic SDK clients should not call this function.  Any value set prior to the decryption operation will cause
+     * an {@link com.ionic.sdk.error.IonicException} to be thrown by the operation.
      *
      * @param cipherFamily the file family to be used in the decryption operation
      */
+    @InternalUseOnly
     public void setFamily(final CipherFamily cipherFamily) {
         this.cipherFamily = cipherFamily;
     }
@@ -93,26 +89,8 @@ public final class FileCryptoDecryptAttributes extends MetadataHolder {
     }
 
     /**
-     * Get the key attributes.
-     *
-     * @return KeyAttributesMap attributes
-     */
-    public KeyAttributesMap getKeyAttributes() {
-        return this.key.getAttributesMap();
-    }
-
-    /**
-     * Get the mutable attributes map.
-     *
-     * @return KeyAttributesMap attributes
-     */
-    public KeyAttributesMap getMutableKeyAttributes() {
-        return this.key.getMutableAttributesMap();
-    }
-
-    /**
-     * Get the value indicating whether denied page object should be populated if
-     * an access denied error is encountered.
+     * Get whether access denied page object should be populated in the event that an access denied error is
+     * encountered.
      *
      * @return access denied page enablement option
      */
@@ -131,28 +109,36 @@ public final class FileCryptoDecryptAttributes extends MetadataHolder {
     }
 
     /**
-     * Get the byte vector containing the access denied page for the appropriately formatted document.
+     * Get the byte vector containing the access denied page for the appropriate document format.
      *
      * @return access denied page bytes
-     * @throws IonicException unconditionally, as this functionality is to be implemented
      */
-    public byte[] getAccessDeniedPageOut() throws IonicException {
-        throw new IonicException(SdkError.ISAGENT_NOTIMPLEMENTED);
+    public byte[] getAccessDeniedPageOut() {
+        return (accessDeniedPage == null) ? null : accessDeniedPage.clone();
     }
 
     /**
-     * Set the cryptography key from the response.
+     * Set the byte vector containing the access denied page for the appropriate document format.
      *
-     * @param key the key used in the decryption operation
+     * @param accessDeniedPage access denied page bytes
      */
-    public void setKeyResponse(final GetKeysResponse.Key key) {
-        this.key = key;
+    public void setAccessDeniedPageOut(final byte[] accessDeniedPage) {
+        this.accessDeniedPage = (accessDeniedPage == null) ? null : accessDeniedPage.clone();
     }
 
     /**
-     * @return the key used in the decryption operation
+     * Verify that object is in the expected state prior to the Ionic server key request.
+     * <p>
+     * The usage pattern for this object is to supply a fresh instance to each SDK cryptography API call.  The
+     * Ionic SDK will reject an operation that is attempted using a previously used instance of this class.
+     *
+     * @throws IonicException on expectation failure
      */
-    public GetKeysResponse.Key getKeyResponse() {
-        return this.key;
+    public void validateInput() throws IonicException {
+        final String className = getClass().getName();
+        SdkData.checkTrue(CipherFamily.FAMILY_UNKNOWN.equals(cipherFamily), SdkError.ISAGENT_INVALIDVALUE, className);
+        SdkData.checkTrue("".equals(version), SdkError.ISAGENT_INVALIDVALUE, className);
+        SdkData.checkTrue(null == getKeyResponse(), SdkError.ISAGENT_INVALIDVALUE, className);
+        SdkData.checkTrue(null == getServerErrorResponse(), SdkError.ISAGENT_INVALIDVALUE, className);
     }
 }

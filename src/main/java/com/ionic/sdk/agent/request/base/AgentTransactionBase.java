@@ -163,6 +163,11 @@ public abstract class AgentTransactionBase {
             errorsHandled.add(returnCode);
             handleFingerprintDeniedError(fingerprint);
             handled = true;
+        } else if (returnCode == SdkError.ISAGENT_CID_TIMESTAMP_DENIED
+                   && handleCidTimestampDeniedError()) {
+            // server is just indicating that our time stamp is too far off, set an offset and retry once
+            errorsHandled.add(returnCode);
+            handled = true;
         }
         return handled;
     }
@@ -286,6 +291,39 @@ public abstract class AgentTransactionBase {
             default:
                 throw new IonicServerException(SdkError.ISAGENT_REQUESTFAILED, cid, responseBase);
         }
+    }
+
+    /**
+     * Internal function to parse the server error in case of a CID_TIMESTAMP_DENIED error.
+     * @return True if successfully parses the server time and calibrates the Agent, False otherwise.
+     */
+    private boolean handleCidTimestampDeniedError() {
+        logger.finest("Server has denied our CID timestamp.  Auto-calibrating server time offset.");
+
+        // make sure the server provided the error "data" field
+        if (getResponseBase().getServerErrorDataJson().length() == 0) {
+            logger.severe("Server did not provide any data along with the CID timestamp error.");
+            return false;
+        }
+
+        // parse the error data JSON
+        JsonValue rootValue = null;
+        try {
+            rootValue = JsonIO.readObject(getResponseBase().getServerErrorDataJson(), SdkError.ISAGENT_PARSEFAILED);
+        } catch (IonicException e) {
+            logger.severe("Failed to parse error data provided with the CID timestamp error.");
+            return false;
+        }
+
+        if (rootValue == null || rootValue.getValueType() != JsonValue.ValueType.NUMBER) {
+            logger.severe("The error data provided with the CID timestamp error does not contain an integer.");
+            return false;
+        }
+
+        // use the server time to calibrate the agent
+        Agent.calibrateServerTimeOffsetMillis(JsonSource.toLong(rootValue));
+
+        return true;
     }
 
     /**

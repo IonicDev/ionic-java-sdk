@@ -1,5 +1,7 @@
 package com.ionic.sdk.core.io;
 
+import com.ionic.sdk.core.annotation.InternalUseOnly;
+
 /**
  * Container for byte data.  This object is intended to be used as an intermediate cache for data
  * in support of Ionic file ciphers.
@@ -10,6 +12,7 @@ package com.ionic.sdk.core.io;
  * In order to simplify its logic, this object handles manipulation of its state naively, and depends
  * on its wrapping object to protect against boundary conditions.
  */
+@InternalUseOnly
 public final class ByteBlock {
 
     /**
@@ -65,6 +68,13 @@ public final class ByteBlock {
      */
     public int available() {
         return tail - head;
+    }
+
+    /**
+     * @return the amount of free space available in this block to be written to
+     */
+    public int freeSpace() {
+        return block.length - (tail - head);
     }
 
     /**

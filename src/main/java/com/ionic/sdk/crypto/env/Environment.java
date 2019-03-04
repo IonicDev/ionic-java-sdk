@@ -111,7 +111,7 @@ public final class Environment {
      */
     public static String fileContentHash(final String path, final String defaultValue) {
         try {
-            return Transcoder.base64().encode(new Hash().sha256(DeviceUtils.read(new File(path))));
+            return Transcoder.base64().encode(new Hash().sha256(DeviceUtils.readSlow(new File(path))));
         } catch (IonicException e) {
             return defaultValue;
         }
@@ -126,7 +126,7 @@ public final class Environment {
      * @see File#lastModified()
      */
     public static String dirEntryTime(final String path, final String defaultValue) {
-        long lastModified = new File(path).lastModified();
+        final long lastModified = new File(path).lastModified();
         return ((lastModified == 0L) ? defaultValue : Long.toString(lastModified));
     }
 }

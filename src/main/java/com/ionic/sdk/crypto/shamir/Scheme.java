@@ -43,7 +43,7 @@ public final class Scheme {
      * @throws IonicException on illegal inputs
      */
     public Scheme(final int n, final int k) throws IonicException {
-        boolean invalid = ((k < 1) || (n < k) || (n > MAX_N));
+        final boolean invalid = ((k < 1) || (n < k) || (n > MAX_N));
         if (invalid) {
             throw new IonicException(SdkError.ISAGENT_INVALIDVALUE,
                     new IllegalArgumentException(String.format("N = %d, K = %d", n, k)));

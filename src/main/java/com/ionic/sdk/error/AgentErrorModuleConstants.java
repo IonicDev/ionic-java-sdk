@@ -3,7 +3,7 @@ package com.ionic.sdk.error;
 /**
  * Enumeration of error codes from the Ionic SDK Agent module.
  */
-@SuppressWarnings({"checkstyle:interfaceistype"})
+@SuppressWarnings({"checkstyle:interfaceistype"})  // Java JNI SDK API compatibility
 public interface AgentErrorModuleConstants {
 
     /**

@@ -23,6 +23,11 @@ public final class ServerError {
     public static final int MATTR_SIGNATURE_MISMATCH = 409;
 
     /**
+     * Error processing request.
+     */
+    public static final int PROCESSING_ERROR = 4000;
+
+    /**
      * Server has rejected request due to mismatched fingerprint hash.
      */
     public static final int HFPHASH_DENIED = 4001;

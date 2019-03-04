@@ -8,6 +8,7 @@ import com.ionic.sdk.error.IonicException;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Extensions for handling output of {@link com.ionic.sdk.agent.cipher.file.GenericFileCipher}
@@ -38,7 +39,8 @@ final class Generic11BodyOutput implements GenericBodyOutput {
     }
 
     @Override
-    public void init() {
+    public int init() {
+        return 0;
     }
 
     @Override
@@ -50,15 +52,20 @@ final class Generic11BodyOutput implements GenericBodyOutput {
      * Write the next Ionic-protected block to the output resource.  Version 1.1 blocks are delimited by a
      * block header byte and a block footer byte.
      *
-     * @param block the next plainText block to be written to the stream
+     * @param byteBuffer the next plainText block to be written to the stream
+     * @return the number of bytes written in the context of this call
      * @throws IOException    on failure writing to the stream
      * @throws IonicException on failure to encrypt the block, or calculate the block signature
      */
     @Override
-    public void write(final byte[] block) throws IOException, IonicException {
+    public int write(final ByteBuffer byteBuffer) throws IOException, IonicException {
+        final byte[] plainText = new byte[byteBuffer.remaining()];
+        byteBuffer.get(plainText);
+        final byte[] cipherText = Transcoder.utf8().decode(cipher.encryptToBase64(plainText));
         targetStream.write(FileCipher.Generic.V11.BLOCK_HEADER_BYTE);
-        targetStream.write(Transcoder.utf8().decode(cipher.encryptToBase64(block)));
+        targetStream.write(cipherText);
         targetStream.write(FileCipher.Generic.V11.BLOCK_FOOTER_BYTE);
+        return 1 + cipherText.length + 1;
     }
 
     @Override

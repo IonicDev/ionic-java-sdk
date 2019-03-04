@@ -1,6 +1,8 @@
 package com.ionic.sdk.core.io;
 
+
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * Use this class to enable write access to an input stream, in order to buffer bytes.  This is needed to implement
@@ -32,10 +34,27 @@ public final class ByteQueueInputStream extends InputStream {
     /**
      * Write additional bytes to the buffer, which will then be consumed by the InputStream "read()" operation.
      *
-     * @param bytes the bytes that should be written to the internal buffer
+     * @param bytes  the bytes that should be written to the internal buffer
+     * @param offset the offset in the parameter buffer from which to start reading
+     * @param length the number of bytes to add
      */
-    public void addBytes(final byte[] bytes) {
-        byteQueue.addData(bytes, 0, bytes.length);
+    public void addBytes(final byte[] bytes, final int offset, final int length) {
+        byteQueue.addData(bytes, offset, length);
+    }
+
+    /**
+     * Write additional bytes to the buffer, which will then be consumed by the InputStream "read()" operation.
+     *
+     * @param byteBuffer the {@link ByteBuffer} which contains data to be written to the internal buffer
+     */
+    public void addBytes(final ByteBuffer byteBuffer) {
+        final int sizeBlock = 256 * 256;
+        final byte[] block = new byte[sizeBlock];
+        while (byteBuffer.position() < byteBuffer.limit()) {
+            final int count = Math.min(byteBuffer.limit() - byteBuffer.position(), block.length);
+            byteBuffer.get(block, 0, count);
+            byteQueue.addData(block, 0, count);
+        }
     }
 
     @Override

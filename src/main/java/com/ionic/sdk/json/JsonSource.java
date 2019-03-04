@@ -1,5 +1,6 @@
 package com.ionic.sdk.json;
 
+import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
@@ -15,6 +16,7 @@ import java.util.Map;
 /**
  * Utility class for requesting data from objects in the "javax.json" package hierarchy.
  */
+@InternalUseOnly
 public final class JsonSource {
 
     /**
@@ -28,12 +30,12 @@ public final class JsonSource {
      * Obtain a reference to the specified JsonString.
      *
      * @param jsonValue the value of the item
-     * @param label     the name of the requested item
+     * @param message the error message if this fails.
      * @return the input value, cast to a JsonString
      * @throws IonicException if the value is not of the expected JsonString type
      */
-    public static JsonString toJsonString(final JsonValue jsonValue, final String label) throws IonicException {
-        SdkData.checkTrue(jsonValue instanceof JsonString, SdkError.ISAGENT_INVALIDVALUE, label);
+    public static JsonString toJsonString(final JsonValue jsonValue, final String message) throws IonicException {
+        SdkData.checkTrue(jsonValue instanceof JsonString, SdkError.ISAGENT_INVALIDVALUE, message);
         return (JsonString) jsonValue;
     }
 
@@ -41,12 +43,12 @@ public final class JsonSource {
      * Obtain a reference to the specified JsonObject.
      *
      * @param jsonValue the value of the item
-     * @param label     the name of the requested item
+     * @param message the error message if this fails.
      * @return the input value, cast to a JsonObject
      * @throws IonicException if the value is not of the expected type
      */
-    public static JsonObject toJsonObject(final JsonValue jsonValue, final String label) throws IonicException {
-        SdkData.checkTrue(jsonValue instanceof JsonObject, SdkError.ISAGENT_INVALIDVALUE, label);
+    public static JsonObject toJsonObject(final JsonValue jsonValue, final String message) throws IonicException {
+        SdkData.checkTrue(jsonValue instanceof JsonObject, SdkError.ISAGENT_INVALIDVALUE, message);
         return (JsonObject) jsonValue;
     }
 
@@ -54,12 +56,12 @@ public final class JsonSource {
      * Obtain a reference to the specified JsonArray.
      *
      * @param jsonValue the value of the item
-     * @param label     the name of the requested item
+     * @param message the error message if this fails.
      * @return the input value, cast to a JsonArray
      * @throws IonicException if the value is not of the expected type
      */
-    public static JsonArray toJsonArray(final JsonValue jsonValue, final String label) throws IonicException {
-        SdkData.checkTrue(jsonValue instanceof JsonArray, SdkError.ISAGENT_INVALIDVALUE, label);
+    public static JsonArray toJsonArray(final JsonValue jsonValue, final String message) throws IonicException {
+        SdkData.checkTrue(jsonValue instanceof JsonArray, SdkError.ISAGENT_INVALIDVALUE, message);
         return (JsonArray) jsonValue;
     }
 
@@ -70,7 +72,7 @@ public final class JsonSource {
      * @return the String representation of the value
      */
     public static String toString(final JsonValue jsonValue) {
-        String value;
+        final String value;
         if (jsonValue == null) {
             value = null;
         } else if (jsonValue instanceof JsonString) {
@@ -79,6 +81,26 @@ public final class JsonSource {
             value = jsonValue.toString();
         }
         return value;
+    }
+
+    /**
+     * Utility function to read the int value from json value.
+     *
+     * @param jsonValue the value from which to retrieve the int
+     * @return the json int value, or 0 if not a number
+     */
+    public static int toInt(final JsonValue jsonValue) {
+        return ((jsonValue instanceof JsonNumber) ? ((JsonNumber) jsonValue).intValue() : 0);
+    }
+
+    /**
+     * Utility function to read the long value from json value.
+     *
+     * @param jsonValue the value from which to retrieve the long
+     * @return the json long value, or 0 if not a number
+     */
+    public static long toLong(final JsonValue jsonValue) {
+        return ((jsonValue instanceof JsonNumber) ? ((JsonNumber) jsonValue).longValueExact() : 0);
     }
 
     /**
@@ -231,6 +253,18 @@ public final class JsonSource {
     public static int getInt(final JsonObject jsonObject, final String name) {
         final JsonValue jsonValue = jsonObject.get(name);
         return ((jsonValue instanceof JsonNumber) ? ((JsonNumber) jsonValue).intValue() : 0);
+    }
+
+    /**
+     * Utility function to read the long value associated with the name within a json object.
+     *
+     * @param jsonObject the object from which to get the long
+     * @param name       the name of the long value
+     * @return the json value associated with the name, or 0 if not present
+     */
+    public static long getLong(final JsonObject jsonObject, final String name) {
+        final JsonValue jsonValue = jsonObject.get(name);
+        return ((jsonValue instanceof JsonNumber) ? ((JsonNumber) jsonValue).longValueExact() : 0);
     }
 
     /**

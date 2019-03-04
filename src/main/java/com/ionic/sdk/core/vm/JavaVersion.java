@@ -4,8 +4,15 @@ package com.ionic.sdk.core.vm;
  * Encapsulation of logic to derive the version of the JVM from the system property set.
  * <p>
  * Java version detection is only used to resolve the active transcoder set for a particular environment.
+ * <p>
+ * There are no known Ionic SDK incompatibilities (compile or runtime) with any version &gt;= JRE 7.
  */
 public enum JavaVersion {
+
+    /**
+     * The version advertised by the JRE is not recognized by the Ionic SDK.
+     */
+    VERSION_UNRECOGNIZED,
 
     /**
      * JRE version 7 (released July 2011).
@@ -25,7 +32,12 @@ public enum JavaVersion {
     /**
      * JRE version 10 (released March 2018).
      */
-    VERSION_1_10;
+    VERSION_1_10,
+
+    /**
+     * JRE version 11 (released September 2018).
+     */
+    VERSION_1_11;
 
     /**
      * @return the enum corresponding to the currently detected JRE version
@@ -42,8 +54,10 @@ public enum JavaVersion {
             return VERSION_1_9;
         } else if (javaVersion.startsWith(PREFIX_1_10)) {
             return VERSION_1_10;
+        } else if (javaVersion.startsWith(PREFIX_1_11)) {
+            return VERSION_1_11;
         } else {
-            throw new IllegalStateException(javaVersion);
+            return VERSION_UNRECOGNIZED;
         }
     }
 
@@ -66,4 +80,9 @@ public enum JavaVersion {
      * The prefix of the value of the in-use JRE which corresponds to version 10 (released March 2018).
      */
     private static final String PREFIX_1_10 = "10.0.";
+
+    /**
+     * The prefix of the value of the in-use JRE which corresponds to version 11 (released September 2018).
+     */
+    private static final String PREFIX_1_11 = "11.0.";
 }

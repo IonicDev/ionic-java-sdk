@@ -49,7 +49,7 @@ public class GetKeysMessage extends MessageBase {
      */
     @Override
     protected final JsonObject getJsonData(final AgentRequestBase requestBase) throws IonicException {
-        GetKeysRequest getKeysRequest = (GetKeysRequest) requestBase;
+        final GetKeysRequest getKeysRequest = (GetKeysRequest) requestBase;
         final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
         JsonTarget.add(objectBuilder, IDC.Payload.PROTECTION_KEYS, JsonTarget.toJsonArray(getKeysRequest.getKeyIds()));
         // external-id

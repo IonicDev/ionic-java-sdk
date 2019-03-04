@@ -7,6 +7,7 @@ import com.ionic.sdk.agent.cipher.file.data.FileCipherUtils;
 import com.ionic.sdk.agent.cipher.file.data.FileCryptoDecryptAttributes;
 import com.ionic.sdk.agent.cipher.file.data.FileCryptoEncryptAttributes;
 import com.ionic.sdk.agent.cipher.file.data.FileCryptoFileInfo;
+import com.ionic.sdk.agent.cipher.file.data.FileType;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
@@ -85,6 +86,11 @@ public abstract class FileCipherAbstract {
      * @return the versions of the encryption format supported by this FileCipher implementation
      */
     public abstract List<String> getVersions();
+
+    /**
+     * @return the default version of the encryption format supported by this FileCipher implementation
+     */
+    public abstract String getDefaultVersion();
 
     /**
      * @param version the cipher family version to be checked for support
@@ -451,4 +457,25 @@ public abstract class FileCipherAbstract {
      */
     protected abstract void decryptInternal(File sourceFile, File targetFile,
                                             FileCryptoDecryptAttributes attributes) throws IonicException;
+
+
+    /**
+     * Core SDK behavior is to supply access denied page for appropriate file type in the
+     * {@link FileCryptoDecryptAttributes} of the operation.
+     *
+     * @param e                 the thrown exception
+     * @param fileType          the file type associated with the cryptography operation
+     * @param decryptAttributes the out value used by the SDK to supply results of the operation to the caller
+     * @throws IonicException unconditionally
+     */
+    protected final void handleFileCryptoException(final IonicException e, final FileType fileType,
+                                                   final FileCryptoDecryptAttributes decryptAttributes)
+            throws IonicException {
+        final boolean isAcccessDenied = SdkError.ISAGENT_KEY_DENIED == e.getReturnCode();
+        final boolean shouldProvidePage = decryptAttributes.shouldProvideAccessDeniedPage();
+        if (isAcccessDenied && shouldProvidePage) {
+            decryptAttributes.setAccessDeniedPageOut(coverPageServices.getAccessDeniedPage(fileType));
+        }
+        throw e;
+    }
 }

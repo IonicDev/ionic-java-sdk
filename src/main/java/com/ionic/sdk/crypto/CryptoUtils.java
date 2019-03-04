@@ -11,6 +11,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 
 /**
@@ -182,6 +183,27 @@ public final class CryptoUtils {
     }
 
     /**
+     * Compute a MAC (message authentication code) for the input value range, given the input key.
+     *
+     * @param byteBuffer the buffer containing the bytes for which the MAC should be generated
+     * @param key        the key bytes used to generate the MAC
+     * @return the message authentication code
+     * @throws IonicException on failure to generate the MAC
+     */
+    private static byte[] hmacSHA256Internal(final ByteBuffer byteBuffer, final byte[] key) throws IonicException {
+        try {
+            AgentSdk.initialize();
+            final Mac hmacSHA256 = Mac.getInstance(HMAC_ALGORITHM);
+            final SecretKeySpec keySpec = new SecretKeySpec(key, HMAC_ALGORITHM);
+            hmacSHA256.init(keySpec);
+            hmacSHA256.update(byteBuffer);
+            return hmacSHA256.doFinal();
+        } catch (GeneralSecurityException e) {
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
+        }
+    }
+
+    /**
      * Compute a MAC (message authentication code) for the input value, given the input key.
      *
      * @param message the message for which the MAC should be generated
@@ -191,6 +213,18 @@ public final class CryptoUtils {
      */
     public static byte[] hmacSHA256(final byte[] message, final byte[] key) throws IonicException {
         return hmacSHA256Internal(message, key);
+    }
+
+    /**
+     * Compute a MAC (message authentication code) for the input value range, given the input key.
+     *
+     * @param byteBuffer the buffer containing the bytes for which the MAC should be generated
+     * @param key        the key bytes used to generate the MAC
+     * @return the message authentication code
+     * @throws IonicException on failure to generate the MAC
+     */
+    public static byte[] hmacSHA256(final ByteBuffer byteBuffer, final byte[] key) throws IonicException {
+        return hmacSHA256Internal(byteBuffer, key);
     }
 
     /**
@@ -220,10 +254,20 @@ public final class CryptoUtils {
      * Calculate hash of input byte stream.
      *
      * @param message input to the hash function
-     * @return the SHA-256 hash of the input, as the hex representation of the hash byte array
+     * @return the SHA-256 hash of the input, hex encoded
      */
     public static String sha256ToHexString(final byte[] message) {
         return Transcoder.hex().encode(new Hash().sha256(message));
+    }
+
+    /**
+     * Calculate hash of input byte stream.
+     *
+     * @param message input to the hash function
+     * @return the SHA-256 hash of the input, base64 encoded
+     */
+    public static String sha256ToBase64(final byte[] message) {
+        return Transcoder.base64().encode(new Hash().sha256(message));
     }
 
     /**
@@ -240,7 +284,7 @@ public final class CryptoUtils {
      * Calculate hash of input byte stream.
      *
      * @param message input to the hash function
-     * @return the SHA-512 hash of the input, as the hex representation of the hash byte array
+     * @return the SHA-512 hash of the input, hex encoded
      */
     public static String sha512ToHexString(final byte[] message) {
         return Transcoder.hex().encode(new Hash().sha512(message));
