@@ -6,6 +6,7 @@ import com.ionic.sdk.agent.cipher.file.data.FileCipher;
 import com.ionic.sdk.agent.cipher.file.data.FileCryptoDecryptAttributes;
 import com.ionic.sdk.agent.cipher.file.data.FileCryptoFileInfo;
 import com.ionic.sdk.agent.request.getkey.GetKeysResponse;
+import com.ionic.sdk.cipher.aes.AesCipher;
 import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
@@ -19,6 +20,7 @@ import javax.json.JsonObject;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * Wrap an input stream with logic to manage the Ionic augmentation of the content (header, cipher blocks).
@@ -37,19 +39,48 @@ public final class GenericInput {
     private final KeyServices agent;
 
     /**
+     * The buffer to hold a plaintext block (source buffer for encryption, target buffer for decryption).
+     */
+    private ByteBuffer plainText;
+
+    /**
+     * The buffer to hold a ciphertext block (source buffer for decryption, target buffer for encryption).
+     */
+    private ByteBuffer cipherText;
+
+    /**
      * The cipher family implementation for managing the file body content for the specified version.
      */
     private GenericBodyInput bodyInput;
 
     /**
+     * @return the {@link ByteBuffer} allocated to hold a plaintext block for this cryptography operation
+     */
+    public ByteBuffer getPlainText() {
+        return plainText;
+    }
+
+    /**
+     * @return the {@link ByteBuffer} allocated to hold a ciphertext block for this cryptography operation
+     */
+    public ByteBuffer getCipherText() {
+        return cipherText;
+    }
+
+    /**
      * Constructor.
      *
      * @param inputStream the raw input data containing the protected file content
+     * @param sizeInput   the length of the resource to be decrypted
      * @param agent       the key services implementation; used to provide keys for cryptography operations
      */
-    public GenericInput(final InputStream inputStream, final KeyServices agent) {
+    public GenericInput(final InputStream inputStream, final long sizeInput, final KeyServices agent) {
         this.sourceStream = new BufferedInputStream(inputStream);
         this.agent = agent;
+        final int sizeBlockCipher = Math.max(AesCipher.SIZE_IV,
+                (int) Math.min(sizeInput, FileCipher.Generic.V12.BLOCK_SIZE_CIPHER));
+        this.plainText = ByteBuffer.allocate(sizeBlockCipher - AesCipher.SIZE_IV);
+        this.cipherText = ByteBuffer.allocate(sizeBlockCipher);
     }
 
     /**
@@ -63,6 +94,7 @@ public final class GenericInput {
      */
     public void init(final FileCryptoFileInfo fileInfo,
                      final FileCryptoDecryptAttributes decryptAttributes) throws IonicException {
+        // deserialize Ionic generic file family JSON header
         final JsonObject jsonHeader;
         try {
             final String ionicHeader = new GenericHeaderInput().read(sourceStream);
@@ -72,6 +104,7 @@ public final class GenericInput {
             fileInfo.setCipherVersion(GenericFileCipher.VERSION_LATEST);
             throw e;
         }
+        // parse Ionic generic file family JSON header
         final String family = Value.defaultOnEmpty(
                 JsonSource.getString(jsonHeader, FileCipher.Header.FAMILY), FileCipher.Generic.FAMILY);
         SdkData.checkTrue(FileCipher.Generic.FAMILY.equals(family), SdkError.ISFILECRYPTO_UNRECOGNIZED);
@@ -79,26 +112,35 @@ public final class GenericInput {
         SdkData.checkTrue(!Value.isEmpty(version), SdkError.ISFILECRYPTO_MISSINGVALUE);
         final String tag = JsonSource.getString(jsonHeader, FileCipher.Header.TAG);
         final String server = JsonSource.getString(jsonHeader, FileCipher.Header.SERVER);
-        final GetKeysResponse.Key key = (agent == null)
-                ? new GetKeysResponse.Key() : agent.getKey(tag).getFirstKey();
-        if (FileCipher.Generic.V11.LABEL.equals(version)) {
-            bodyInput = new Generic11BodyInput(sourceStream, key);
-        } else if (FileCipher.Generic.V12.LABEL.equals(version)) {
-            bodyInput = new Generic12BodyInput(sourceStream, key);
-        } else {
-            throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
-        }
-        bodyInput.init();
+        // input file validation
+        final boolean isV11 = FileCipher.Generic.V11.LABEL.equals(version);
+        final boolean isV12 = FileCipher.Generic.V12.LABEL.equals(version);
+        final boolean isTagged = !Value.isEmpty(tag);
+        SdkData.checkTrue(((isV11 || isV12) && isTagged), SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         // set FileCryptoFileInfo members
         fileInfo.setEncrypted(true);
         fileInfo.setCipherFamily(CipherFamily.FAMILY_GENERIC);
         fileInfo.setCipherVersion(version);
         fileInfo.setKeyId(tag);
         fileInfo.setServer(server);
+        // guard against FileCryptoDecryptAttributes reuse
+        decryptAttributes.validateInput();
         // set FileCryptoDecryptAttributes members
         decryptAttributes.setFamily(CipherFamily.FAMILY_GENERIC);
         decryptAttributes.setVersion(version);
+        // perform server transaction
+        final GetKeysResponse.Key key = (agent == null)
+                ? new GetKeysResponse.Key() : agent.getKey(tag).getFirstKey();
+        if (isV11) {
+            bodyInput = new Generic11BodyInput(sourceStream, key);
+        } else if (isV12) {
+            bodyInput = new Generic12BodyInput(sourceStream, key, plainText, cipherText);
+        } else {
+            throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
+        }
         decryptAttributes.setKeyResponse(key);
+        // prime the decryption buffer
+        bodyInput.init();
     }
 
     /**
@@ -116,11 +158,11 @@ public final class GenericInput {
     /**
      * Read the next Ionic-protected block from the input resource body.
      *
-     * @return the next plainText block extracted from the stream
+     * @return the next plainText block extracted from the stream, wrapped in a {@link ByteBuffer} object
      * @throws IOException    on failure reading from the stream
      * @throws IonicException on failure to decrypt the block, or calculate the block signature
      */
-    public byte[] read() throws IOException, IonicException {
+    public ByteBuffer read() throws IOException, IonicException {
         if (bodyInput == null) {
             throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         } else {

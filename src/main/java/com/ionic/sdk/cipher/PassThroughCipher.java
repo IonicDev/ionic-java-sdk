@@ -12,11 +12,30 @@ import com.ionic.sdk.error.IonicException;
 public class PassThroughCipher extends CipherAbstract {
 
     /**
+     * ID for PassThroughCipher class cipher.
+     */
+    private static final String ID = "plaintext";
+    /**
+     * Label for PassThroughCipher class cipher.
+     */
+    private static final String LABEL = "Plaintext Pass-Through Cipher";
+
+    /**
      * Cipher that does nothing.
      * @param cipher - ignored.
      */
     public PassThroughCipher(final Cipher cipher) {
         super(cipher);
+    }
+
+    @Override
+    public final String getId() {
+        return ID;
+    }
+
+    @Override
+    public final String getLabel() {
+        return LABEL;
     }
 
     /**

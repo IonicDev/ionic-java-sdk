@@ -12,6 +12,9 @@ import com.ionic.sdk.error.SdkError;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.Arrays;
 
 /**
@@ -30,6 +33,16 @@ final class Generic12BodyInput implements GenericBodyInput {
      * The cryptography key used to decrypt and verify the file content.
      */
     private final AgentKey key;
+
+    /**
+     * The buffer to hold a plaintext block (source buffer for encryption, target buffer for decryption).
+     */
+    private ByteBuffer plainText;
+
+    /**
+     * The buffer to hold a ciphertext block (source buffer for decryption, target buffer for encryption).
+     */
+    private ByteBuffer cipherText;
 
     /**
      * The Ionic cipher used to encrypt file blocks.
@@ -52,13 +65,18 @@ final class Generic12BodyInput implements GenericBodyInput {
      *
      * @param sourceStream the raw input data containing the protected file content
      * @param key          the cryptography key used to decrypt and verify the file content
+     * @param plainText    ByteBuffer to receive the result of the cryptography operation
+     * @param cipherText   ByteBuffer containing bytes to decrypt
      * @throws IonicException on cipher initialization failures
      */
-    Generic12BodyInput(final BufferedInputStream sourceStream, final AgentKey key) throws IonicException {
+    Generic12BodyInput(final BufferedInputStream sourceStream, final AgentKey key,
+                       final ByteBuffer plainText, final ByteBuffer cipherText) throws IonicException {
         this.sourceStream = sourceStream;
+        this.plainText = plainText;
+        this.cipherText = cipherText;
         this.key = key;
-        cipher = new AesCtrCipher();
-        cipher.setKey(key.getKey());
+        this.cipher = new AesCtrCipher();
+        this.cipher.setKey(key.getKey());
         this.plainTextBlockHashes = new ByteArrayOutputStream();
     }
 
@@ -70,32 +88,35 @@ final class Generic12BodyInput implements GenericBodyInput {
      */
     @Override
     public void init() throws IonicException {
-        final byte[] cipherText = new byte[FileCipher.Generic.V12.SIGNATURE_SIZE_CIPHER];
+        final byte[] bytesCipherText = new byte[FileCipher.Generic.V12.SIGNATURE_SIZE_CIPHER];
         try {
-            final int count = sourceStream.read(cipherText);
+            final int count = sourceStream.read(bytesCipherText);
             SdkData.checkTrue((FileCipher.Generic.V12.SIGNATURE_SIZE_CIPHER == count), SdkError.ISFILECRYPTO_EOF);
         } catch (IOException e) {
             throw new IonicException(SdkError.ISFILECRYPTO_EOF, e);
         }
-        hashOfHashesCipherText = cipherText;
+        hashOfHashesCipherText = bytesCipherText;
     }
 
-    /**
-     * Read the next Ionic-protected block from the input stream.
-     *
-     * @return the next plainText block extracted from the stream
-     * @throws IOException    on failure reading from the stream
-     * @throws IonicException on failure to decrypt the block, or calculate the block signature
-     */
     @Override
-    public byte[] read() throws IOException, IonicException {
-        final byte[] block = new byte[FileCipher.Generic.V12.BLOCK_SIZE_CIPHER];
-        final int blockSize = sourceStream.read(block);
-        final byte[] cipherTextBlock = Arrays.copyOf(block, blockSize);
-        final byte[] plainTextBlock = cipher.decrypt(cipherTextBlock);
-        final byte[] plainTextBlockHash = CryptoUtils.hmacSHA256(plainTextBlock, key.getKey());
+    public ByteBuffer read() throws IOException, IonicException {
+        // consume input data
+        final ReadableByteChannel readableChannel = Channels.newChannel(sourceStream);
+        cipherText.clear();
+        final int blockSize = readableChannel.read(cipherText);
+        // perform decryption
+        cipherText.limit(blockSize);
+        cipherText.position(0);
+        cipher.decrypt(plainText, cipherText);
+        // verify block
+        plainText.limit(plainText.position());
+        plainText.position(0);
+        final byte[] plainTextBlockHash = CryptoUtils.hmacSHA256(plainText, key.getKey());
         plainTextBlockHashes.write(plainTextBlockHash);
-        return plainTextBlock;
+        // wrap up processing
+        plainText.limit(plainText.position());
+        plainText.position(0);
+        return plainText;
     }
 
     /**

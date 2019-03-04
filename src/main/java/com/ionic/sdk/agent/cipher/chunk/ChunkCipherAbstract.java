@@ -56,6 +56,7 @@ public abstract class ChunkCipherAbstract {
         if (Value.isEmpty(plainText)) {
             throw new IonicException(SdkError.ISCHUNKCRYPTO_BAD_INPUT);
         }
+        encryptAttributes.validateInput();
         // create request
         final CreateKeysRequest createKeysRequest = new CreateKeysRequest();
         final String refId = getClass().getSimpleName();
@@ -76,7 +77,9 @@ public abstract class ChunkCipherAbstract {
         }
         // capture response key
         final CreateKeysResponse.Key createKey = createKeys.iterator().next();
-        encryptAttributes.setKey(createKey);
+        createKey.setAttributesMap(encryptAttributes.getKeyAttributes());
+        createKey.setMutableAttributesMap(encryptAttributes.getMutableKeyAttributes());
+        encryptAttributes.setKeyResponse(createKey);
         final String keyId = createKey.getId();
         // perform crypto operation
         final String cipherText = normalize(encryptInternal(createKey, plainText));
@@ -127,6 +130,7 @@ public abstract class ChunkCipherAbstract {
      */
     private byte[] decryptInternal(final String keyIdQ, final String cipherTextBase64,
                                    final ChunkCryptoDecryptAttributes decryptAttributes) throws IonicException {
+        decryptAttributes.validateInput();
         // create request
         final GetKeysRequest getKeysRequest = new GetKeysRequest();
         getKeysRequest.add(keyIdQ);
@@ -145,9 +149,7 @@ public abstract class ChunkCipherAbstract {
         }
         // capture response key
         final GetKeysResponse.Key getKey = getKeys.iterator().next();
-        decryptAttributes.setKey(getKey);
-        decryptAttributes.setKeyAttributes(getKey.getAttributesMap());
-        decryptAttributes.setMutableAttributes(getKey.getMutableAttributesMap());
+        decryptAttributes.setKeyResponse(getKey);
         final String keyId = getKey.getId();
         if (!keyIdQ.equals(keyId)) {
             final int errorCode = SdkError.ISAGENT_BADRESPONSE;

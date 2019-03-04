@@ -18,7 +18,7 @@ public class SdkException extends Exception {
      *
      * @return the SDK error code
      */
-    @SuppressWarnings({"checkstyle:designforextension"})
+    @SuppressWarnings({"checkstyle:designforextension"})  // IonicException / SdkException refactoring
     public int getReturnCode() {
         return errorCode;
     }

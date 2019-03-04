@@ -10,6 +10,7 @@ import com.ionic.sdk.error.SdkError;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -52,12 +53,12 @@ final class Generic11BodyInput implements GenericBodyInput {
      * Read the next Ionic-protected block from the input resource.  Version 1.1 blocks are delimited by a
      * block header byte and a block footer byte.
      *
-     * @return the next plainText block extracted from the stream
-     * @throws IOException    on failure reading from the stream
-     * @throws IonicException on failure to parse or decrypt the block
+     * @return the next plaintext block extracted from the resource, wrapped in a {@link ByteBuffer} object
+     * @throws IOException    on failure reading from the resource
+     * @throws IonicException on failure to decrypt the block, or calculate the block signature
      */
     @Override
-    public byte[] read() throws IOException, IonicException {
+    public ByteBuffer read() throws IOException, IonicException {
         final byte[] blockMax = new byte[FileCipher.Generic.V11.BLOCK_SIZE_CIPHER];
         final int count = sourceStream.read(blockMax);
         final byte[] block = (FileCipher.Generic.V11.BLOCK_SIZE_CIPHER == count)
@@ -68,7 +69,7 @@ final class Generic11BodyInput implements GenericBodyInput {
             throw new IonicException(SdkError.ISFILECRYPTO_PARSEFAILED);
         } else {
             final byte[] blockTrim = Arrays.copyOfRange(blockMax, 1, (count - 1));
-            return cipher.decryptBase64(Transcoder.utf8().encode(blockTrim));
+            return ByteBuffer.wrap(cipher.decryptBase64(Transcoder.utf8().encode(blockTrim)));
         }
     }
 

@@ -44,12 +44,12 @@ public final class SdkVersion {
     /**
      * Define the SDK major version number.
      */
-    public static final int IONIC_SDK_MAJOR = 0;
+    public static final int IONIC_SDK_MAJOR = 2;
 
     /**
      * Define the SDK minor version number.
      */
-    public static final int IONIC_SDK_MINOR = 0;
+    public static final int IONIC_SDK_MINOR = 4;
 
     /**
      * Define the SDK patch version number.

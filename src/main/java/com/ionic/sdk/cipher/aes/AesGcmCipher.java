@@ -19,6 +19,15 @@ import java.util.Arrays;
 public class AesGcmCipher extends AesCipherAbstract {
 
     /**
+     * ID for AesGcmCipher class cipher.
+     */
+    private static final String ID = "aes_gcm";
+    /**
+     * Label for AesGcmCipher class cipher.
+     */
+    private static final String LABEL = "AES GCM Cipher";
+
+    /**
      * The additional authenticated data used by the GCM cipher.
      */
     private byte[] authData;
@@ -56,6 +65,16 @@ public class AesGcmCipher extends AesCipherAbstract {
         } catch (GeneralSecurityException e) {
             throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
         }
+    }
+
+    @Override
+    public final String getId() {
+        return ID;
+    }
+
+    @Override
+    public final String getLabel() {
+        return LABEL;
     }
 
     /**
@@ -124,11 +143,10 @@ public class AesGcmCipher extends AesCipherAbstract {
         SdkData.checkNotNull(cipherText, getClass().getSimpleName());
         SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, AAD);
         // cipher configuration
-        final byte[] iv = Arrays.copyOfRange(cipherText, 0, AesCipher.SIZE_IV);
-        final byte[] cipherTextIonic = Arrays.copyOfRange(cipherText, AesCipher.SIZE_IV, cipherText.length);
-        final GCMParameterSpec parameterSpec = new GCMParameterSpec(SIZE_AUTH_TAG * Byte.SIZE, iv);
+        final GCMParameterSpec parameterSpec = new GCMParameterSpec(
+                SIZE_AUTH_TAG * Byte.SIZE, cipherText, 0, AesCipher.SIZE_IV);
         // decrypt
-        return super.decrypt(cipherTextIonic, authData, parameterSpec);
+        return super.decrypt(cipherText, authData, parameterSpec);
     }
 
     /**

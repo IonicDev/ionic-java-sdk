@@ -2,6 +2,8 @@ package com.ionic.sdk.agent.cipher.file.data;
 
 /**
  * Enumeration of all supported Ionic file cipher file types.
+ * <p>
+ * As of SDK version 2.3, only the FILETYPE_CSV type is a supported file type.
  */
 public enum FileType {
 

@@ -4,6 +4,7 @@ import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.error.IonicException;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Interface presenting methods to manage decryption of <code>CsvFileCipher</code> protected content.
@@ -26,7 +27,7 @@ interface CsvBodyInput {
      * @throws IOException    on failure reading from the stream
      * @throws IonicException on failure to decrypt the block, or calculate the block signature
      */
-    byte[] read() throws IOException, IonicException;
+    ByteBuffer read() throws IOException, IonicException;
 
     /**
      * Returns an estimate of the number of bytes that can be read (or skipped over) from this input stream

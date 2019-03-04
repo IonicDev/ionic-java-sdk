@@ -3,7 +3,7 @@ package com.ionic.sdk.error;
 /**
  * Enumeration that represents error codes from the SDK FileCrypto module.
  */
-@SuppressWarnings({"checkstyle:interfaceistype"})
+@SuppressWarnings({"checkstyle:interfaceistype"})  // Java JNI SDK API compatibility
 public interface FileCryptoErrorModuleConstants {
     /**
      * Success code.

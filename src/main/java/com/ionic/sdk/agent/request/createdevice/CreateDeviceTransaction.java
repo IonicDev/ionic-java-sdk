@@ -68,7 +68,7 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
             final Agent agent, final AgentRequestBase requestBase,
             final AgentResponseBase responseBase) throws IonicException {
         super(agent, requestBase, responseBase);
-        int errorCode = SdkError.ISAGENT_ERROR;
+        final int errorCode = SdkError.ISAGENT_ERROR;
         SdkData.checkTrue(requestBase instanceof CreateDeviceRequest, errorCode, SdkError.getErrorString(errorCode));
         final CreateDeviceRequest request = (CreateDeviceRequest) requestBase;
         final RsaKeyHolder keyHolder = request.getRsaKeyHolder();
@@ -86,7 +86,7 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
         final CreateDeviceRequest request = (CreateDeviceRequest) getRequestBase();
-
+        logger.fine(request.getToken());
         // ASSEMBLE BASE REQUEST (OUR SESSION PUBKEY, PLUS SERVER SUPPLIED TOKEN)
         // serialize RSA session public key using DER and encode with Base64
         final String pubkeySessionB64 = new RsaKeyPersistor().toBase64Public(rsaKeyHolder);
@@ -105,6 +105,7 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
         final AesCtrCipher cipherAES = new AesCtrCipher();
         cipherAES.setKey(aesKeyHolder.getKey().getEncoded());
         final String payloadSecureB64 = cipherAES.encryptToBase64(payloadPlainText);
+        logger.fine(payloadSecureB64);
 
         // ASSEMBLE SECURE REQUEST (USE SERVER PUBKEY TO SECURE CLIENT SYMMETRIC KEY)
         // encrypt AES session key with RSA public key from EI and encode with Base64
@@ -113,12 +114,14 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
         cipherRSAEI.setKeypairInstance(rsaKeyHolderEI.getKeypair());
         final byte[] encrypt = cipherRSAEI.encrypt(aesKeyHolder.getKey().getEncoded());
         final String aesSessionKeyB64 = CryptoUtils.binToBase64(encrypt);
+        logger.fine(aesSessionKeyB64);
 
         // SIGN OUR REQUEST (SERVER WILL VERIFY SIGNATURE USING CLIENT PUBKEY)
         // sign our encrypted, Base64-encoded payload using our RSA private session key
         final RsaCipher cipherRSASession = new RsaCipher();
         cipherRSASession.setKeypairInstance(this.rsaKeyHolder.getKeypair());
         final String signatureB64 = cipherRSASession.sign(Transcoder.utf8().decode(payloadSecureB64));
+        logger.fine(signatureB64);
 
         // ASSEMBLE LINE REQUEST
         // build final JSON data

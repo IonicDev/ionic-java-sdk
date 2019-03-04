@@ -15,6 +15,45 @@ Visit [Getting Started Tutorial](https://dev.ionic.com/getting-started) for a gu
 
 ## Release Notes
 
+### 2.4.0
+The 2.4 release of the Ionic Java (JVM) SDK introduces support for cryptographic operations on two new file formats: "OpenXML" and "PDF".  With the addition of these formats to the support for "generic" and "CSV" formats introduced in the previous (2.3) release, the "JVM" SDK now fully supports all Ionic file and document formats.  It does not currently address the "CMS" format which is designed for secure email communications.
+
+The implementation also uses a "streaming" approach to reading and writing the content allowing files of arbirary size to be processed in a fixed amount of memory.
+
+In addition to the file format support, the release adds new capabilities including
+- Support for custom coverpages
+- Support for an offline "key vault"
+
+Finally, the release corrects a few defects that were identified in earlier releases.
+
+### New Features
+#### File Crypto Support
+The Ionic SDK implements a canonical encryption format for several common file types: OpenXML, PDF, and CSV.   In addition, the SDK defines a "Generic" format that can be used to encode any filetype.  The "CSV" and "Generic" formats were introduced as part of the 2.3 release.  This release completes the file format coverage with support for "OpenXML" and "PDF" formats.
+
+File encryption operations are accessed through a set of "encrypt" and "decrypt" methods stemming from the `FileCipherAbstract` base class.  Specifically, four instantiable classes are now available:
+
+```public GenericFileCipher(KeyServices agent)```
+```public CsvFileCipher(KeyServices agent)```
+```public OpenXmlFileCipher(KeyServices agent)```
+```public PdfFileCipher(KeyServices agent)```
+
+#### Custom Coverpages
+Custom cover pages were introduced into the core SDK several months ago to provide a more tailored experience for users that receive a protected document but have not yet become "Ionic-aware".
+
+#### Offline Keyvault
+Java developers can access the contents of the secure "key vault" on a client device .   This allows, for example, access to cached keys while the device may be offline.
+
+### Known Issues
+None
+
+### Corrected Issues
+
+#### WinDPAPI KeyVault header is different from C++ header
+The format of the "keyvault" was inconsistent between the Java JVM and C++ versions.  This has been addressed by having both systems use the value "dpapi" for the "cipherId" field.
+
+#### Memory Usage by GenericCipher
+Changes introduced as part of the support for the OpenXML and PDF formats have also improved the memory usage for the Generic format implementation from the prior release.
+
 ### 2.3.0
 The 2.3 release of the Ionic Java (JVM) SDK introduces support for cryptographic operations on selected file formats.  This version allows encryption and decryption of the Ionic "generic" and "csv" formats.    Subsequent releases will extend support to include "OpenXML" and "PDF" formats.
 
@@ -30,9 +69,9 @@ The Ionic SDK implements a canonical encryption format for several common file t
 
 File encryption operations are accessed through a set of "encrypt" and "decrypt" methods stemming from the `FileCipherAbstract` base class.  Specifically, two instantiable classes are now available:
 
-```public GenericFileCipher(KeyServices agent)```
+```public GenericFileCipher(KeyServices agent)```
 
-```public CsvFileCipher(KeyServices agent)```
+```public CsvFileCipher(KeyServices agent)```
 
 ##### Messaging API
 Java applications can now choose to record arbitrary messages in the Ionic back-end server.  These messages can subsequently be retrieved programmatically through a separate RESTful API and can be used for various types of down-stream analysis of the application's behavior. See

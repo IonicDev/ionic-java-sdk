@@ -1,5 +1,7 @@
 package com.ionic.sdk.json;
 
+import com.ionic.sdk.core.annotation.InternalUseOnly;
+
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -11,6 +13,7 @@ import java.util.Collection;
 /**
  * Utility class for putting data into objects in the "javax.json" package hierarchy.
  */
+@InternalUseOnly
 public final class JsonTarget {
 
     /**

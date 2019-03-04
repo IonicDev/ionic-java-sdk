@@ -5,6 +5,7 @@ import com.ionic.sdk.agent.config.AgentConfig;
 import com.ionic.sdk.agent.request.createdevice.CreateDeviceRequest;
 import com.ionic.sdk.agent.request.createdevice.CreateDeviceResponse;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
+import com.ionic.sdk.cipher.rsa.model.RsaKeyHolder;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.io.Stream;
 import com.ionic.sdk.error.IonicException;
@@ -38,13 +39,18 @@ public final class EnrollSAML {
     private final Agent agent;
 
     /**
+     * The client-side RSA keypair to use in the context of the request.
+     */
+    private final RsaKeyHolder rsaKeyHolder;
+
+    /**
      * Constructor.  Accept parameters to use for enrollment request.
      *
      * @param url the URL of the enrollment server
      * @throws IonicException on invalid input URL
      */
     public EnrollSAML(final String url) throws IonicException {
-        this(url, new Agent());
+        this(url, new Agent(), null);
     }
 
     /**
@@ -55,8 +61,21 @@ public final class EnrollSAML {
      * @throws IonicException on invalid input URL
      */
     public EnrollSAML(final String url, final Agent agent) throws IonicException {
+        this(url, agent, null);
+    }
+
+    /**
+     * Constructor.  Accept parameters to use for enrollment request.
+     *
+     * @param url          the URL of the enrollment server
+     * @param agent        the agent instance used to perform the enrollment
+     * @param rsaKeyHolder the client-side RSA keypair to use in the context of the request
+     * @throws IonicException on invalid input URL
+     */
+    public EnrollSAML(final String url, final Agent agent, final RsaKeyHolder rsaKeyHolder) throws IonicException {
         this.url = AgentTransactionUtil.getProfileUrl(url);
         this.agent = agent;
+        this.rsaKeyHolder = rsaKeyHolder;
     }
 
     /**
@@ -202,6 +221,7 @@ public final class EnrollSAML {
         agent.initializeWithoutProfiles();
         final CreateDeviceRequest request = new CreateDeviceRequest(
                 deviceProfileName, server, keyspace, token, uid, pubkeyText);
+        request.setRsaKeyHolder(rsaKeyHolder);
         return agent.createDevice(request);
     }
 

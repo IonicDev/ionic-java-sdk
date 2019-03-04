@@ -17,6 +17,7 @@ import com.ionic.sdk.key.KeyServices;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Wrap an output stream with logic to manage the Ionic augmentation of the content (header, cipher blocks).
@@ -29,6 +30,11 @@ public class CsvOutput {
      * retained in order to enable querying the output for bytes written.
      */
     private final DataOutputStream dataOutputStream;
+
+    /**
+     * The length of the resource to be encrypted.
+     */
+    private final long sizeInput;
 
     /**
      * The buffered output data stream that is to contain the protected file content.  Output is written to this
@@ -44,7 +50,7 @@ public class CsvOutput {
     /**
      * Cover page services implementation; used to substitute cover pages to display on failure to access crypto key.
      */
-    private FileCryptoCoverPageServicesInterface coverPageServices;
+    private final FileCryptoCoverPageServicesInterface coverPageServices;
 
     /**
      * The cipher family implementation for managing the file body content for the specified version.
@@ -58,15 +64,24 @@ public class CsvOutput {
     private int headerLength;
 
     /**
+     * @return the {@link ByteBuffer} allocated to hold a plaintext block for this cryptography operation
+     */
+    public ByteBuffer getPlainText() {
+        return bodyOutput.getPlainText();
+    }
+
+    /**
      * Constructor.
      *
      * @param outputStream      the raw output data that will contain the protected file content
+     * @param sizeInput         the length of the resource to be encrypted
      * @param agent             the key services implementation; used to provide keys for cryptography operations
      * @param coverPageServices the cover page services implementation
      */
-    public CsvOutput(final DataOutputStream outputStream, final KeyServices agent,
+    public CsvOutput(final DataOutputStream outputStream, final long sizeInput, final KeyServices agent,
                      final FileCryptoCoverPageServicesInterface coverPageServices) {
         this.dataOutputStream = outputStream;
+        this.sizeInput = sizeInput;
         this.targetStream = new BufferedOutputStream(outputStream);
         this.agent = agent;
         this.coverPageServices = coverPageServices;
@@ -77,8 +92,14 @@ public class CsvOutput {
      *
      * @param encryptAttributes a container for applying desired configuration to the operation,
      *                          and receiving status of the operation
-     * @throws IOException    on failure reading from the stream
-     * @throws IonicException on failure to decrypt the file signature (if present)
+     * @throws IOException    on failure writing to the stream
+     * @throws IonicException on:
+     *                        <ul>
+     *                        <li>incorrect / missing Ionic file version</li>
+     *                        <li>cover page fetch failure</li>
+     *                        <li>key creation failure</li>
+     *                        <li>failure writing to output stream</li>
+     *                        </ul>
      */
     public void init(final FileCryptoEncryptAttributes encryptAttributes) throws IonicException, IOException {
         encryptAttributes.setFamily(CipherFamily.FAMILY_CSV);
@@ -92,7 +113,7 @@ public class CsvOutput {
         targetStream.write(Transcoder.utf8().decode(new CsvHeaderOutput().write(version)));
         if (FileCipher.Csv.V10.LABEL.equals(version)) {
             // alternate CsvBodyOutput implementation can be substituted here
-            bodyOutput = new Csv10BodyOutput(targetStream, agent, encryptAttributes);
+            bodyOutput = new Csv10BodyOutput(targetStream, sizeInput, agent, encryptAttributes);
         } else {
             throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         }
@@ -113,15 +134,15 @@ public class CsvOutput {
     /**
      * Write the next Ionic-protected block to the output resource.
      *
-     * @param block the next plainText block to be written to the stream
+     * @param byteBuffer the next plainText block to be written to the stream
      * @throws IOException    on failure writing to the stream
      * @throws IonicException on failure to encrypt the block, or calculate the block signature
      */
-    public void write(final byte[] block) throws IOException, IonicException {
+    public void write(final ByteBuffer byteBuffer) throws IOException, IonicException {
         if (bodyOutput == null) {
             throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         } else {
-            bodyOutput.write(block);
+            bodyOutput.write(byteBuffer);
         }
     }
 

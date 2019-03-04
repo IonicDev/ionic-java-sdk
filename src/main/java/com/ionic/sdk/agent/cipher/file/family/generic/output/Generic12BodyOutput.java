@@ -10,6 +10,9 @@ import com.ionic.sdk.error.IonicException;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * Extensions for handling output of {@link com.ionic.sdk.agent.cipher.file.GenericFileCipher}
@@ -34,6 +37,16 @@ final class Generic12BodyOutput implements GenericBodyOutput {
     private AgentKey key;
 
     /**
+     * The buffer to hold a plaintext block (source buffer for encryption, target buffer for decryption).
+     */
+    private ByteBuffer plainText;
+
+    /**
+     * The buffer to hold a ciphertext block (source buffer for decryption, target buffer for encryption).
+     */
+    private ByteBuffer cipherText;
+
+    /**
      * A running buffer used to store block hashes.  These are hashed and signed at the completion of the
      * file crypto operation, and the result is prepended to the file content.
      */
@@ -45,12 +58,17 @@ final class Generic12BodyOutput implements GenericBodyOutput {
      * @param targetStream the raw output data containing the protected file content
      * @param cipher       the Ionic cipher used to encrypt file blocks
      * @param key          the cryptography key used to decrypt and verify the file content
+     * @param plainText    ByteBuffer containing bytes to encrypt
+     * @param cipherText   ByteBuffer to receive the result of the cryptography operation
      */
-    Generic12BodyOutput(final BufferedOutputStream targetStream, final AesCtrCipher cipher, final AgentKey key) {
+    Generic12BodyOutput(final BufferedOutputStream targetStream, final AesCtrCipher cipher, final AgentKey key,
+                        final ByteBuffer plainText, final ByteBuffer cipherText) {
         this.targetStream = targetStream;
         this.plainTextBlockHashes = new ByteArrayOutputStream();
         this.cipher = cipher;
         this.key = key;
+        this.plainText = plainText;
+        this.cipherText = cipherText;
     }
 
     /**
@@ -60,8 +78,9 @@ final class Generic12BodyOutput implements GenericBodyOutput {
      * @throws IOException on failure reading from the stream
      */
     @Override
-    public void init() throws IOException {
+    public int init() throws IOException {
         targetStream.write(new byte[FileCipher.Generic.V12.SIGNATURE_SIZE_CIPHER]);
+        return FileCipher.Generic.V12.SIGNATURE_SIZE_CIPHER;
     }
 
     @Override
@@ -70,12 +89,17 @@ final class Generic12BodyOutput implements GenericBodyOutput {
     }
 
     @Override
-    public void write(final byte[] block) throws IOException, IonicException {
-        final byte[] plainTextBlockHash = CryptoUtils.hmacSHA256(block, key.getKey());
+    public int write(final ByteBuffer byteBuffer) throws IOException, IonicException {
+        final byte[] plainTextBlockHash = CryptoUtils.hmacSHA256(byteBuffer, key.getKey());
         plainTextBlockHashes.write(plainTextBlockHash);
-        final byte[] cipherTextBlock = cipher.encrypt(block);
-        targetStream.write(cipherTextBlock);
+        plainText.position(0);
+        final int encryptedLen = cipher.encrypt(plainText, cipherText);
+        final WritableByteChannel cipherChannel = Channels.newChannel(targetStream);
+        cipherText.limit(cipherText.position());
+        cipherText.position(0);
+        cipherChannel.write(cipherText);
         targetStream.flush();
+        return encryptedLen;
     }
 
     @Override

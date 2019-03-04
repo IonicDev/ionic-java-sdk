@@ -29,7 +29,7 @@ final class GenericHeaderOutput {
      */
     public String write(final String version, final String server, final String tag) throws IonicException {
         final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
-        String delimiter;
+        final String delimiter;
         if (FileCipher.Generic.V11.LABEL.equals(version)) {
             JsonTarget.addNotNull(objectBuilder, FileCipher.Header.FAMILY, (String) null);
             delimiter = FileCipher.Generic.V11.DELIMITER;

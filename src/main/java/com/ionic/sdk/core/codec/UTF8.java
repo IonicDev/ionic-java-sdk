@@ -38,4 +38,9 @@ public final class UTF8 implements BytesTranscoder {
      * Local reference to JVM definition of UTF-8 charset.
      */
     private static final Charset UTF8 = StandardCharsets.UTF_8;
+
+    /**
+     * Declaration of JRE default Charset name (use constant instead of string declaration).
+     */
+    public static final String NAME = UTF8.name();
 }

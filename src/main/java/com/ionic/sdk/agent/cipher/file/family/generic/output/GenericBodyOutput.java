@@ -4,6 +4,7 @@ import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.error.IonicException;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Interface presenting methods to manage encryption of file content into a
@@ -15,10 +16,11 @@ interface GenericBodyOutput {
     /**
      * Initialize this object for processing the body of an Ionic-protected file.
      *
+     * @return the number of bytes written in the context of this call
      * @throws IOException    on failure reading from the stream
      * @throws IonicException on failure to decrypt the file signature (if present)
      */
-    void init() throws IOException, IonicException;
+    int init() throws IOException, IonicException;
 
     /**
      * Each generic file format specifies a plain text block length.  This is the amount of plain text that
@@ -31,11 +33,12 @@ interface GenericBodyOutput {
     /**
      * Write the next Ionic-protected block to the output resource.
      *
-     * @param block the next plainText block to be written to the stream
+     * @param byteBuffer the next plainText block to be written to the stream
+     * @return the number of bytes written in the context of this call
      * @throws IOException    on failure writing to the stream
      * @throws IonicException on failure to encrypt the block, or calculate the block signature
      */
-    void write(byte[] block) throws IOException, IonicException;
+    int write(ByteBuffer byteBuffer) throws IOException, IonicException;
 
     /**
      * Finish processing of the output stream.

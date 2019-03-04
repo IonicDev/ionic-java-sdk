@@ -1,5 +1,6 @@
 package com.ionic.sdk.cipher;
 
+import com.ionic.sdk.cipher.aes.AesCipher;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.error.IonicException;
@@ -7,6 +8,7 @@ import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 
 import javax.crypto.Cipher;
+import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.spec.AlgorithmParameterSpec;
@@ -34,6 +36,20 @@ public abstract class CipherAbstract {
     public CipherAbstract(final Cipher cipher) {
         this.cipherInstance = cipher;
     }
+
+    /**
+     * Retrieve the Cipher crossplatform class ID.
+     *
+     * @return The cipher crossplatform class ID string
+     */
+    public abstract String getId();
+
+    /**
+     * Retrieve the Cipher crossplatform class name.
+     *
+     * @return The cipher crossplatform class name string
+     */
+    public abstract String getLabel();
 
     /**
      * Set the key for this cipher.
@@ -183,6 +199,55 @@ public abstract class CipherAbstract {
     }
 
     /**
+     * Encrypt a byte buffer.  This API makes use of the JRE
+     * {@link Cipher#doFinal(ByteBuffer, ByteBuffer)} API, which uses the parameter <code>ByteBuffer</code>
+     * objects internally instead of allocating new buffers.
+     *
+     * @param plainText     ByteBuffer containing bytes to encrypt
+     * @param cipherText    ByteBuffer to receive the result of the cryptography operation
+     * @param authData      additional authenticated data used by some ciphers in crypto operations
+     * @param parameterSpec additional configuration specific to some ciphers
+     * @return the number of bytes stored in ciphertext
+     * @throws IonicException on cryptography errors, or invalid (null) parameters (key, plainText)
+     */
+    protected final int encrypt(final ByteBuffer plainText, final ByteBuffer cipherText, final byte[] authData,
+                                final AlgorithmParameterSpec parameterSpec) throws IonicException {
+        SdkData.checkNotNull(keyInstance, Key.class.getName());
+        SdkData.checkNotNull(plainText, getClass().getSimpleName());
+        try {
+            return encryptInner(plainText, cipherText, authData, parameterSpec);
+        } catch (GeneralSecurityException e) {
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
+        }
+    }
+
+    /**
+     * Encrypt a byte buffer.
+     *
+     * @param plainText     ByteBuffer containing bytes to encrypt
+     * @param cipherText    ByteBuffer to receive the result of the cryptography operation
+     * @param authData      additional authenticated data used by some ciphers in crypto operations
+     * @param parameterSpec additional configuration specific to some ciphers
+     * @return the number of bytes stored in ciphertext
+     * @throws GeneralSecurityException on cryptography errors
+     */
+    private int encryptInner(final ByteBuffer plainText, final ByteBuffer cipherText, final byte[] authData,
+                             final AlgorithmParameterSpec parameterSpec) throws GeneralSecurityException {
+        // set cipher parameters
+        if (parameterSpec == null) {
+            cipherInstance.init(Cipher.ENCRYPT_MODE, keyInstance);
+        } else {
+            cipherInstance.init(Cipher.ENCRYPT_MODE, keyInstance, parameterSpec);
+        }
+        // set aad
+        if (authData != null) {
+            cipherInstance.updateAAD(authData);
+        }
+        // encrypt
+        return cipherInstance.doFinal(plainText, cipherText);
+    }
+
+    /**
      * Decrypt a previously encrypted byte array and return the result as another byte array.
      *
      * @param cipherText    array of bytes to decrypt
@@ -224,6 +289,57 @@ public abstract class CipherAbstract {
             cipherInstance.updateAAD(authData);
         }
         // decrypt
-        return cipherInstance.doFinal(cipherText);
+        final int inputLen = cipherText.length - AesCipher.SIZE_IV;
+        return cipherInstance.doFinal(cipherText, AesCipher.SIZE_IV, inputLen);
+    }
+
+    /**
+     * Decrypt a previously encrypted byte buffer.  This API makes use of the JRE
+     * {@link Cipher#doFinal(ByteBuffer, ByteBuffer)} API, which uses the parameter <code>ByteBuffer</code>
+     * objects internally instead of allocating new buffers.
+     *
+     * @param plainText     ByteBuffer to receive the result of the cryptography operation
+     * @param cipherText    ByteBuffer containing bytes to decrypt
+     * @param authData      additional authenticated data used by some ciphers in crypto operations
+     * @param parameterSpec additional configuration specific to some ciphers
+     * @return the number of bytes stored in plaintext
+     * @throws IonicException on cryptography errors
+     */
+    protected final int decrypt(final ByteBuffer plainText, final ByteBuffer cipherText, final byte[] authData,
+                                final AlgorithmParameterSpec parameterSpec) throws IonicException {
+        SdkData.checkNotNull(keyInstance, Key.class.getName());
+        SdkData.checkNotNull(plainText, getClass().getSimpleName());
+        SdkData.checkNotNull(cipherText, getClass().getSimpleName());
+        try {
+            return decryptInner(plainText, cipherText, authData, parameterSpec);
+        } catch (GeneralSecurityException e) {
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
+        }
+    }
+
+    /**
+     * Decrypt a previously encrypted byte buffer.
+     *
+     * @param plainText     ByteBuffer to receive the result of the cryptography operation
+     * @param cipherText    ByteBuffer containing bytes to decrypt
+     * @param authData      additional authenticated data used by some ciphers in crypto operations
+     * @param parameterSpec additional configuration specific to some ciphers
+     * @return the number of bytes stored in plaintext
+     * @throws GeneralSecurityException on cryptography errors
+     */
+    private int decryptInner(final ByteBuffer plainText, final ByteBuffer cipherText, final byte[] authData,
+                             final AlgorithmParameterSpec parameterSpec) throws GeneralSecurityException {
+        // set cipher parameters
+        if (parameterSpec == null) {
+            cipherInstance.init(Cipher.DECRYPT_MODE, keyInstance);
+        } else {
+            cipherInstance.init(Cipher.DECRYPT_MODE, keyInstance, parameterSpec);
+        }
+        // set aad
+        if (authData != null) {
+            cipherInstance.updateAAD(authData);
+        }
+        // decrypt
+        return cipherInstance.doFinal(cipherText, plainText);
     }
 }

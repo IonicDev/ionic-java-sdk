@@ -1,5 +1,7 @@
 package com.ionic.sdk.core.io;
 
+import com.ionic.sdk.core.annotation.InternalUseOnly;
+
 import java.util.ArrayDeque;
 
 /**
@@ -9,6 +11,7 @@ import java.util.ArrayDeque;
  * The implementation uses a FIFO queue of {@link ByteBlock} to hold the cached data.  ByteBlock objects are
  * reused in order to minimize memory allocation overhead.
  */
+@InternalUseOnly
 public final class ByteQueue {
 
     /**
@@ -20,6 +23,11 @@ public final class ByteQueue {
      * The FIFO queue of ByteBlock objects which hold the cached data.
      */
     private final ArrayDeque<ByteBlock> queue;
+
+    /**
+     * A queue of previously used blocks, which may be reused (in order to streamline the number of allocates needed).
+     */
+    private final ArrayDeque<ByteBlock> queueFree;
 
     /**
      * The block in which existing data should be read.
@@ -39,6 +47,7 @@ public final class ByteQueue {
     public ByteQueue(final int size) {
         this.size = size;
         this.queue = new ArrayDeque<ByteBlock>();
+        this.queueFree = new ArrayDeque<ByteBlock>();
         final ByteBlock byteBlock = new ByteBlock(size);
         this.queue.add(byteBlock);
         this.headBlock = byteBlock;
@@ -57,6 +66,20 @@ public final class ByteQueue {
     }
 
     /**
+     * @return the amount of free space available in all blocks to be written to
+     */
+    public int freeSpace() {
+        int freeSpace = 0;
+        for (final ByteBlock byteBlock : queue) {
+            freeSpace += byteBlock.freeSpace();
+        }
+        for (final ByteBlock byteBlock : queueFree) {
+            freeSpace += byteBlock.freeSpace();
+        }
+        return freeSpace;
+    }
+
+    /**
      * Write data into this object, to be cached for later use.
      *
      * @param bytes  the source buffer from which the data should be read
@@ -70,7 +93,7 @@ public final class ByteQueue {
             final ByteBlock block = tailBlock;  // queue.getLast();
             count += block.add(bytes, (offset + count), (length - count));
             if (count < length) {
-                final ByteBlock byteBlock = new ByteBlock(size);
+                final ByteBlock byteBlock = queueFree.isEmpty() ? new ByteBlock(size) : queueFree.pop();
                 queue.add(byteBlock);
                 tailBlock = byteBlock;
             }
@@ -98,7 +121,7 @@ public final class ByteQueue {
             if (block.available() == 0) {
                 queue.remove(block);
                 block.reset();
-                queue.add(block);  // reuse for malloc efficiency
+                queueFree.add(block);  // reuse for malloc efficiency
                 headBlock = queue.getFirst();
             }
         }

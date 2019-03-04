@@ -1,5 +1,6 @@
 package com.ionic.sdk.json;
 
+import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
 
@@ -10,6 +11,7 @@ import javax.json.JsonObjectBuilder;
 /**
  * Utility methods for working with objects from the javax.json library.
  */
+@InternalUseOnly
 public final class JsonU {
 
     /**

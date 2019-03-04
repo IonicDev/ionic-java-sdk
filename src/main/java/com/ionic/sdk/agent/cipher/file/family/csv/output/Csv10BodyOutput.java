@@ -11,6 +11,7 @@ import com.ionic.sdk.key.KeyServices;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -41,18 +42,26 @@ final class Csv10BodyOutput implements CsvBodyOutput {
     private final GenericOutput genericOutput;
 
     /**
+     * @return the {@link ByteBuffer} allocated to hold a plaintext block for this cryptography operation
+     */
+    public ByteBuffer getPlainText() {
+        return genericOutput.getPlainText();
+    }
+
+    /**
      * Constructor.
      *
      * @param targetStream      the raw output data containing the protected file content
+     * @param sizeInput         the length of the resource to be encrypted
      * @param agent             the key services implementation; used to provide keys for cryptography operations
      * @param encryptAttributes the attributes to pass along to the key created by the operation
      */
-    Csv10BodyOutput(final BufferedOutputStream targetStream, final KeyServices agent,
+    Csv10BodyOutput(final BufferedOutputStream targetStream, final long sizeInput, final KeyServices agent,
                     final FileCryptoEncryptAttributes encryptAttributes) {
         this.targetStream = targetStream;
         this.encryptAttributes = encryptAttributes;
         this.byteQueueOutputStream = new ByteQueueOutputStream(FileCipher.Csv.V10.BLOCK_SIZE);
-        this.genericOutput = new GenericOutput(byteQueueOutputStream, agent);
+        this.genericOutput = new GenericOutput(byteQueueOutputStream, sizeInput, agent);
     }
 
     @Override
@@ -60,6 +69,9 @@ final class Csv10BodyOutput implements CsvBodyOutput {
         targetStream.write(Transcoder.utf8().decode(FileCipher.Csv.V10.DATA_BEGIN_STRING));
         targetStream.write(Transcoder.utf8().decode(FileCipher.Csv.V10.LINE_SEPARATOR));
         final FileCryptoEncryptAttributes encryptAttributesWrapped = new FileCryptoEncryptAttributes();
+        encryptAttributesWrapped.setKeyAttributes(encryptAttributes.getKeyAttributes());
+        encryptAttributesWrapped.setMutableKeyAttributes(encryptAttributes.getMutableKeyAttributes());
+        encryptAttributesWrapped.setMetadata(encryptAttributes.getMetadata());
         genericOutput.init(encryptAttributesWrapped);
         targetStream.flush();
         encryptAttributes.setKeyResponse(encryptAttributesWrapped.getKeyResponse());
@@ -71,8 +83,8 @@ final class Csv10BodyOutput implements CsvBodyOutput {
     }
 
     @Override
-    public void write(final byte[] block) throws IOException, IonicException {
-        genericOutput.write(block);
+    public void write(final ByteBuffer byteBuffer) throws IOException, IonicException {
+        genericOutput.write(byteBuffer);
         final byte[] data = new byte[FileCipher.Csv.V10.WIDTH_RAW];
         while (byteQueueOutputStream.getByteQueue().available() >= FileCipher.Csv.V10.WIDTH_RAW) {
             final int countRead = byteQueueOutputStream.getByteQueue().removeData(data, 0, data.length);
