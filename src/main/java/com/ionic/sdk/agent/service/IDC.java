@@ -48,7 +48,7 @@ public final class IDC {
         public static final String KEYS_UPDATE = "/%s/keys/modify";
 
         /**
-         * Resource for GetResources requests (substitute server api version).
+         * Resource for LogMessages requests (substitute server api version).
          */
         public static final String MESSAGES_PUT = "/%s/messages";
 

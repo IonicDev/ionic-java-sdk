@@ -1,9 +1,11 @@
 package com.ionic.sdk.core.hash;
 
+import com.ionic.sdk.agent.AgentSdk;
+import com.ionic.sdk.error.IonicException;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Provide ability to calculate message digest of arbitrary data.
@@ -18,9 +20,9 @@ public final class Hash {
      */
     public byte[] sha256(final byte[] value) {
         try {
-            final MessageDigest messageDigest = MessageDigest.getInstance(ALGORITHM);
+            final MessageDigest messageDigest = AgentSdk.getCrypto().getMessageDigestSha256();
             return messageDigest.digest(value);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (IonicException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -35,13 +37,13 @@ public final class Hash {
     public byte[] sha256(final InputStream is) throws IOException {
         try {
             final byte[] bytes = new byte[HASH_BITS * HASH_BITS];
-            final MessageDigest messageDigest = MessageDigest.getInstance(ALGORITHM);
+            final MessageDigest messageDigest = AgentSdk.getCrypto().getMessageDigestSha256();
             while (is.available() > 0) {
                 final int count = is.read(bytes);
                 messageDigest.update(bytes, 0, count);
             }
             return messageDigest.digest();
-        } catch (NoSuchAlgorithmException e) {
+        } catch (IonicException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -54,9 +56,9 @@ public final class Hash {
      */
     public byte[] sha512(final byte[] value) {
         try {
-            final MessageDigest messageDigest = MessageDigest.getInstance(ALGORITHM_512);
+            final MessageDigest messageDigest = AgentSdk.getCrypto().getMessageDigestSha512();
             return messageDigest.digest(value);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (IonicException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -74,5 +76,5 @@ public final class Hash {
     /**
      * Label for alternate hashing algorithm used by SDK.
      */
-    private static final String ALGORITHM_512 = "SHA-512";
+    public static final String ALGORITHM_512 = "SHA-512";
 }

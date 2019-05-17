@@ -46,8 +46,8 @@ interface GenericBodyOutput {
     void doFinal();
 
     /**
-     * Retrieve the calculated file signature for the output.  This is inserted into the file content immediately
-     * after the Ionic file header.
+     * Retrieve the calculated file signature for the output (if applicable for the version of the generic file
+     * format).  This is inserted into the file content immediately after the Ionic file header.
      *
      * @return the Ionic-protected signature bytes associated with the output
      * @throws IonicException on failure to calculate the file signature (if present)

@@ -3,11 +3,9 @@ package com.ionic.sdk.crypto;
 import com.ionic.sdk.agent.AgentSdk;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.hash.Hash;
+import com.ionic.sdk.crypto.pbkdf.IonicPbkdf2;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
-import org.bouncycastle.crypto.digests.SHA256Digest;
-import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
-import org.bouncycastle.crypto.params.KeyParameter;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,11 +21,6 @@ public final class CryptoUtils {
      * SecretKeyFactory Algorithm name for PBKDF2.  Leave this available in case we figure out a generic solution.
      */
     public static final String PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA256";
-
-    /**
-     * Algorithm name for message authentication code.
-     */
-    public static final String HMAC_ALGORITHM = "HmacSHA256";
 
     /**
      * Length in bytes of SHA256 hashes.
@@ -85,20 +78,37 @@ public final class CryptoUtils {
     /**
      * Computes a PBKDF2 (SHA-256) hash of the input value as a binary data buffer, optionally including salt value.
      * <p>
-     * JCE version does not work, as it uses PKCS12 encoding.  So we must use the BC classes explicitly.
+     * The Ionic Core SDK allows the specification of PBKDF passwords consisting of arbitrary byte arrays.  The PBKDF
+     * function provided through the JCE accepts passwords consisting of char arrays (PKCS12), and converts them
+     * internally using the UTF-8 encoding.
+     * <p>
+     * This function makes use of code derived from the BouncyCastle class PKCS5S2ParametersGenerator.  The code is
+     * needed to meet conflicting requirements for the Ionic Java SDK:
+     * <ol>
+     * <li>The SDK must allow the substitution of alternative cryptography provider.</li>
+     * <li>The SDK must accept inputs and emit outputs that are compatible with Ionic Core SDK (C++).</li>
+     * </ol>
      *
      * @param value      The input value to be hashed.
      * @param salt       The input salt value to be used in the hash. Can be empty to avoid using salt.
      * @param iterations Number of PBKDF2 iterations to perform.
      * @param hashLength The desired length in bytes of the hash to produce.
      * @return The hash output byte buffer.
+     * @throws IonicException on cryptography initialization failures; bad input; cryptography operation failures
      */
     private static byte[] pbkdf2ToBytesInternal(final byte[] value, final byte[] salt,
-                                                final long iterations, final long hashLength) {
-        //AgentSdk.initialize(null);  // if we switch back to use of JCE interface, call initialize()
-        final PKCS5S2ParametersGenerator generator = new PKCS5S2ParametersGenerator(new SHA256Digest());
+                                                final long iterations, final long hashLength) throws IonicException {
+/* this algorithm uses BouncyCastle library explicitly, and so is being removed to eliminate the dependency
+        // retained for reference purposes
+        final org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator generator =
+                new org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator(
+                        new org.bouncycastle.crypto.digests.SHA256Digest());
         generator.init(value, salt, (int) iterations);
-        return ((KeyParameter) generator.generateDerivedParameters((int) hashLength * Byte.SIZE)).getKey();
+        return ((org.bouncycastle.crypto.params.KeyParameter) generator.generateDerivedParameters(
+                (int) hashLength * Byte.SIZE)).getKey();
+*/
+        AgentSdk.initialize();
+        return new IonicPbkdf2(value, salt, (int) iterations, (int) hashLength).generate();
     }
 
     /**
@@ -109,9 +119,10 @@ public final class CryptoUtils {
      * @param iterations Number of PBKDF2 iterations to perform.
      * @param hashLength The desired length in bytes of the hash to produce.
      * @return The hash output byte buffer.
+     * @throws IonicException on cryptography initialization failures; bad input; cryptography operation failures
      */
     public static byte[] pbkdf2ToBytes(final byte[] value, final byte[] salt,
-                                       final long iterations, final long hashLength) {
+                                       final long iterations, final long hashLength) throws IonicException {
         return CryptoUtils.pbkdf2ToBytesInternal(value, salt, iterations, hashLength);
         // NoSuchAlgorithmException should never happen since PBKDF2_ALGORITHM is correct
     }
@@ -173,8 +184,8 @@ public final class CryptoUtils {
     private static byte[] hmacSHA256Internal(final byte[] message, final byte[] key) throws IonicException {
         try {
             AgentSdk.initialize();
-            final Mac hmacSHA256 = Mac.getInstance(HMAC_ALGORITHM);
-            final SecretKeySpec keySpec = new SecretKeySpec(key, HMAC_ALGORITHM);
+            final Mac hmacSHA256 = AgentSdk.getCrypto().getHmacSha256();
+            final SecretKeySpec keySpec = new SecretKeySpec(key, hmacSHA256.getAlgorithm());
             hmacSHA256.init(keySpec);
             return hmacSHA256.doFinal(message);
         } catch (GeneralSecurityException e) {
@@ -193,8 +204,8 @@ public final class CryptoUtils {
     private static byte[] hmacSHA256Internal(final ByteBuffer byteBuffer, final byte[] key) throws IonicException {
         try {
             AgentSdk.initialize();
-            final Mac hmacSHA256 = Mac.getInstance(HMAC_ALGORITHM);
-            final SecretKeySpec keySpec = new SecretKeySpec(key, HMAC_ALGORITHM);
+            final Mac hmacSHA256 = AgentSdk.getCrypto().getHmacSha256();
+            final SecretKeySpec keySpec = new SecretKeySpec(key, hmacSHA256.getAlgorithm());
             hmacSHA256.init(keySpec);
             hmacSHA256.update(byteBuffer);
             return hmacSHA256.doFinal();

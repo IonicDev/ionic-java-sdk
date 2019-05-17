@@ -1,6 +1,7 @@
 package com.ionic.sdk.agent.request.getkey;
 
 import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.config.AgentConfig;
 import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.key.KeyObligationsMap;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
@@ -50,6 +51,16 @@ public class GetKeysTransaction extends AgentTransactionBase {
     private GetKeysMessage message;
 
     /**
+     * The device profile associated with this GetKeys transaction.
+     * <p>
+     * In order to support multi-keyspace requests,
+     * this {@link DeviceProfile} corresponds to a profile (with matching keyspace) contained in the
+     * {@link com.ionic.sdk.device.profile.persistor.ProfilePersistor} associated with the in-use {@link Agent}, and
+     * not necessarily the Agent's active profile.
+     */
+    private DeviceProfile deviceProfile;
+
+    /**
      * Constructor.
      *
      * @param agent        the persistent data associated with the device's Secure Enrollment Profile
@@ -70,22 +81,27 @@ public class GetKeysTransaction extends AgentTransactionBase {
      */
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
-        final Agent agent = getAgent();
-        this.message = new GetKeysMessage(agent);
-        final GetKeysRequest request = (GetKeysRequest) getRequestBase();
         // check for one or the other, protection keys or external ids, must have one
-        if (request.getExternalIds().isEmpty() && request.getKeyIds().isEmpty()) {
+        final GetKeysRequest request = (GetKeysRequest) getRequestBase();
+        final List<String> externalIds = request.getExternalIds();
+        final List<String> keyIds = request.getKeyIds();
+        if ((externalIds.isEmpty()) && (keyIds.isEmpty())) {
             throw new IonicException(SdkError.ISAGENT_BADREQUEST, "No key ids or external ids in get key request.");
         }
+        final String firstKeyId = (keyIds.isEmpty() ? "" : keyIds.iterator().next());
+        final Agent agent = getAgent();
+        final String autoSelectProfile = agent.getConfig().getProperty(
+                AgentConfig.Key.AUTOSELECT_PROFILE, Boolean.FALSE.toString());
+        this.deviceProfile = getRelevantProfileForKeyId(agent, firstKeyId, Boolean.parseBoolean(autoSelectProfile));
+        this.message = new GetKeysMessage(agent, this.deviceProfile);
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
         final String cid = message.getCid();
         final String resource = String.format(IDC.Resource.KEYS_GET, IDC.Resource.SERVER_API_V24);
         final String envelope = JsonIO.write(jsonMessage, false);
         //logger.finest(envelope);  // plaintext json; IDC http entity (for debugging)
         // assemble the secured (outer) HTTP payload
-        final DeviceProfile activeProfile = agent.getActiveProfile();
         final AesGcmCipher cipher = new AesGcmCipher();
-        cipher.setKey(activeProfile.getAesCdIdcProfileKey());
+        cipher.setKey(this.deviceProfile.getAesCdIdcProfileKey());
         cipher.setAuthData(Transcoder.utf8().decode(cid));
         final String envelopeSecureBase64 = cipher.encryptToBase64(envelope);
         final JsonObject payload = Json.createObjectBuilder()
@@ -95,10 +111,33 @@ public class GetKeysTransaction extends AgentTransactionBase {
         final String entitySecure = JsonIO.write(payload, false);
         logger.fine(entitySecure);
         // assemble the HTTP request to be sent to the server
-        final URL url = AgentTransactionUtil.getProfileUrl(activeProfile);
+        final URL url = AgentTransactionUtil.getProfileUrl(this.deviceProfile);
         final ByteArrayInputStream bis = new ByteArrayInputStream(
                 Transcoder.utf8().decode(JsonIO.write(payload, false)));
         return new HttpRequest(url, Http.Method.POST, resource, getHttpHeaders(), bis);
+    }
+
+    /**
+     * Resolve the {@link DeviceProfile} to be used in the context of this transaction.
+     * <p>
+     * To determine the <code>DeviceProfile</code> to use for this request, the {@link AgentConfig} boolean
+     * property  "autoselectprofile" is examined.
+     * <ul>
+     * <li>If set to "true", the most recently created device profile with a matching keyspace is returned.</li>
+     * <li>Otherwise, the agent's active profile is used.</li>
+     * </ul>
+     * <p>
+     * Note that only one server request is issued for a given GetKeys transaction.  In particular, it is not valid to
+     * request keys from multiple key servers in a single GetKeys request.  To request keys from multiple keyspaces,
+     * one GetKeys request should be made for each unique keyspace.
+     *
+     * @param agent      the persistent data associated with the device's Secure Enrollment Profile
+     * @param keyId      the identifier associated with the first record in the request key ID list
+     * @param autoSelect true iff all profile records should be considered
+     * @return the relevant {@link DeviceProfile} record for the request
+     */
+    private DeviceProfile getRelevantProfileForKeyId(final Agent agent, final String keyId, final boolean autoSelect) {
+        return autoSelect ? agent.getDeviceProfileForKeyId(keyId) : agent.getActiveProfile();
     }
 
     /**
@@ -111,11 +150,10 @@ public class GetKeysTransaction extends AgentTransactionBase {
     @Override
     protected final void parseHttpResponse(
             final HttpRequest httpRequest, final HttpResponse httpResponse) throws IonicException {
-        // unwrap the server response
-        parseHttpResponseBase(httpRequest, httpResponse, message.getCid());
-        // apply logic specific to the response type
         final Agent agent = getAgent();
-        final DeviceProfile activeProfile = agent.getActiveProfile();
+        // unwrap the server response
+        parseHttpResponseBase(httpRequest, httpResponse, message.getCid(), deviceProfile);
+        // apply logic specific to the response type
         //final GetKeysRequest request = (GetKeysRequest) getRequestBase();
         final GetKeysResponse response = (GetKeysResponse) getResponseBase();
         final String cid = response.getConversationId();
@@ -134,7 +172,7 @@ public class GetKeysTransaction extends AgentTransactionBase {
             final String authData = Value.join(IDC.Signature.DELIMITER, cid, id, csig, msig);
             // verify each received response key
             final AesGcmCipher cipherEi = new AesGcmCipher();
-            cipherEi.setKey(activeProfile.getAesCdEiProfileKey());
+            cipherEi.setKey(deviceProfile.getAesCdEiProfileKey());
             cipherEi.setAuthData(Transcoder.utf8().decode(authData));
             final byte[] clearBytesKey = cipherEi.decrypt(CryptoUtils.hexToBin(keyHex));
             // verify each received response attributes

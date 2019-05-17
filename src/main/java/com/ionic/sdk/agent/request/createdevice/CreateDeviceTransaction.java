@@ -154,7 +154,7 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
     protected final void parseHttpResponse(
             final HttpRequest httpRequest, final HttpResponse httpResponse) throws IonicException {
         // unwrap the server response
-        parseHttpResponseBase(httpRequest, httpResponse, null);
+        parseHttpResponseBase(httpRequest, httpResponse, null, null);
         try {
             // deserialize, validate server response entity
             final String entity = Transcoder.utf8().encode(Stream.read(httpResponse.getEntity()));

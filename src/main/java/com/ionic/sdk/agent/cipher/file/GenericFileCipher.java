@@ -60,9 +60,19 @@ public final class GenericFileCipher extends FileCipherAbstract {
     public static final String VERSION_1_2 = FileCipher.Generic.V12.LABEL;
 
     /**
+     * File format family generic, version 1.3.
+     */
+    public static final String VERSION_1_3 = FileCipher.Generic.V13.LABEL;
+
+    /**
+     * File format family generic, default version.
+     */
+    public static final String VERSION_DEFAULT = FileCipher.Generic.V13.LABEL;
+
+    /**
      * File format family generic, latest version.
      */
-    public static final String VERSION_LATEST = FileCipher.Generic.V12.LABEL;
+    public static final String VERSION_LATEST = FileCipher.Generic.V13.LABEL;
 
     /**
      * Constructor.
@@ -106,7 +116,7 @@ public final class GenericFileCipher extends FileCipherAbstract {
 
     @Override
     public String getDefaultVersion() {
-        return VERSION_1_2;
+        return VERSION_1_3;
     }
 
     @Override
@@ -117,7 +127,7 @@ public final class GenericFileCipher extends FileCipherAbstract {
     /**
      * The versions of the encryption format supported by this FileCipher implementation.
      */
-    private static final List<String> SUPPORTED_VERSIONS = Arrays.asList(VERSION_1_1, VERSION_1_2);
+    private static final List<String> SUPPORTED_VERSIONS = Arrays.asList(VERSION_1_1, VERSION_1_2, VERSION_1_3);
 
     @Override
     public FileCryptoFileInfo getFileInfo(final String filePath) throws IonicException {

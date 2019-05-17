@@ -7,6 +7,8 @@ import com.ionic.sdk.agent.request.createkey.CreateKeysResponse;
 import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.error.SdkData;
 
+import java.util.Properties;
+
 /**
  * Base class for attributes / metadata associated with an encryption operation.
  * <p>
@@ -26,6 +28,11 @@ public class EncryptAttributes extends MetadataHolder {
     private final KeyAttributesMap mutableAttributes;
 
     /**
+     * Arbitrary name-value pairs associated with this EncryptAttributes.
+     */
+    private final Properties properties;
+
+    /**
      * Before encryption, container for attributes to be applied to operation.  After encryption, parameters applied
      * to operation.
      */
@@ -42,6 +49,7 @@ public class EncryptAttributes extends MetadataHolder {
     public EncryptAttributes() {
         this.keyAttributes = new KeyAttributesMap();
         this.mutableAttributes = new KeyAttributesMap();
+        this.properties = new Properties();
         this.key = null;
         this.serverErrorResponse = null;
     }
@@ -99,9 +107,10 @@ public class EncryptAttributes extends MetadataHolder {
      * @param keyAttributesIn the key attributes map
      */
     public void setKeyAttributes(final KeyAttributesMap keyAttributesIn) {
-        SdkData.checkNotNullNPE(keyAttributesIn, KeyAttributesMap.class.getName());
         keyAttributes.clear();
-        keyAttributes.putAll(keyAttributesIn);
+        if (keyAttributesIn != null) {
+            keyAttributes.putAll(keyAttributesIn);
+        }
     }
 
     /**
@@ -119,9 +128,10 @@ public class EncryptAttributes extends MetadataHolder {
      * @param mutableAttributesIn the mutable attributes map
      */
     public void setMutableKeyAttributes(final KeyAttributesMap mutableAttributesIn) {
-        SdkData.checkNotNullNPE(mutableAttributesIn, KeyAttributesMap.class.getName());
         mutableAttributes.clear();
-        mutableAttributes.putAll(mutableAttributesIn);
+        if (mutableAttributesIn != null) {
+            mutableAttributes.putAll(mutableAttributesIn);
+        }
     }
 
     /**
@@ -132,9 +142,10 @@ public class EncryptAttributes extends MetadataHolder {
      */
     @Deprecated
     public void setMutableAttributes(final KeyAttributesMap mutableAttributesIn) {
-        SdkData.checkNotNullNPE(mutableAttributesIn, KeyAttributesMap.class.getName());
         mutableAttributes.clear();
-        mutableAttributes.putAll(mutableAttributesIn);
+        if (mutableAttributesIn != null) {
+            mutableAttributes.putAll(mutableAttributesIn);
+        }
     }
 
     /**
@@ -155,6 +166,26 @@ public class EncryptAttributes extends MetadataHolder {
     @Deprecated
     public KeyAttributesMap getMutableAttributes() {
         return mutableAttributes;
+    }
+
+    /**
+     * Set a configuration property string by name.
+     *
+     * @param name  The parameter name.
+     * @param value The parameter value.
+     */
+    public final void setProperty(final String name, final String value) {
+        properties.setProperty(name, value);
+    }
+
+    /**
+     * Get a configuration property string by name.
+     *
+     * @param name The parameter name.
+     * @return The value of the named configuration property.
+     */
+    public final String getProperty(final String name) {
+        return properties.getProperty(name);
     }
 
     /**

@@ -98,8 +98,10 @@ public class GetResourcesTransaction extends AgentTransactionBase {
     @Override
     protected final void parseHttpResponse(
             final HttpRequest httpRequest, final HttpResponse httpResponse) throws IonicException {
+        final Agent agent = getAgent();
+        final DeviceProfile deviceProfile = agent.getActiveProfile();
         // unwrap the server response
-        parseHttpResponseBase(httpRequest, httpResponse, message.getCid());
+        parseHttpResponseBase(httpRequest, httpResponse, message.getCid(), deviceProfile);
         // apply logic specific to the response type
         //final Agent agent = getAgent();
         //final DeviceProfile activeProfile = agent.getActiveProfile();

@@ -43,6 +43,16 @@ public final class ServerError {
     public static final int INTERNAL_ERROR = 4009;
 
     /**
+     * Server has rejected request due to invalid resource name.
+     */
+    public static final int KEY_INVALID_RESOURCE_NAME = 4106;
+
+    /**
+     * Server has rejected request due to invalid resource arguments.
+     */
+    public static final int KEY_INVALID_RESOURCE_ARGS = 4107;
+
+    /**
      * Server has rejected key request atom; "Attribute cannot be defined as both fixed and mutable".
      */
     public static final int KEY_INVALID_CATTR_MATTR = 4108;

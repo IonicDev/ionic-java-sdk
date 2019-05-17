@@ -5,12 +5,11 @@ import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.rng.CryptoRng;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
-import com.ionic.sdk.error.SdkError;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import java.nio.ByteBuffer;
-import java.security.GeneralSecurityException;
 import java.util.Arrays;
 
 /**
@@ -33,7 +32,7 @@ public class AesCtrCipher extends AesCipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public AesCtrCipher() throws IonicException {
-        this(null);
+        this((byte[]) null);
     }
 
     /**
@@ -48,18 +47,24 @@ public class AesCtrCipher extends AesCipherAbstract {
     }
 
     /**
+     * Construct an instance of an Ionic AES CTR-mode cipher.
+     *
+     * @param secretKey the JCE object representation of the key
+     * @throws IonicException on cryptography errors
+     */
+    public AesCtrCipher(final SecretKey secretKey) throws IonicException {
+        super(getCipherInstance());
+        setKey(secretKey);
+    }
+
+    /**
      * Construct an instance of a Java cipher.
      *
      * @return the Cipher to be wrapped
      * @throws IonicException if Cipher cannot be instantiated
      */
     private static Cipher getCipherInstance() throws IonicException {
-        try {
-            AgentSdk.initialize();
-            return Cipher.getInstance(AesCipher.TRANSFORM_CTR);
-        } catch (GeneralSecurityException e) {
-            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
-        }
+        return AgentSdk.getCrypto().getCipherAesCtr();
     }
 
     @Override

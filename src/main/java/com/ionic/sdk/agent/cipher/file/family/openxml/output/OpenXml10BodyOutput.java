@@ -67,8 +67,9 @@ final class OpenXml10BodyOutput implements OpenXmlBodyOutput {
         final ByteBuffer bufferPlainText = genericOutput.getPlainText();
         while (plainText.available() > 0) {
             bufferPlainText.clear();
-            plainChannel.read(bufferPlainText);
+            final int count = plainChannel.read(bufferPlainText);
             bufferPlainText.position(0);
+            bufferPlainText.limit(count);
             genericOutput.write(bufferPlainText);
         }
         genericOutput.doFinal();

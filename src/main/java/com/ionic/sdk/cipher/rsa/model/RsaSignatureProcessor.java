@@ -1,7 +1,6 @@
 package com.ionic.sdk.cipher.rsa.model;
 
 import com.ionic.sdk.agent.AgentSdk;
-import com.ionic.sdk.cipher.rsa.RsaCipher;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
@@ -141,7 +140,7 @@ public final class RsaSignatureProcessor {
      */
     private byte[] signInternal(final byte[] data) throws IonicException {
         try {
-            final Signature spi = Signature.getInstance(RsaCipher.SIGNATURE_ALGORITHM);
+            final Signature spi = AgentSdk.getCrypto().getSignatureRsa();
             SdkData.checkNotNull(rsaPrivateKey, RsaPrivateKey.class.getName());
             SdkData.checkNotNull(rsaPrivateKey.getPrivateKey(), PrivateKey.class.getName());
             spi.initSign(rsaPrivateKey.getPrivateKey());
@@ -161,7 +160,7 @@ public final class RsaSignatureProcessor {
      */
     private void verifyInternal(final byte[] data, final byte[] signature) throws IonicException {
         try {
-            final Signature spi = Signature.getInstance(RsaCipher.SIGNATURE_ALGORITHM);
+            final Signature spi = AgentSdk.getCrypto().getSignatureRsa();
             SdkData.checkNotNull(rsaPublicKey, RsaPublicKey.class.getName());
             SdkData.checkNotNull(rsaPublicKey.getPublicKey(), PublicKey.class.getName());
             spi.initVerify(rsaPublicKey.getPublicKey());

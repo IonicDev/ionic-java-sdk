@@ -101,7 +101,7 @@ public final class GenericInput {
             jsonHeader = JsonIO.readObject(ionicHeader, SdkError.ISFILECRYPTO_PARSEFAILED);
         } catch (IonicException e) {
             fileInfo.setCipherFamily(CipherFamily.FAMILY_GENERIC);
-            fileInfo.setCipherVersion(GenericFileCipher.VERSION_LATEST);
+            fileInfo.setCipherVersion(GenericFileCipher.VERSION_DEFAULT);
             throw e;
         }
         // parse Ionic generic file family JSON header
@@ -115,8 +115,9 @@ public final class GenericInput {
         // input file validation
         final boolean isV11 = FileCipher.Generic.V11.LABEL.equals(version);
         final boolean isV12 = FileCipher.Generic.V12.LABEL.equals(version);
+        final boolean isV13 = FileCipher.Generic.V13.LABEL.equals(version);
         final boolean isTagged = !Value.isEmpty(tag);
-        SdkData.checkTrue(((isV11 || isV12) && isTagged), SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
+        SdkData.checkTrue(((isV11 || isV12 || isV13) && isTagged), SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         // set FileCryptoFileInfo members
         fileInfo.setEncrypted(true);
         fileInfo.setCipherFamily(CipherFamily.FAMILY_GENERIC);
@@ -128,17 +129,22 @@ public final class GenericInput {
         // set FileCryptoDecryptAttributes members
         decryptAttributes.setFamily(CipherFamily.FAMILY_GENERIC);
         decryptAttributes.setVersion(version);
-        // perform server transaction
-        final GetKeysResponse.Key key = (agent == null)
-                ? new GetKeysResponse.Key() : agent.getKey(tag).getFirstKey();
+        // perform server transaction ("getFileInfo()" does not supply an agent instance)
+        final GetKeysResponse.Key key = (agent == null) ? null : agent.getKey(tag).getFirstKey();
         if (isV11) {
             bodyInput = new Generic11BodyInput(sourceStream, key);
         } else if (isV12) {
             bodyInput = new Generic12BodyInput(sourceStream, key, plainText, cipherText);
+        } else if (isV13) {
+            final int blockSize = JsonSource.getInt(jsonHeader, FileCipher.Generic.BLOCK_SIZE);
+            final int metaSize = JsonSource.getInt(jsonHeader, FileCipher.Generic.META_SIZE);
+            bodyInput = new Generic13BodyInput(sourceStream, agent, key, blockSize, metaSize, plainText, cipherText);
         } else {
             throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         }
-        decryptAttributes.setKeyResponse(key);
+        if (key != null) {
+            decryptAttributes.setKeyResponse(key);
+        }
         // prime the decryption buffer
         bodyInput.init();
     }

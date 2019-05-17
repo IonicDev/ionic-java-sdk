@@ -47,17 +47,18 @@ public interface KeyVaultErrorModuleConstants {
      * A key was not found.
      *
      * This happens when attempting to access a key that does not exist, for
-     * example when trying to retrieve via ISKeyVault::getKey() or update a key
-     * via ISKeyVault::setKey().
+     * example when trying to retrieve via {@link com.ionic.sdk.keyvault.KeyVaultInterface#getKey(String)}.
      */
     int ISKEYVAULT_KEY_NOT_FOUND = 16006;
 
     /**
      * A key update request was ignored.
-     * This happens when attempting to update a key via ISKeyVault::setKey(), and the provided key
-     * is not newer than the key which already exists in the vault. This is not an error, per se,
+     * This happens when attempting to update a key via
+     * {@link com.ionic.sdk.keyvault.KeyVaultInterface#setKey(com.ionic.sdk.keyvault.KeyVaultKey)}, and the provided
+     * key is not newer than the key which already exists in the vault. This is not an error, per se,
      * but it is informing the caller that the requested update is not needed, and as such is ignored.
-     * The determination is made by comparing key issuance UTC time (KeyVaultKey.getIssuedServerTimeUtcSeconds()).
+     * The determination is made by comparing key issuance UTC time
+     * {@link com.ionic.sdk.keyvault.KeyVaultKey#getIssuedServerTimeUtcSeconds()}.
      */
     int ISKEYVAULT_KEY_UPDATE_IGNORED = 16007;
 

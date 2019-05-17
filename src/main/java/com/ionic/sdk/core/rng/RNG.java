@@ -1,6 +1,6 @@
 package com.ionic.sdk.core.rng;
 
-import java.security.SecureRandom;
+import com.ionic.sdk.error.IonicException;
 
 /**
  * Utility functions relating to the JRE random number generator facility.
@@ -26,6 +26,7 @@ public final class RNG {
      *
      * @param bytes the byte array to be filled with random data
      * @return the parameter byte array, populated with secure random data
+     * @throws IonicException on null input
      * @see <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SecureRandomImp">
      * SecureRandomImpl (oracle.com)</a>
      * @see <a href="https://stackoverflow.com/questions/27622625/securerandom-with-nativeprng-vs-sha1prng">
@@ -33,8 +34,7 @@ public final class RNG {
      * @see <a href="https://android-developers.googleblog.com/2016/06/security-crypto-provider-deprecated-in.html">
      * googleblog.com</a>
      */
-    public static byte[] fill(final byte[] bytes) {
-        new SecureRandom().nextBytes(bytes);
-        return bytes;
+    public static byte[] fill(final byte[] bytes) throws IonicException {
+        return new CryptoRng().rand(bytes);
     }
 }

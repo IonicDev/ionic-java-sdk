@@ -16,14 +16,15 @@ public final class KeyVaultTimeUtil {
 
     /**
      * Get the current server time UTC seconds.
-     *
-     * This method returns the current server time UTC seconds.  See Agent.getServerTimeUtcMillis()
+     * <p>
+     * This method returns the current server time UTC seconds.  See {@link Agent#getServerTimeUtcMillis()}
      * for more information about how this time value is determined and why it is useful.
-     *
+     * <p>
      * This method should be used for calculating the issued time and expiration time of
-     * a key (see KeyVaultKey::setIssuedServerTimeUtcSeconds() and
-     * KeyVaultKey::setExpirationServerTimeUtcSeconds())
-     * @return  Server time in UTC seconds
+     * a key (see {@link KeyVaultKey#setIssuedServerTimeUtcSeconds(long)} and
+     * {@link KeyVaultKey#setExpirationServerTimeUtcSeconds(long)}).
+     *
+     * @return Server time in UTC seconds
      */
     public static long getCurrentServerTimeUtcSeconds() {
         return Agent.getServerTimeUtcSecs();

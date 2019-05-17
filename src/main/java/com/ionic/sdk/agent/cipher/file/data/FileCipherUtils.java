@@ -4,6 +4,7 @@ import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.io.FileSystem;
 import com.ionic.sdk.core.rng.CryptoRng;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,7 +80,7 @@ public final class FileCipherUtils {
                 Files.delete(sourceFile.toPath());
             } catch (IOException ee) {
                 logger.log(Level.SEVERE, ee.getMessage(), ee);
-                throw new IonicException(ee);
+                throw new IonicException(SdkError.ISFILECRYPTO_RENAMEFILE, ee);
             }
         }
     }

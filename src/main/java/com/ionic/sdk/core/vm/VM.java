@@ -85,6 +85,11 @@ public final class VM {
         public static final String USER_HOME = "user.home";
 
         /**
+         * The system property key associated with the working directory of the current process.
+         */
+        public static final String USER_DIR = "user.dir";
+
+        /**
          * The system property key associated with the current user.
          */
         public static final String USER_NAME = "user.name";

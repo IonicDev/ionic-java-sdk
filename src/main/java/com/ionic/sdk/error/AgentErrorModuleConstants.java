@@ -48,8 +48,9 @@ public interface AgentErrorModuleConstants {
 
     /**
      * The agent was used before being initialized. Make sure that you call
-     * ISAgent::initialize, ISAgent::initializeWithoutProfiles, or another
-     * initialization function before trying to use the ISAgent object.
+     * {@link com.ionic.sdk.agent.Agent#initialize()}, {@link com.ionic.sdk.agent.Agent#initializeWithoutProfiles()}),
+     * or another
+     * initialization function before trying to use the Agent object.
      */
     int ISAGENT_NOINIT = 40006;
 
@@ -119,7 +120,7 @@ public interface AgentErrorModuleConstants {
     /**
      * The maximum amount of allowed server redirects has been hit. The server
      * redirected us too many times. The maximum number of allowed redirects can be
-     * set during ISAgent initialization via ISAgentConfig::setMaxRedirects().
+     * set during Agent initialization via {@link com.ionic.sdk.agent.config.AgentConfig#setMaxRedirects(int)}.
      */
     int ISAGENT_TOOMANYREDIRECTS = 40017;
 
@@ -129,11 +130,9 @@ public interface AgentErrorModuleConstants {
     int ISAGENT_NOTIMPLEMENTED = 40018;
 
     /**
-     * The function (or a function it depends on) is not allowed to be called This
+     * The function (or a function it depends on) is not allowed to be called. This
      * typically happens if the function would knowingly cause a problem if it were
-     * to be run. For example, an async task (ISAgentAsyncTask) is not allowed to
-     * wait for the async processor to stop (ISAgentAsyncProcessor::waitForStop())
-     * because this would cause a deadlock condition.
+     * to be run.
      */
     int ISAGENT_NOTALLOWED = 40019;
 
@@ -151,7 +150,7 @@ public interface AgentErrorModuleConstants {
     /**
      * An active device profile has not been set. This happens when a function is
      * called that requires an active device profile, but there is no profile set
-     * yet (e.g. ISAgent::createKeys()).
+     * yet (e.g. {@link com.ionic.sdk.agent.Agent#createKeys(CreateKeysRequest)}).
      */
     int ISAGENT_NO_DEVICE_PROFILE = 40022;
 

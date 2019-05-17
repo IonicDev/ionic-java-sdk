@@ -1,7 +1,6 @@
 package com.ionic.sdk.cipher.rsa.model;
 
 import com.ionic.sdk.agent.AgentSdk;
-import com.ionic.sdk.cipher.rsa.RsaCipher;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
@@ -36,8 +35,10 @@ public final class RsaKeyPersistor {
      * @return the base64 representation of the serialized public key
      */
     public String toBase64Public(final RsaKeyHolder keyHolder) {
-        final X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyHolder.getPublicKey().getEncoded());
-        return Transcoder.base64().encode(x509KeySpec.getEncoded());
+        final PublicKey publicKey = keyHolder.getPublicKey();
+        final X509EncodedKeySpec x509KeySpec = (publicKey == null)
+                ? null : new X509EncodedKeySpec(publicKey.getEncoded());
+        return (x509KeySpec == null) ? null : Transcoder.base64().encode(x509KeySpec.getEncoded());
     }
 
     /**
@@ -47,8 +48,10 @@ public final class RsaKeyPersistor {
      * @return the base64 representation of the serialized private key
      */
     public String toBase64Private(final RsaKeyHolder keyHolder) {
-        final PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyHolder.getPrivateKey().getEncoded());
-        return Transcoder.base64().encode(pkcs8KeySpec.getEncoded());
+        final PrivateKey privateKey = keyHolder.getPrivateKey();
+        final PKCS8EncodedKeySpec pkcs8KeySpec = (privateKey == null)
+                ? null : new PKCS8EncodedKeySpec(privateKey.getEncoded());
+        return (pkcs8KeySpec == null) ? null : Transcoder.base64().encode(pkcs8KeySpec.getEncoded());
     }
 
     /**
@@ -61,7 +64,7 @@ public final class RsaKeyPersistor {
      */
     public RsaKeyHolder fromBase64(final String base64Public, final String base64Private) throws IonicException {
         try {
-            final KeyFactory keyFactory = KeyFactory.getInstance(RsaCipher.ALGORITHM);
+            final KeyFactory keyFactory = AgentSdk.getCrypto().getKeyFactoryRsa();
             final PublicKey publicKey = (base64Public == null) ? null : toPublicKey(keyFactory, base64Public);
             final PrivateKey privateKey = (base64Private == null) ? null : toPrivateKey(keyFactory, base64Private);
             return new RsaKeyHolder(new KeyPair(publicKey, privateKey));
@@ -125,7 +128,7 @@ public final class RsaKeyPersistor {
             return null;
         }
         try {
-            final KeyFactory keyFactory = KeyFactory.getInstance(RsaCipher.ALGORITHM);
+            final KeyFactory keyFactory = AgentSdk.getCrypto().getKeyFactoryRsa();
             final PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
             final PrivateKey privateKey = keyFactory.generatePrivate(pkcs8KeySpec);
             return new RsaPrivateKey(privateKey);
@@ -160,7 +163,7 @@ public final class RsaKeyPersistor {
             return null;
         }
         try {
-            final KeyFactory keyFactory = KeyFactory.getInstance(RsaCipher.ALGORITHM);
+            final KeyFactory keyFactory = AgentSdk.getCrypto().getKeyFactoryRsa();
             final X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(publicKeyBytes);
             final PublicKey publicKey = keyFactory.generatePublic(x509KeySpec);
             return new RsaPublicKey(publicKey);

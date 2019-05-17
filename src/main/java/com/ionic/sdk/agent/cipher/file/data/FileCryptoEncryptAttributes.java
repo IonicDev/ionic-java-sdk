@@ -36,7 +36,7 @@ public final class FileCryptoEncryptAttributes extends EncryptAttributes {
      * Constructor.
      */
     public FileCryptoEncryptAttributes() {
-        this("", new KeyAttributesMap(), new KeyAttributesMap());
+        this("", null, null);
     }
 
     /**
@@ -45,7 +45,7 @@ public final class FileCryptoEncryptAttributes extends EncryptAttributes {
      * @param version the Ionic file cipher family version to be used in the encryption operation
      */
     public FileCryptoEncryptAttributes(final String version) {
-        this(version, new KeyAttributesMap(), new KeyAttributesMap());
+        this(version, null, null);
     }
 
     /**
@@ -54,7 +54,7 @@ public final class FileCryptoEncryptAttributes extends EncryptAttributes {
      * @param keyAttributes the fixed attributes to be associated with the newly created key at the Ionic server
      */
     public FileCryptoEncryptAttributes(final KeyAttributesMap keyAttributes) {
-        this("", keyAttributes, new KeyAttributesMap());
+        this("", keyAttributes, null);
     }
 
     /**
@@ -74,7 +74,7 @@ public final class FileCryptoEncryptAttributes extends EncryptAttributes {
      * @param keyAttributes the fixed attributes to be associated with the newly created key at the Ionic server
      */
     public FileCryptoEncryptAttributes(final String version, final KeyAttributesMap keyAttributes) {
-        this(version, keyAttributes, new KeyAttributesMap());
+        this(version, keyAttributes, null);
     }
 
     /**

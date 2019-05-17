@@ -68,7 +68,8 @@ final class Csv10BodyOutput implements CsvBodyOutput {
     public void init() throws IOException, IonicException {
         targetStream.write(Transcoder.utf8().decode(FileCipher.Csv.V10.DATA_BEGIN_STRING));
         targetStream.write(Transcoder.utf8().decode(FileCipher.Csv.V10.LINE_SEPARATOR));
-        final FileCryptoEncryptAttributes encryptAttributesWrapped = new FileCryptoEncryptAttributes();
+        final FileCryptoEncryptAttributes encryptAttributesWrapped =
+                new FileCryptoEncryptAttributes(FileCipher.Generic.V12.LABEL);
         encryptAttributesWrapped.setKeyAttributes(encryptAttributes.getKeyAttributes());
         encryptAttributesWrapped.setMutableKeyAttributes(encryptAttributes.getMutableKeyAttributes());
         encryptAttributesWrapped.setMetadata(encryptAttributes.getMetadata());

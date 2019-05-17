@@ -2,11 +2,13 @@ package com.ionic.sdk.agent.request.base;
 
 import com.ionic.sdk.agent.Agent;
 import com.ionic.sdk.agent.config.AgentConfig;
+import com.ionic.sdk.agent.request.createdevice.CreateDeviceTransaction;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.cipher.aes.AesGcmCipher;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.device.DeviceUtils;
+import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.IonicServerException;
 import com.ionic.sdk.error.SdkData;
@@ -99,9 +101,11 @@ public abstract class AgentTransactionBase {
      * @throws IonicException on errors assembling the request or processing the response
      */
     public final void run() throws IonicException {
-        if (!agent.isInitialized()) {
-            throw new IonicException(SdkError.ISAGENT_NOINIT);
-        }
+        // agent must be initialized before transactions are allowed
+        SdkData.checkTrue(agent.isInitialized(), SdkError.ISAGENT_NOINIT);
+        // agent must (except CreateDevice) have an active profile to perform IDC transactions
+        final boolean isOkProfile = (agent.hasActiveProfile() || (this instanceof CreateDeviceTransaction));
+        SdkData.checkTrue(isOkProfile, SdkError.ISAGENT_NO_DEVICE_PROFILE);
         // set up the fingerprint field (hashed + hexed)
         final Properties fingerprint = new Properties();
         fingerprint.setProperty(IDC.Payload.HFPHASH, agent.getFingerprint().getHfpHash());
@@ -164,7 +168,7 @@ public abstract class AgentTransactionBase {
             handleFingerprintDeniedError(fingerprint);
             handled = true;
         } else if (returnCode == SdkError.ISAGENT_CID_TIMESTAMP_DENIED
-                   && handleCidTimestampDeniedError()) {
+                && handleCidTimestampDeniedError()) {
             // server is just indicating that our time stamp is too far off, set an offset and retry once
             errorsHandled.add(returnCode);
             handled = true;
@@ -186,14 +190,16 @@ public abstract class AgentTransactionBase {
      * Common handling of server responses to client requests.  This includes logging error codes, deserialization of
      * server response json, and unwrapping of the embedded, secured response.
      *
-     * @param httpRequest  the server request
-     * @param httpResponse the server response
-     * @param cidQ         the cid of the client request (for comparison to the one found in the server response)
+     * @param httpRequest   the server request
+     * @param httpResponse  the server response
+     * @param cidQ          the cid of the client request (for comparison to the one found in the server response)
+     * @param deviceProfile the relevant {@link DeviceProfile} record for the request
      * @throws IonicException on server error code, inability to deserialize response, unexpected response content,
      *                        or problems parsing the response payload bytes
      */
     protected final void parseHttpResponseBase(
-            final HttpRequest httpRequest, final HttpResponse httpResponse, final String cidQ) throws IonicException {
+            final HttpRequest httpRequest, final HttpResponse httpResponse,
+            final String cidQ, final DeviceProfile deviceProfile) throws IonicException {
         responseBase.setHttpResponseCode(httpResponse.getStatusCode());
         // log an error if we got an unexpected HTTP response code
         if (AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode())) {
@@ -220,23 +226,24 @@ public abstract class AgentTransactionBase {
                 throw new IonicException(e.getReturnCode(), e.getMessage(), new IonicServerException(
                         SdkError.ISAGENT_REQUESTFAILED, JsonIO.write(jsonSecure, false)));
             }
-            parseHttpResponseBase2(httpRequest.getResource(), cid, envelope);
+            parseHttpResponseBase2(httpRequest.getResource(), cid, envelope, deviceProfile);
         }
     }
 
     /**
      * Unwrap the secured response from the response envelope.
      *
-     * @param resource the server endpoint specified in the request
-     * @param cid      the cid in the server response
-     * @param envelope the ciphertext containing the protected server response
+     * @param resource      the server endpoint specified in the request
+     * @param cid           the cid in the server response
+     * @param envelope      the ciphertext containing the protected server response
+     * @param deviceProfile the relevant {@link DeviceProfile} record for the request
      * @throws IonicException on cryptography or server response errors
      */
-    private void parseHttpResponseBase2(final String resource, final String cid,
-                                        final String envelope) throws IonicException {
+    private void parseHttpResponseBase2(final String resource, final String cid, final String envelope,
+                                        final DeviceProfile deviceProfile) throws IonicException {
         // unwrap content of secure envelope
         final AesGcmCipher cipher = new AesGcmCipher();
-        cipher.setKey(agent.getActiveProfile().getAesCdIdcProfileKey());
+        cipher.setKey(deviceProfile.getAesCdIdcProfileKey());
         cipher.setAuthData(Transcoder.utf8().decode(cid));
         final byte[] entityClear = cipher.decryptBase64(envelope);
         // validate response entity
@@ -295,6 +302,7 @@ public abstract class AgentTransactionBase {
 
     /**
      * Internal function to parse the server error in case of a CID_TIMESTAMP_DENIED error.
+     *
      * @return True if successfully parses the server time and calibrates the Agent, False otherwise.
      */
     private boolean handleCidTimestampDeniedError() {

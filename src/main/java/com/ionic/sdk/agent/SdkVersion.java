@@ -49,7 +49,7 @@ public final class SdkVersion {
     /**
      * Define the SDK minor version number.
      */
-    public static final int IONIC_SDK_MINOR = 4;
+    public static final int IONIC_SDK_MINOR = 5;
 
     /**
      * Define the SDK patch version number.

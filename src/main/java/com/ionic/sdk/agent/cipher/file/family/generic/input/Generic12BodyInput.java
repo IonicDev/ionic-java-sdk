@@ -76,7 +76,9 @@ final class Generic12BodyInput implements GenericBodyInput {
         this.cipherText = cipherText;
         this.key = key;
         this.cipher = new AesCtrCipher();
-        this.cipher.setKey(key.getKey());
+        if (key != null) {
+            this.cipher.setKey(key.getKey());
+        }
         this.plainTextBlockHashes = new ByteArrayOutputStream();
     }
 
@@ -107,12 +109,16 @@ final class Generic12BodyInput implements GenericBodyInput {
         // perform decryption
         cipherText.limit(blockSize);
         cipherText.position(0);
-        cipher.decrypt(plainText, cipherText);
+        if (key != null) {
+            cipher.decrypt(plainText, cipherText);
+        }
         // verify block
         plainText.limit(plainText.position());
         plainText.position(0);
-        final byte[] plainTextBlockHash = CryptoUtils.hmacSHA256(plainText, key.getKey());
-        plainTextBlockHashes.write(plainTextBlockHash);
+        if (key != null) {
+            final byte[] plainTextBlockHash = CryptoUtils.hmacSHA256(plainText, key.getKey());
+            plainTextBlockHashes.write(plainTextBlockHash);
+        }
         // wrap up processing
         plainText.limit(plainText.position());
         plainText.position(0);

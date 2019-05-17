@@ -30,7 +30,7 @@ import javax.json.JsonValue;
 import javax.json.JsonArray;
 
 /**
- * A class that implements encrypted file storage of KeyVaultRecordMap
+ * A class that implements encrypted file storage.
  *
  * This class is used by a couple of the KeyVault subclass implementations and works similar to FileCrypto
  * to save an encrypted file with any given cipher.
@@ -191,8 +191,6 @@ public class KeyVaultEncryptedFile {
                                         fileVersion));
             throw new IonicException(SdkError.ISKEYVAULT_FILE_VERSION);
         }
-
-        return;
     }
 
     /**
@@ -390,11 +388,11 @@ public class KeyVaultEncryptedFile {
     }
 
     /**
-     * Creates an instance that implements encrypted file storage of KeyVaultRecordMap
+     * Creates an instance that implements encrypted file storage.
      *
      * This class is used by a couple of the KeyVault subclass implementations and works similar
      * to FileCrypto to save an encrypted file with any given cipher.
-     * @param keyVaultId - a vault ID used to verify a saved vault file matches the version being used
+     * @param keyVaultId a vault ID used to verify a saved vault file matches the version being used
      *  to load and decrypt it
     */
     public KeyVaultEncryptedFile(final String keyVaultId) {
@@ -402,10 +400,10 @@ public class KeyVaultEncryptedFile {
     }
 
     /**
-     * Load a map of key records from a Key Vault sub class from an encrypted file using a generic cipher.
+     * Load a map of key records from a KeyVault subclass from an encrypted file using a generic cipher.
      * passed into the function
-     * @param filePath - File path and name
-     * @param cipher - cipher the function will use to decrypt the data
+     * @param filePath File path and name
+     * @param cipher cipher the function will use to decrypt the data
      * @return The loaded key map
      * @throws IonicException If the file is missing, fails to open, or fails to fully read.
     */
@@ -435,10 +433,10 @@ public class KeyVaultEncryptedFile {
     }
 
     /**
-     * Load a map of key records from a Key Vault sub class from a memory buffer
+     * Load a map of key records from a KeyVault subclass from a memory buffer
      * using a generic cipher passed into the function.
-     * @param dataBytes - data memory
-     * @param cipher - cipher the function will use to encrypt the data
+     * @param dataBytes data memory
+     * @param cipher cipher the function will use to encrypt the data
      * @return the key map
      * @throws IonicException If the file is missing, fails to open, or fails to fully read.
      */
@@ -449,10 +447,10 @@ public class KeyVaultEncryptedFile {
     }
 
     /**
-     * Load a map of key records from a Key Vault sub class from a memory buffer
+     * Load a map of key records from a KeyVault subclass from a memory buffer
      * using a generic cipher passed into the function.
-     * @param dataBytes - data memory
-     * @param cipher - cipher the function will use to encrypt the data
+     * @param dataBytes data memory
+     * @param cipher cipher the function will use to encrypt the data
      * @return the key map
      * @throws IonicException If the file is missing, fails to open, or fails to fully read.
      */
@@ -512,11 +510,11 @@ public class KeyVaultEncryptedFile {
     }
 
     /**
-     * Save a map of key records from a Key Vault sub class into an encrypted file
+     * Save a map of key records from a KeyVault subclass into an encrypted file
      * using a generic cipher passed into the function.
-     * @param cipher - cipher the function will use to encrypt the data
-     * @param mapKeyRecords - the key map to save from
-     * @param filePath - File path and name
+     * @param cipher cipher the function will use to encrypt the data
+     * @param mapKeyRecords the key map to save from
+     * @param filePath File path and name
      * @throws IonicException on any file errors.
      */
     public void saveAllKeyRecordsToFile(final CipherAbstract cipher,
@@ -552,15 +550,13 @@ public class KeyVaultEncryptedFile {
                 throw new IonicException(SdkError.ISKEYVAULT_OPENFILE, e);
             }
         }
-
-        return;
     }
 
     /**
-     * Load a map of key records from a Key Vault sub class from a memory buffer
+     * Load a map of key records from a KeyVault subclass from a memory buffer
      * using a generic cipher passed into the function.
-     * @param cipher - cipher the function will use to encrypt the data
-     * @param mapKeyRecords - the key map to save from
+     * @param cipher cipher the function will use to encrypt the data
+     * @param mapKeyRecords the key map to save from
      * @return the keys saved in JSON format and encrypted as a byte[]
      * @throws IonicException on any json errors.
      */
@@ -571,10 +567,10 @@ public class KeyVaultEncryptedFile {
     }
 
     /**
-     * Load a map of key records from a Key Vault sub class from a memory buffer
+     * Load a map of key records from a KeyVault subclass from a memory buffer
      * using a generic cipher passed into the function.
-     * @param cipher - cipher the function will use to encrypt the data
-     * @param mapKeyRecords - the key map to save from
+     * @param cipher cipher the function will use to encrypt the data
+     * @param mapKeyRecords the key map to save from
      * @return the keys saved in JSON format and encrypted as a byte[]
      * @throws IonicException on any json errors.
      */
@@ -665,4 +661,4 @@ public class KeyVaultEncryptedFile {
      * Specific ID of this vault.
      */
     private String keyVaultId;
-};
+}

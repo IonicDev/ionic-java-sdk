@@ -1,7 +1,7 @@
 package com.ionic.sdk.keyvault;
 
 /**
- * An extension of the basic key vault record that includes update state.
+ * An extension of the basic {@link KeyVaultKey} that includes update state.
  */
 public class KeyVaultKeyRecord extends KeyVaultKey {
 
@@ -57,7 +57,7 @@ public class KeyVaultKeyRecord extends KeyVaultKey {
     }
 
     /**
-     * Initializes the key record empty and invalid.
+     * Initializes the key record.
      * @param key KeyVaultKey record that needs serialization
      * @param eState current state of the record
      */
@@ -100,7 +100,7 @@ public class KeyVaultKeyRecord extends KeyVaultKey {
     /**
      * Override for equals because code quality forces this to be here even though we want the super class version.
      * @param keyRecObj KeyVaultKey or KeyVaultKeyRecord to compare to
-     * @return True all the KeyVaultKey members equal the ones in the Object
+     * @return True if all the KeyVaultKey members equal the ones in the Object
      */
     @Override
     public boolean equals(final Object keyRecObj) {
