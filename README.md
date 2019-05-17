@@ -1,4 +1,4 @@
-# ionic-java-sdk
+﻿# ionic-java-sdk
 
 [Ionic](https://ionic.com) Java software development kit (SDK).
 
@@ -14,6 +14,73 @@ Additional [Ionic developer](https://dev.ionic.com) resources are available, as 
 Visit [Getting Started Tutorial](https://dev.ionic.com/getting-started) for a guide.
 
 ## Release Notes
+
+### 2.5.0
+
+### New Features
+
+#### Automatic SEP selection
+Ionic-protected documents may be decrypted if a Secure Enrollment Profile exists on the device with a matching
+keyspace (the document keyspace need not associated with the active profile).
+
+#### Agent clone
+The SDK now provides an API to clone a new Agent object from an existing Agent object.  This provides an
+order-of-magnitude improvement in instantiation performance, and enables single-use Agent objects.
+
+#### GenericFileCipher v1.3
+The core SDK generic file format, version 1.3 is now supported.
+
+#### CryptoAbstract
+The SDK now supports the use of alternative cryptography library implementations.  See the following javadoc resources
+for more information:
+- [package com.ionic.sdk.agent](./Doc/javadoc/com/ionic/sdk/agent/package-summary.html)
+- [class com.ionic.sdk.crypto.jce.CryptoAbstract](./Doc/javadoc/com/ionic/sdk/crypto/jce/CryptoAbstract.html)
+
+The Java SDK no longer depends on the BouncyCastle library to function correctly.  The SDK may be initialized to use
+the JRE-native JCE implementation.
+
+#### Additional Features
+- A password-protected KeyVault implementation is now available.
+- Test cases for the Java SDK are now being included in the source and binary distributable packages being published to
+[Maven Central](https://repo1.maven.org/maven2/com/ionic/ionic-sdk/) and [Github](https://github.com/IonicDev/ionic-java-sdk/).
+- DeviceProfilePersistor may now be initialized from a URL or an InputStream.
+- An Ionic raw cipher is now available, which uses the Ionic KeyServices interface and underlying AES cipher implementations.
+- The server-enforced limit of 1,000 keys per request is now documented.
+- A new API is available to expose "com.ionic.sdk.agent.key.AgentKey" as "javax.crypto.SecretKey", aiding in ease of use.
+
+### Known Issues
+None
+
+### Corrected Issues
+- An issue was corrected in the parsing of files when using PdfFileCipher.
+- An issue was corrected in the handling of DPAPI DeviceProfilePersistor when no data file exists.
+- An issue was corrected in the handling of the DPAPI DeviceProfilePersistor default file location.
+- An issue was corrected in the handling of ChunkCryptoEncryptAttributes constructor null input.
+
+### Additional Notes
+#### New default version of Generic Cipher
+As part of the effort to improve file cipher capabilities, the SDK has introduced a new version of the "generic" file
+encryption format, v1.3.  This format differs from the earlier v1.2 format in that it no longer requires a validation
+code (HMAC) to be computed and stored in the file header.   This avoids the need for the writer to retroactively seek
+back to the beginning of the file to store a computed hash.
+
+Applications that make use of the Generic FileCipher can choose to continue using an older version (e.g., v1.2) by
+specifying the desired version as part of the ```FileCryptoEncryptAttributes.setVersion``` method.
+
+It is important to note, however, that if no version is explicitly specified, the SDK will use the latest version of
+the format to create new files.  Opening and decrypting files in this format will require the consuming application to
+also be aware of this new format.  *Applications that were built with older versions of the SDK will not be able to
+process files in this newer format until they have been rebuilt with the updated SDK.*
+
+There is no issue with newer applications reading files from older versions -- the information in the file header
+includes an indication of the format in use.
+
+| Action | Java SDK 2.4 or older | Java SDK 2.5 |
+|------------|:----------------:|:----------------------:|
+|Create 1.2	 | default        | requires explicit version|
+|Read 1.2	 | supported      | supported                |
+|Create 1.3	 | not supported  | default                  |
+|Read 1.3    | error returned | supported                |
 
 ### 2.4.0
 The 2.4 release of the Ionic Java (JVM) SDK introduces support for cryptographic operations on two new file formats: "OpenXML" and "PDF".  With the addition of these formats to the support for "generic" and "CSV" formats introduced in the previous (2.3) release, the "JVM" SDK now fully supports all Ionic file and document formats.  It does not currently address the "CMS" format which is designed for secure email communications.
