@@ -63,7 +63,7 @@ public final class HttpClientTrustAll implements HttpClient {
         this.proxy = ProxyManager.getProxy(protocol);
         SSLSocketFactory sslSocketFactoryCtor = null;
         try {
-            final SSLContext context = SSLContext.getInstance(PROTOCOL);
+            final SSLContext context = SSLContext.getDefault();
             final TrustManager[] trustManagers = new TrustManager[]{new TrustAllTrustManager()};
             context.init(null, trustManagers, null);
             sslSocketFactoryCtor = context.getSocketFactory();
@@ -158,9 +158,4 @@ public final class HttpClientTrustAll implements HttpClient {
         logger.finest(String.format("#entity = %d, HttpURLConnection = %s", os.size(), connection));
         return new HttpResponse(statusCode, httpHeadersResponse, new ByteArrayInputStream(os.toByteArray()));
     }
-
-    /**
-     * Protocol to be used when communicating with ionic.com.
-     */
-    private static final String PROTOCOL = "TLS";
 }

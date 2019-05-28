@@ -46,23 +46,8 @@ public final class RsaCipher {
      * @throws IonicException on failure of platform preconditions for use of Ionic APIs.
      */
     public RsaCipher() throws IonicException {
-        AgentSdk.initialize();
-        this.cipherInstance = getCipherInstance();
+        this.cipherInstance = AgentSdk.getCrypto().getCipherRsa();
         this.keypairInstance = new KeyPair(null, null);
-    }
-
-    /**
-     * Construct an instance of a Java cipher.
-     *
-     * @return the Cipher to be wrapped
-     * @throws IonicException if Cipher cannot be instantiated
-     */
-    private static Cipher getCipherInstance() throws IonicException {
-        try {
-            return Cipher.getInstance(TRANSFORM_ECB);
-        } catch (GeneralSecurityException e) {
-            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
-        }
     }
 
     /**
@@ -222,7 +207,7 @@ public final class RsaCipher {
     public String sign(final byte[] text) throws IonicException {
         try {
             SdkData.checkNotNull(text, getClass().getSimpleName());
-            final Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
+            final Signature signature = AgentSdk.getCrypto().getSignatureRsa();
             signature.initSign(keypairInstance.getPrivate());
             signature.update(text);
             return CryptoUtils.binToBase64(signature.sign());
@@ -243,7 +228,7 @@ public final class RsaCipher {
         try {
             SdkData.checkNotNull(text, getClass().getSimpleName());
             SdkData.checkNotNull(sig, getClass().getSimpleName());
-            final Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
+            final Signature signature = AgentSdk.getCrypto().getSignatureRsa();
             signature.initVerify(keypairInstance.getPublic());
             signature.update(text);
             return signature.verify(sig);

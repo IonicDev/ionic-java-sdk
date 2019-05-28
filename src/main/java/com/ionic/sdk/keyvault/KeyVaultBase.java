@@ -31,6 +31,11 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
+     * Security level of key vault.
+     */
+    protected static final int VAULT_SECURITY_LEVEL = 100;
+
+    /**
      * A map of keyIds to key records.
      */
     @SuppressWarnings({"checkstyle:visibilitymodifier"})
@@ -39,8 +44,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     /**
      * Last time key expiration times were checked.
      */
-    @SuppressWarnings({"checkstyle:visibilitymodifier"})
-    protected long lastExpirationSweepServerTimeUtcSeconds;
+    private long lastExpirationSweepServerTimeUtcSeconds;
 
     /**
      * this value controls how often key expiration is checked, in seconds.
@@ -490,9 +494,9 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     /**
      * Abstract interface function subclasses must override.
      *
-     * Function takes a map of key records and should move them from some form of persistent storage
-     * (usually this means an encrypted file) into this map
-     * @return mapKeyRecordsOut std::map of key id to key records where saved records should be stored
+     * Function should move a map of key records from some form of persistent storage
+     * (usually this means an encrypted file) into the returned map.
+     * @return Map of key id to key records where saved records should be stored
      * @throws IonicException If the load runs into IO errors.
      */
     protected abstract Map<String, KeyVaultKeyRecord> loadAllKeyRecords() throws IonicException;
@@ -502,7 +506,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
      *
      * Function takes a map of key records and should move them into some form of persistent storage
      * (usually this means an encrypted file)
-     * @param  mapKeyRecords std::map of key id to key records that should be saved
+     * @param  mapKeyRecords Map of key id to key records that should be saved
      * @return ISKEYVAULT_OK on success, or some other non-zero error code.
      * @throws IonicException If the load runs into IO errors.
      */

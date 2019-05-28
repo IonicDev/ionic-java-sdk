@@ -217,9 +217,7 @@ public class AgentConfig {
     /**
      * Get the path of file this config object was loaded from, if any.
      *
-     * @return If this config object was loaded from a file via ISAgent::initializeFromFile or
-     * ISAgent::initializeFromFileW, this function will return the file path that was used to load it. Otherwise,
-     * this function will return an empty string.
+     * @return the path of file this config object was loaded from, if any
      */
     public final String getOriginFile() {
         return originFile;
@@ -234,4 +232,16 @@ public class AgentConfig {
      * Default number of redirects to follow when making an HTTP request.
      */
     private static final int HTTP_REDIRECTS_DEFAULT = 2;
+
+    /**
+     * Property names associated with {@link AgentConfig} settings.
+     */
+    public static class Key {
+
+        /**
+         * If set to true, all device profiles within a <code>ProfilePersistor</code> will be considered when choosing
+         * a server on a GetKeys request.
+         */
+        public static final String AUTOSELECT_PROFILE = "autoselectprofile";
+    }
 }

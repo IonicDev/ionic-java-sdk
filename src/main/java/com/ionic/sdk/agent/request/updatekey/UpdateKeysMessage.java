@@ -7,6 +7,8 @@ import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.json.JsonIO;
 import com.ionic.sdk.json.JsonTarget;
 
@@ -20,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeSet;
 
 /**
  * Encapsulation of helper logic associated with CreateKeys SDK API.  Includes state associated with request, and
@@ -75,10 +78,13 @@ public class UpdateKeysMessage extends MessageBase {
      */
     private JsonArray getJsonProtectionKeys(final UpdateKeysRequest updateKeysRequest)
             throws IonicException {
+        // check for duplicate key IDs specified in request
+        final Collection<String> ids = new TreeSet<String>();
         final Collection<JsonObject> jsonProtectionKeys = new ArrayList<JsonObject>();
         for (UpdateKeysRequest.Key key : updateKeysRequest.getKeys()) {
             final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
             final String id = key.getId();
+            ids.add(id);
             JsonTarget.addNotNull(objectBuilder, IDC.Payload.ID, id);
             JsonTarget.add(objectBuilder, IDC.Payload.FORCE, key.getForceUpdate());
             // spec says omit or blank, but due to server bug must be blank for now (4/2018)
@@ -97,6 +103,8 @@ public class UpdateKeysMessage extends MessageBase {
             final JsonObject jsonProtectionKey = objectBuilder.build();
             jsonProtectionKeys.add(jsonProtectionKey);
         }
+        // check for duplicate key IDs specified in request
+        SdkData.checkTrue(updateKeysRequest.getKeys().size() == ids.size(), SdkError.ISAGENT_DUPLICATE_KEY);
         final JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
         for (JsonObject jsonProtectionKey : jsonProtectionKeys) {
             JsonTarget.addNotNull(jsonArrayBuilder, jsonProtectionKey);

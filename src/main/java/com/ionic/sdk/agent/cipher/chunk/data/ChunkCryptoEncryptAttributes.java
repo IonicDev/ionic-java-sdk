@@ -25,7 +25,7 @@ public final class ChunkCryptoEncryptAttributes extends EncryptAttributes {
      * Constructor.
      */
     public ChunkCryptoEncryptAttributes() {
-        this(new KeyAttributesMap(), new KeyAttributesMap());
+        this(null, null);
     }
 
     /**
@@ -34,7 +34,7 @@ public final class ChunkCryptoEncryptAttributes extends EncryptAttributes {
      * @param keyAttributes the fixed attributes to be associated with the newly created key at the Ionic server
      */
     public ChunkCryptoEncryptAttributes(final KeyAttributesMap keyAttributes) {
-        this(keyAttributes, new KeyAttributesMap());
+        this(keyAttributes, null);
     }
 
     /**

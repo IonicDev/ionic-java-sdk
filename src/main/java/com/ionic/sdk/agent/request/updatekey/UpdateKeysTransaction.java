@@ -103,11 +103,11 @@ public class UpdateKeysTransaction extends AgentTransactionBase {
     @Override
     protected final void parseHttpResponse(
             final HttpRequest httpRequest, final HttpResponse httpResponse) throws IonicException {
-        // unwrap the server response
-        parseHttpResponseBase(httpRequest, httpResponse, message.getCid());
-        // apply logic specific to the response type
         final Agent agent = getAgent();
         final DeviceProfile activeProfile = agent.getActiveProfile();
+        // unwrap the server response
+        parseHttpResponseBase(httpRequest, httpResponse, message.getCid(), activeProfile);
+        // apply logic specific to the response type
         final UpdateKeysRequest request = (UpdateKeysRequest) getRequestBase();
         final UpdateKeysResponse response = (UpdateKeysResponse) getResponseBase();
         //final String cid = response.getConversationId();

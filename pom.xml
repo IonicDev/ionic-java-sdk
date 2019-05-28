@@ -1,62 +1,46 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <!--project declaration-->
-    <groupId>com.ionic</groupId>
-    <artifactId>sdk</artifactId>
-    <packaging>jar</packaging>
-    <version>2.4.0</version>
-    <name>sdk</name>
-    <url>https://dev.ionic.com</url>
-    <!--project properties-->
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <dependency.locations.enabled>false</dependency.locations.enabled>
-    </properties>
-    <!--project dependencies-->
-    <dependencies>
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>javax.json</artifactId>
-            <version>1.0.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.56</version>
-        </dependency>
-    </dependencies>
-    <!--project build descriptor-->
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>2.5.2</version>
-            </plugin>
-        </plugins>
-    </build>
-    <!-- additional metadata -->
-    <licenses>
-        <license>
-            <name>License Agreement for Ionic Resources</name>
-            <url>https://github.com/IonicDev/ionic-java-sdk/blob/master/LICENSE.md</url>
-        </license>
-    </licenses>
-    <developers>
-        <developer>
-            <name>Ionic Developer Support</name>
-            <email>dev@ionicsecurity.com</email>
-            <organization>Ionic Security</organization>
-            <organizationUrl>https://github.com/IonicDev</organizationUrl>
-        </developer>
-    </developers>
-    <scm>
-        <connection>scm:git:git://github.com/IonicDev/ionic-java-sdk.git</connection>
-        <developerConnection>scm:git:ssh://github.com/IonicDev/ionic-java-sdk.git</developerConnection>
-        <url>https://github.com/IonicDev/ionic-java-sdk</url>
-    </scm>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.ionic</groupId>
+  <artifactId>ionic-sdk</artifactId>
+  <version>2.5.0</version>
+  <packaging>jar</packaging>
+  <name>Ionic Java SDK</name>
+  <description>The Ionic Java SDK provides an easy-to-use interface to the Ionic Platform.</description>
+  <url>https://dev.ionic.com</url>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+  </properties>
+  <scm>
+    <connection>scm:git:git://github.com/IonicDev/ionic-java-sdk.git</connection>
+    <developerConnection>scm:git:ssh://github.com/IonicDev/ionic-java-sdk.git</developerConnection>
+    <url>https://github.com/IonicDev/ionic-java-sdk</url>
+  </scm>
+  <licenses>
+    <license>
+      <name>License Agreement for Ionic Resources</name>
+      <url>https://github.com/IonicDev/ionic-java-sdk/blob/master/LICENSE.md</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Ionic Developer Support</name>
+      <email>dev@ionicsecurity.com</email>
+    </developer>
+  </developers>
+  <inceptionYear>2017</inceptionYear>
+  <organization>
+    <name>Ionic Security</name>
+    <url>https://www.ionic.com/</url>
+  </organization>
+  <dependencies>
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
+      <version>1.0.4</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
 </project>

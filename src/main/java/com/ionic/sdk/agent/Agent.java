@@ -26,7 +26,7 @@ import com.ionic.sdk.agent.request.updatekey.UpdateKeysTransaction;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.core.date.DateTime;
 import com.ionic.sdk.device.profile.DeviceProfile;
-import com.ionic.sdk.device.profile.persistor.DeviceProfilePersistorBase;
+import com.ionic.sdk.device.profile.persistor.ProfilePersistor;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.IonicServerException;
 import com.ionic.sdk.error.SdkError;
@@ -90,7 +90,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @param persistor The device profile persistor.
      * @throws IonicException on errors
      */
-    public Agent(final DeviceProfilePersistorBase persistor) throws IonicException {
+    public Agent(final ProfilePersistor persistor) throws IonicException {
         this();
         initializeInternal(agentConfig, persistor, new MetadataMap(), new Fingerprint(null));
     }
@@ -139,7 +139,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      */
     @Override
     public final DeviceProfile getActiveProfile() {
-        return activeProfile;
+        return (activeProfile == null) ? new DeviceProfile() : activeProfile;
     }
 
     /**
@@ -277,7 +277,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @param persistor The device profile persistor.
      * @throws IonicException on errors
      */
-    public final void loadProfiles(final DeviceProfilePersistorBase persistor) throws IonicException {
+    public final void loadProfiles(final ProfilePersistor persistor) throws IonicException {
         loadProfilesInternal(persistor);
     }
 
@@ -292,7 +292,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @param persistor The device profile persistor.
      * @throws IonicException on errors
      */
-    private void loadProfilesInternal(final DeviceProfilePersistorBase persistor) throws IonicException {
+    private void loadProfilesInternal(final ProfilePersistor persistor) throws IonicException {
         final String[] activeProfileParam = new String[1];
         List<DeviceProfile> deviceProfilesInit = new ArrayList<DeviceProfile>();
         try {
@@ -329,7 +329,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @param persistor The device profile persistor.
      * @throws IonicException on errors
      */
-    public final void saveProfiles(final DeviceProfilePersistorBase persistor) throws IonicException {
+    public final void saveProfiles(final ProfilePersistor persistor) throws IonicException {
         final String activeDeviceId = (this.activeProfile == null) ? null : this.activeProfile.getDeviceId();
         persistor.saveAllProfiles(this.deviceProfiles, activeDeviceId);
     }
@@ -342,15 +342,18 @@ public class Agent extends MetadataHolder implements KeyServices {
      * If no device profile is found for the key, then null is returned.
      */
     public final DeviceProfile getDeviceProfileForKeyId(final String keyId) {
-        final int sizeofTenantId = 4;
-        DeviceProfile deviceProfileFound = null;
+        DeviceProfile bestProfile = null;
         for (DeviceProfile deviceProfileIt : this.deviceProfiles) {
-            if (deviceProfileIt.getDeviceId().startsWith(keyId.substring(0, sizeofTenantId))) {
-                deviceProfileFound = deviceProfileIt;
-                break;
+            final String keySpace = deviceProfileIt.getKeySpace();
+            if ((keyId != null) && (keySpace.length() < keyId.length()) && keyId.startsWith(keySpace)) {
+                if (bestProfile == null) {
+                    bestProfile = deviceProfileIt;
+                } else if (bestProfile.getCreationTimestampSecs() < deviceProfileIt.getCreationTimestampSecs()) {
+                    bestProfile = deviceProfileIt;
+                }
             }
         }
-        return deviceProfileFound;
+        return bestProfile;
     }
 
     /**
@@ -388,6 +391,8 @@ public class Agent extends MetadataHolder implements KeyServices {
 
     /**
      * Creates one or more protection keys through Ionic.com.
+     * <p>
+     * NOTE: please limit to 1,000 keys per request, otherwise the server will return an error.
      *
      * @param request The protection key request input data object.
      * @return The protection key response output data object.
@@ -516,6 +521,8 @@ public class Agent extends MetadataHolder implements KeyServices {
 
     /**
      * Gets protection keys from Ionic.com.
+     * <p>
+     * NOTE: please limit to 1,000 keys per request, otherwise the server will return an error.
      *
      * @param request The protection key request input data object.
      * @return The protection key response output data object.
@@ -586,6 +593,12 @@ public class Agent extends MetadataHolder implements KeyServices {
 
     /**
      * Updates one or more protection keys through Ionic.com.
+     * <p>
+     * MutableAttributes will be modified on the server, as specified in the request. Since
+     * changes to immutable attributes are prohibited, the value for Attributes (if specified)
+     * will be ignored and the Attributes will remain unchanged on the server. The keys returned
+     * in the Response object will copy the Attributes of the keys provided in the Request object
+     * for convenience, but will not reflect the values on the server if changes were made.
      *
      * @param request The protection key request input data object.
      * @return The protection key response output data object.
@@ -598,6 +611,12 @@ public class Agent extends MetadataHolder implements KeyServices {
 
     /**
      * Updates a single protection key from Ionic.com.
+     * <p>
+     * MutableAttributes will be modified on the server, as specified in the request. Since
+     * changes to immutable attributes are prohibited, the value for Attributes (if specified)
+     * will be ignored and the Attributes will remain unchanged on the server. The key returned
+     * in the Response object will copy the Attributes of the key provided in the Request object
+     * for convenience, but will not reflect the values on the server if changes were made.
      *
      * @param key      key to update
      * @param metadata The metadata properties to send along with the HTTP request.
@@ -615,6 +634,12 @@ public class Agent extends MetadataHolder implements KeyServices {
 
     /**
      * Updates a single protection key from Ionic.com.
+     * <p>
+     * MutableAttributes will be modified on the server, as specified in the request. Since
+     * changes to immutable attributes are prohibited, the value for Attributes (if specified)
+     * will be ignored and the Attributes will remain unchanged on the server. The key returned
+     * in the Response object will copy the Attributes of the key provided in the Request object
+     * for convenience, but will not reflect the values on the server if changes were made.
      *
      * @param key key to update
      * @return The protection key response output data object.
@@ -633,9 +658,11 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @param resource The generic request resource input object.
      * @return The generic resource response output data object. It is important to note that even if the function
      * succeeds, it does NOT mean that the requested resource was provided. The caller can look at the first object in
-     * the output response (guaranteed to exist) and check the error field (GetResourcesResponse.Resource::getError())
-     * to see if an error occurred.  If the error field is empty, then the data field
-     * (GetResourcesResponse.Resource::getData()) should be expected to contain the resource.
+     * the output response (guaranteed to exist) and check the error field
+     * ({@link com.ionic.sdk.agent.request.getresources.GetResourcesResponse.Resource#getError()}) to see if an
+     * error occurred.  If the error field is empty, then the data field
+     * ({@link com.ionic.sdk.agent.request.getresources.GetResourcesResponse.Resource#getData()}) should be expected
+     * to contain the resource.
      * @throws IonicException if an error occurs
      */
     public final GetResourcesResponse getResource(final GetResourcesRequest.Resource resource) throws IonicException {
@@ -653,8 +680,10 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @return The generic resource response output data object. It is important to note that even if the function
      * succeeds, it does NOT mean that any or all of the requested resources were provided. The caller can iterate
      * through the objects in the output response to see which ones were successful.  The caller should check the error
-     * field (GetResourcesResponse.Resource::getError()) of each output resource object to see if an error occurred.
-     * If the error field is empty, then the data field (GetResourcesResponse.Resource::getData()) should be expected
+     * field ({@link com.ionic.sdk.agent.request.getresources.GetResourcesResponse.Resource#getError()}) of each output
+     * resource object to see if an error occurred.
+     * If the error field is empty, then the data field
+     * ({@link com.ionic.sdk.agent.request.getresources.GetResourcesResponse.Resource#getData()}) should be expected
      * to contain the resource.
      * @throws IonicException if an error occurs
      */
@@ -761,7 +790,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @param persistor Device profile loader object.
      * @throws IonicException if an error occurs
      */
-    public final void initialize(final DeviceProfilePersistorBase persistor) throws IonicException {
+    public final void initialize(final ProfilePersistor persistor) throws IonicException {
         initializeInternal(agentConfig, persistor, new MetadataMap(), new Fingerprint(null));
     }
 
@@ -773,7 +802,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @param persistor   Device profile loader object.
      * @throws IonicException if an error occurs
      */
-    public final void initialize(final AgentConfig agentConfig, final DeviceProfilePersistorBase persistor)
+    public final void initialize(final AgentConfig agentConfig, final ProfilePersistor persistor)
             throws IonicException {
         initializeInternal(agentConfig, persistor, new MetadataMap(), new Fingerprint(null));
     }
@@ -817,7 +846,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @param fingerprint Device fingerprint object.
      * @throws IonicException if an error occurs
      */
-    private void initializeInternal(final AgentConfig agentConfig, final DeviceProfilePersistorBase persistor,
+    private void initializeInternal(final AgentConfig agentConfig, final ProfilePersistor persistor,
                                     final MetadataMap metadata, final Fingerprint fingerprint) throws IonicException {
         if (initialized) {
             throw new IonicException(SdkError.ISAGENT_DOUBLEINIT);
@@ -894,10 +923,27 @@ public class Agent extends MetadataHolder implements KeyServices {
 
     /**
      * Get the server offset UTC milliseconds.
-     * @return  The server offset in millliseconds
+     * @return  The server offset in milliseconds
      */
     public static long getServerTimeOffsetMillis() {
         return serverTimeOffsetMillis;
+    }
+
+    /**
+     * Copy the internal state of an {@link Agent}, so that the SEP file I/O is unnecessary.  This will greatly
+     * increase the throughput of Agent object instantiation.
+     *
+     * @param agent the object from which the loaded state should be copied
+     * @return a new Agent instance, with configuration copied from original
+     */
+    public static Agent clone(final Agent agent) {
+        final Agent agentClone = new Agent();
+        agentClone.initialized = agent.initialized;
+        agentClone.deviceProfiles = new ArrayList<DeviceProfile>(agent.deviceProfiles);
+        agentClone.activeProfile = agent.activeProfile;
+        agentClone.agentConfig = new AgentConfig(agent.agentConfig);
+        agentClone.fingerprint = agent.fingerprint;
+        return agentClone;
     }
 
     /**

@@ -1,14 +1,12 @@
 package com.ionic.sdk.cipher.rsa.model;
 
 import com.ionic.sdk.agent.AgentSdk;
-import com.ionic.sdk.cipher.rsa.RsaCipher;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.RSAPublicKeySpec;
@@ -35,13 +33,9 @@ public final class RsaKeyGenerator {
      * @throws IonicException on cryptography errors
      */
     public RsaKeyHolder generate(final int keySize) throws IonicException {
-        try {
-            final KeyPairGenerator keygen = KeyPairGenerator.getInstance(RsaCipher.ALGORITHM);
-            keygen.initialize(keySize);
-            return new RsaKeyHolder(keygen.generateKeyPair());
-        } catch (NoSuchAlgorithmException e) {
-            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
-        }
+        final KeyPairGenerator keygen = AgentSdk.getCrypto().getKeyPairGeneratorRsa();
+        keygen.initialize(keySize);
+        return new RsaKeyHolder(keygen.generateKeyPair());
     }
 
     /**
@@ -52,13 +46,9 @@ public final class RsaKeyGenerator {
      * @throws IonicException on cryptography errors
      */
     public RsaPrivateKey generatePrivateKey(final long keySize) throws IonicException {
-        try {
-            final KeyPairGenerator keygen = KeyPairGenerator.getInstance(RsaCipher.ALGORITHM);
-            keygen.initialize((int) keySize);
-            return new RsaPrivateKey(keygen.generateKeyPair().getPrivate());
-        } catch (NoSuchAlgorithmException e) {
-            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
-        }
+        final KeyPairGenerator keygen = AgentSdk.getCrypto().getKeyPairGeneratorRsa();
+        keygen.initialize((int) keySize);
+        return new RsaPrivateKey(keygen.generateKeyPair().getPrivate());
     }
 
     /**
@@ -88,7 +78,7 @@ public final class RsaKeyGenerator {
         try {
             final RSAPublicKeySpec publicKeySpec = new java.security.spec.RSAPublicKeySpec(
                     privkey.getModulus(), privkey.getPublicExponent());
-            final KeyFactory keyFactory = KeyFactory.getInstance(RsaCipher.ALGORITHM);
+            final KeyFactory keyFactory = AgentSdk.getCrypto().getKeyFactoryRsa();
             return new RsaPublicKey(keyFactory.generatePublic(publicKeySpec));
         } catch (GeneralSecurityException e) {
             throw new IonicException(SdkError.ISCRYPTO_ERROR, e);

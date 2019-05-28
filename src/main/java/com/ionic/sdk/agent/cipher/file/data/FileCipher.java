@@ -20,7 +20,14 @@ public final class FileCipher {
     /**
      * File cipher header data constants.
      */
-    public static class Header {
+    public static final class Header {
+
+        /**
+         * Constructor.
+         * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+         */
+        private Header() {
+        }
 
         /**
          * File format family.
@@ -51,12 +58,29 @@ public final class FileCipher {
     /**
      * File cipher family data constants.
      */
-    public static class Generic {
+    public static final class Generic {
+
+        /**
+         * Constructor.
+         * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+         */
+        private Generic() {
+        }
 
         /**
          * File format family generic.
          */
         public static final String FAMILY = "generic";
+
+        /**
+         * Key in resource header JSON used to record default size of a single encryption block.
+         */
+        public static final String BLOCK_SIZE = "block_size";
+
+        /**
+         * Key in resource header JSON used to record the count of blocks which use the same encryption key.
+         */
+        public static final String META_SIZE = "meta_size";
 
         /**
          * Open mode for <code>RandomAccessFile</code> reading and writing, as with "rw", and also require
@@ -74,7 +98,14 @@ public final class FileCipher {
         /**
          * File format family generic, version 1.1.
          */
-        public static class V11 {
+        public static final class V11 {
+
+            /**
+             * Constructor.
+             * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+             */
+            private V11() {
+            }
 
             /**
              * File format version.
@@ -120,7 +151,14 @@ public final class FileCipher {
         /**
          * File format family generic, version 1.2.
          */
-        public static class V12 {
+        public static final class V12 {
+
+            /**
+             * Constructor.
+             * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+             */
+            private V12() {
+            }
 
             /**
              * File format version.
@@ -147,12 +185,52 @@ public final class FileCipher {
              */
             public static final int BLOCK_SIZE_CIPHER = BLOCK_SIZE_PLAIN + AesCipher.SIZE_IV;
         }
+
+        /**
+         * File format family generic, version 1.3.
+         */
+        public static final class V13 {
+
+            /**
+             * Constructor.
+             * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+             */
+            private V13() {
+            }
+
+            /**
+             * File format version.
+             */
+            public static final String LABEL = "1.3";
+
+            /**
+             * The separator token used to separate JSON header from the subsequent payload (generic file cipher V1.3).
+             */
+            public static final String DELIMITER = V12.DELIMITER;
+
+            /**
+             * Size of a default plain text file block.
+             */
+            public static final int BLOCK_SIZE_PLAIN = 8 * 1024 * 1024;
+
+            /**
+             * Count of blocks in a v1.3 resource which use the same encryption key.
+             */
+            public static final int META_SIZE = 4096;
+        }
     }
 
     /**
      * File cipher family data constants.
      */
-    public static class Csv {
+    public static final class Csv {
+
+        /**
+         * Constructor.
+         * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+         */
+        private Csv() {
+        }
 
         /**
          * File format family CSV (comma-separated variable).
@@ -162,7 +240,14 @@ public final class FileCipher {
         /**
          * File format family CSV, version 1.0.
          */
-        public static class V10 {
+        public static final class V10 {
+
+            /**
+             * Constructor.
+             * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+             */
+            private V10() {
+            }
 
             /**
              * File format version.
@@ -215,7 +300,14 @@ public final class FileCipher {
     /**
      * File cipher family data constants.
      */
-    public static class Pdf {
+    public static final class Pdf {
+
+        /**
+         * Constructor.
+         * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+         */
+        private Pdf() {
+        }
 
         /**
          * File format family PDF.
@@ -225,7 +317,14 @@ public final class FileCipher {
         /**
          * File format family OpenXML, version 1.0.
          */
-        public static class V10 {
+        public static final class V10 {
+
+            /**
+             * Constructor.
+             * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+             */
+            private V10() {
+            }
 
             /**
              * File format version.
@@ -237,7 +336,14 @@ public final class FileCipher {
     /**
      * File cipher family data constants.
      */
-    public static class OpenXml {
+    public static final class OpenXml {
+
+        /**
+         * Constructor.
+         * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+         */
+        private OpenXml() {
+        }
 
         /**
          * File format family XML (MS Office files).
@@ -247,7 +353,14 @@ public final class FileCipher {
         /**
          * File format family OpenXML, version 1.0.
          */
-        public static class V10 {
+        public static final class V10 {
+
+            /**
+             * Constructor.
+             * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+             */
+            private V10() {
+            }
 
             /**
              * File format version.
@@ -257,7 +370,14 @@ public final class FileCipher {
         /**
          * File format family OpenXML, version 1.1.
          */
-        public static class V11 {
+        public static final class V11 {
+
+            /**
+             * Constructor.
+             * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+             */
+            private V11() {
+            }
 
             /**
              * File format version.
@@ -297,17 +417,17 @@ public final class FileCipher {
          * content file in a Word file when it is macro enabled.
          */
         public static final String CONTENT_TYPES_DOCM_MACRO_VALUE =
-            "application/vnd.ms-word.document.macroEnabled.main+xml";
+                "application/vnd.ms-word.document.macroEnabled.main+xml";
         /**
          * content file in a Power Point file when it is macro enabled.
          */
         public static final String CONTENT_TYPES_PPTM_MACRO_VALUE =
-            "application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml";
+                "application/vnd.ms-powerpoint.presentation.macroEnabled.main+xml";
         /**
          * content file in an Excel file when it is macro enabled.
          */
         public static final String CONTENT_TYPES_XLSM_MACRO_VALUE =
-            "application/vnd.ms-excel.sheet.macroEnabled.main+xml";
+                "application/vnd.ms-excel.sheet.macroEnabled.main+xml";
         /**
          * label in content file.
          */
@@ -344,7 +464,7 @@ public final class FileCipher {
          * Custom properties content type.
          */
         public static final String CUSTOM_CONTENT_TYPE =
-            "application/vnd.openxmlformats-officedocument.custom-properties+xml";
+                "application/vnd.openxmlformats-officedocument.custom-properties+xml";
         /**
          * Relationship file labels.
          */
@@ -389,7 +509,7 @@ public final class FileCipher {
          * Relationship file labels - Ionic file info type.
          */
         public static final String IONIC_INFO_TYPE =
-        "http://ionic.com/relationship/embed/protectedDocumentFileInfo";
+                "http://ionic.com/relationship/embed/protectedDocumentFileInfo";
         /**
          * Relationship file labels - Custom file info ID.
          */
@@ -402,6 +522,6 @@ public final class FileCipher {
          * Relationship file labels - Custom file info type.
          */
         public static final String CUSTOM_TYPE =
-        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties";
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/custom-properties";
     }
 }

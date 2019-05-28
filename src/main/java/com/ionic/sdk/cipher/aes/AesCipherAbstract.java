@@ -3,8 +3,11 @@ package com.ionic.sdk.cipher.aes;
 import com.ionic.sdk.cipher.CipherAbstract;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.value.Value;
+import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -30,6 +33,17 @@ public abstract class AesCipherAbstract extends CipherAbstract {
         if (!Value.isEmpty(cipherKey)) {
             setKeyNative(new SecretKeySpec(cipherKey, AesCipher.ALGORITHM));
         }
+    }
+
+    /**
+     * Set the key for this cipher.
+     *
+     * @param secretKey the {@link SecretKey} representation of the key
+     * @throws IonicException on NULL input
+     */
+    public final void setKey(final SecretKey secretKey) throws IonicException {
+        SdkData.checkNotNull(secretKey, SecretKey.class.getName());
+        setKeyNative(secretKey);
     }
 
     /**

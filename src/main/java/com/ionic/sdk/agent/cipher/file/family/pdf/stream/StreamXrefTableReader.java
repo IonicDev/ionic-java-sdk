@@ -29,7 +29,8 @@ import java.util.TreeSet;
 /**
  * Utility class to deserialize a PDF file cross-reference stream (PDF 32000-1:2008, section 7.5.8).
  * <p>
- * IonicAgents\SDK\ISAgentSDK\ISFileCryptoLib\ISFileCryptoCipherPdfUtils.cpp::processDecodeParmsForFlateDecode()
+ * Derived from core SDK:
+ * "IonicAgents\SDK\ISAgentSDK\ISFileCryptoLib\ISFileCryptoCipherPdfUtils.cpp::processDecodeParmsForFlateDecode()"
  */
 @InternalUseOnly
 public final class StreamXrefTableReader {

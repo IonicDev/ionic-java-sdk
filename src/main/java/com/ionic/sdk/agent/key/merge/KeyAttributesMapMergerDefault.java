@@ -10,7 +10,8 @@ import java.util.logging.Logger;
 
 /**
  * This is the default SDK-provided implementation of key attribute merging logic that can be used
- * in the event that a merge is needed during a protection key update operation (Agent::updateKeys()).
+ * in the event that a merge is needed during a protection key update operation
+ * ({@link com.ionic.sdk.agent.Agent#updateKeys(com.ionic.sdk.agent.request.updatekey.UpdateKeysRequest)}).
  */
 public class KeyAttributesMapMergerDefault implements KeyAttributesMapMerger {
 

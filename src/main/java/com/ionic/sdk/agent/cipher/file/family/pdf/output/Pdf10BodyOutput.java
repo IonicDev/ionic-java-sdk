@@ -1,5 +1,6 @@
 package com.ionic.sdk.agent.cipher.file.family.pdf.output;
 
+import com.ionic.sdk.agent.cipher.file.data.FileCipher;
 import com.ionic.sdk.agent.cipher.file.data.FileCryptoEncryptAttributes;
 import com.ionic.sdk.agent.cipher.file.family.generic.output.GenericOutput;
 import com.ionic.sdk.agent.cipher.file.family.pdf.body.PdfBodyObject;
@@ -69,7 +70,8 @@ public final class Pdf10BodyOutput implements PdfBodyOutput {
     @Override
     public int init() throws IOException, IonicException {
         pdfObjectBegin = writer.writeBegin();
-        final FileCryptoEncryptAttributes encryptAttributesWrapped = new FileCryptoEncryptAttributes();
+        final FileCryptoEncryptAttributes encryptAttributesWrapped =
+                new FileCryptoEncryptAttributes(FileCipher.Generic.V12.LABEL);
         encryptAttributesWrapped.setKeyAttributes(encryptAttributes.getKeyAttributes());
         encryptAttributesWrapped.setMutableKeyAttributes(encryptAttributes.getMutableKeyAttributes());
         encryptAttributesWrapped.setMetadata(encryptAttributes.getMetadata());

@@ -1,10 +1,21 @@
 package com.ionic.sdk.device.profile.persistor;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.ionic.sdk.cipher.CipherAbstract;
+import com.ionic.sdk.core.codec.Transcoder;
+import com.ionic.sdk.core.datastructures.Tuple;
+import com.ionic.sdk.core.io.Stream;
+import com.ionic.sdk.core.value.Value;
+import com.ionic.sdk.core.vm.VM;
+import com.ionic.sdk.crypto.CryptoUtils;
+import com.ionic.sdk.device.DeviceUtils;
+import com.ionic.sdk.device.profile.DeviceFields;
+import com.ionic.sdk.device.profile.DeviceProfile;
+import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
+import com.ionic.sdk.json.JsonTarget;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -12,19 +23,13 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
-
-import com.ionic.sdk.cipher.CipherAbstract;
-import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.core.datastructures.Tuple;
-import com.ionic.sdk.core.io.Stream;
-import com.ionic.sdk.crypto.CryptoUtils;
-import com.ionic.sdk.device.profile.DeviceFields;
-import com.ionic.sdk.device.profile.DeviceProfile;
-import com.ionic.sdk.error.IonicException;
-import com.ionic.sdk.error.SdkError;
-import com.ionic.sdk.json.JsonIO;
-import com.ionic.sdk.json.JsonSource;
-import com.ionic.sdk.json.JsonTarget;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * DeviceProfilePersistorBase is an abstract class. It is used to do the core
@@ -56,28 +61,74 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     private String mFilePath = "";
 
     /**
+     * The URL of a device profile resource.
+     */
+    private URL mUrl;
+
+    /**
+     * The bytes cached from an input stream if the {@link InputStream} constructor is used.  These are cached to:
+     * <ol>
+     * <li>immediately use and release the InputStream reference</li>
+     * <li>preserve the existing semantics of construction and the "loadAllProfiles()" API call</li>
+     * </ol>
+     * <p>
+     * They are preserved when the API {@link #loadAllProfiles(String[])} is called, and may be loaded multiple
+     * times.  On call of the API {@link #saveAllProfiles(List, String)}, these bytes are cleared, and the filesystem
+     * path becomes the persistence location of this {@link ProfilePersistor}.
+     */
+    private byte[] inputStreamBytes;
+
+    /**
      * boolean to track if profiles need to be updated.
      */
     private boolean shouldUpdateProfiles = true;
 
     /**
-     * Abstract constructor used to initialize Device profiles from disk.
+     * Constructor.
      *
-     * @param filePath
-     *            - the file path of a device profile file.
-     * @param cipher
-     *            - the cipher used to encrypt and decrypt a device profile.
+     * @param filePath path to a filesystem file containing serialized DeviceProfile objects
+     * @param cipher   the cipher used to protect the serialized form of the DeviceProfile objects
      */
     public DeviceProfilePersistorBase(final String filePath, final CipherAbstract cipher) {
         mFilePath = filePath;
+        mUrl = null;
+        inputStreamBytes = null;
         mCipher = cipher;
     }
 
     /**
-     * Abstract constructor used to initialize Device profiles from disk.
+     * Constructor.
      *
-     * @param cipher
-     *            the cipher
+     * @param url    location of a resource containing serialized DeviceProfile objects
+     * @param cipher the cipher used to protect the serialized form of the DeviceProfile objects
+     */
+    public DeviceProfilePersistorBase(final URL url, final CipherAbstract cipher) {
+        mFilePath = null;
+        mUrl = url;
+        inputStreamBytes = null;
+        mCipher = cipher;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param inputStream stream containing serialized DeviceProfile objects
+     * @param cipher      the cipher used to protect the serialized form of the DeviceProfile objects
+     * @throws IonicException on stream read failure
+     */
+    public DeviceProfilePersistorBase(final InputStream inputStream, final CipherAbstract cipher)
+            throws IonicException {
+        mFilePath = null;
+        mUrl = null;
+        SdkData.checkTrue((inputStream != null), SdkError.ISAGENT_NULL_INPUT);
+        inputStreamBytes = DeviceUtils.read(inputStream);
+        mCipher = cipher;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param cipher the cipher used to protect the serialized form of the DeviceProfile objects
      */
     public DeviceProfilePersistorBase(final CipherAbstract cipher) {
         mCipher = cipher;
@@ -86,26 +137,24 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     /**
      * Getter for the cipher used to encrypt and decrypt a device profile file.
      *
-     * @return mCipher
+     * @return the cipher object
      */
     protected final CipherAbstract getCipher() {
         return mCipher;
     }
 
     /**
-     * changes the file path of a device profile. This method has a side effect of
-     * reloading the active device profile and device profile list from the the new
-     * file path.
+     * Update the filesystem location of the serialized DeviceProfile objects. This method also sets an internal flag
+     * indicating the need to reload the active device profile and device profile list from the the new file path.
      *
-     * @param path
-     *            the new file path to load device profiles from.
-     * @throws IonicException on null parameter
+     * @param path the new file path for load / save of device profiles
+     * @throws IonicException on null parameter input
      */
     public final void setFilePath(final String path) throws IonicException {
         if (path == null) {
             throw new IonicException(SdkError.ISAGENT_NULL_INPUT);
         }
-        if (!mFilePath.equals(path)) {
+        if ((mFilePath == null) || (!mFilePath.equals(path))) {
             mFilePath = path;
             shouldUpdateProfiles = true;
         }
@@ -121,31 +170,33 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     }
 
     /**
-     * Interface method used as a means of retrieving the profiles available in
-     * memory. Also retrieves the active device profile id as an out parameter.
+     * Interface method used as a means of retrieving the serialized DeviceProfile objects. Also retrieves the
+     * active device profile id as an out parameter.
      *
-     * @param activeProfile
-     *            an out parameter that will provide the active profile of the
-     *            persistor.
-     * @return the list of available device profiles on the persistor.
-     * @throws IonicException
-     *             decrypt or json parsing can throw a sdk exception, expect
-     *             ISAGENT_PARSEFAILED, ISAGENT_MISSINGVALUE, ISAGENT_RESOURCE_NOT_FOUND,
-     *             or ISCRYPTO_ERROR
+     * @param activeProfile an out parameter that will provide the active profile of the persistor
+     * @return the list of available device profiles on the persistor
+     * @throws IonicException decrypt or json parsing can throw a sdk exception, expect
+     *                        ISAGENT_PARSEFAILED, ISAGENT_MISSINGVALUE, ISAGENT_RESOURCE_NOT_FOUND,
+     *                        or ISCRYPTO_ERROR
      */
     @Override
     @SuppressWarnings({"checkstyle:designforextension"})  // extended in Ionic/addon/dpapi
     public List<DeviceProfile> loadAllProfiles(final String[] activeProfile) throws IonicException {
-        final File f = new File(mFilePath);
-        if (!f.exists()) {
-            throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND);
-        }
+        final File f = Value.isEmpty(mFilePath) ? null : new File(mFilePath);
+        // if file is defined, it must exist on the filesystem
+        SdkData.checkTrue((f == null) || f.exists(), SdkError.ISAGENT_RESOURCE_NOT_FOUND);
+        // must have a source for the serialized DeviceProfile bytes
+        SdkData.checkTrue((f != null) || (mUrl != null) || (inputStreamBytes != null),
+                SdkError.ISAGENT_RESOURCE_NOT_FOUND);
         if (shouldUpdateProfiles) {
-            final Tuple<List<DeviceProfile>, String> profiles = loadAllProfilesFromFile(mFilePath);
-            if (profiles != null) {
-                mProfiles = new ArrayList<DeviceProfile>(profiles.first());
-                activeDeviceProfileId = profiles.second();
-            }
+            final Tuple<List<DeviceProfile>, String> profiles = (f != null)
+                    ? loadAllProfilesFromFile(mFilePath) : (mUrl != null)
+                    ? loadAllProfilesFromURL(mUrl) : (inputStreamBytes != null)
+                    ? loadAllProfilesFromJson(inputStreamBytes, mCipher)
+                    : null;
+            SdkData.checkNotNull(profiles, DeviceProfile.class.getName());
+            mProfiles = new ArrayList<DeviceProfile>(profiles.first());
+            activeDeviceProfileId = profiles.second();
             shouldUpdateProfiles = false;
         }
         if (activeProfile != null && activeProfile.length >= 1) {
@@ -156,15 +207,12 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     }
 
     /**
-     * Function that saves input parameters in memory aswell as disk.
+     * Function that saves input parameters in memory as well as disk.
      *
-     * @param profiles
-     *            - change the list of available profiles to this input parameter.
-     * @param activeProfile
-     *            - change the active device profile to this input parameter.
-     * @throws IonicException
-     *             write to disk can throw a ISAGENT_OPENFILE exception
-     *             saveAllProfilesToJson can throw an ISCRYPTO_ERROR on encrypt.
+     * @param profiles      change the list of available profiles to this input parameter
+     * @param activeProfile change the active device profile to this input parameter
+     * @throws IonicException write to disk can throw a ISAGENT_OPENFILE exception
+     *                        saveAllProfilesToJson can throw an ISCRYPTO_ERROR on encrypt
      */
     @Override
     @SuppressWarnings({"checkstyle:designforextension"})  // extended in Ionic/addon/dpapi
@@ -173,47 +221,42 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
         activeDeviceProfileId = activeProfile;
 
         saveAllProfilesToFile(mProfiles, activeDeviceProfileId, mFilePath, mCipher);
+        inputStreamBytes = null;  // inputStreamBytes are discarded after being persisted to filesystem
     }
 
     /**
      * Function that saves input parameters in memory as well as disk.
      *
-     * @param profiles
-     *            the device profiles we will serialize, encrypt, and write to disk.
-     * @param activeProfile
-     *            the active profile we will serialize, encrypt, and write to disk.
-     * @param filePath
-     *            - the file path to write a device profile file.
-     * @param cipher
-     *            - the cipher used to encrypt the deviceProfile.
-     * @throws IonicException
-     *             write to disk can throw a ISAGENT_OPENFILE exception
-     *             saveAllProfilesToJson can throw an ISCRYPTO_ERROR on encrypt.
+     * @param profiles      the device profiles we will serialize, encrypt, and write to disk
+     * @param activeProfile the active profile we will serialize, encrypt, and write to disk
+     * @param filePath      the file path to write a device profile file
+     * @param cipher        the cipher used to encrypt the deviceProfile
+     * @throws IonicException write to disk can throw a ISAGENT_OPENFILE exception
+     *                        saveAllProfilesToJson can throw an ISCRYPTO_ERROR on encrypt
      */
-    private static void saveAllProfilesToFile(final List<DeviceProfile> profiles, final String activeProfile,
+    private static void saveAllProfilesToFile(
+            final List<DeviceProfile> profiles, final String activeProfile,
             final String filePath, final CipherAbstract cipher) throws IonicException {
-        final File folder = new File(filePath).getParentFile();
-        if ((folder != null) && !folder.exists() && !folder.mkdirs()) {
-            throw new IonicException(SdkError.ISAGENT_OPENFILE);
-        }
+        // in order to save, file path must be set
+        SdkData.checkTrue(!Value.isEmpty(filePath), SdkError.ISAGENT_OPENFILE);
+        // in order to save, file path parent folder must exist
+        final File folderParent = new File(filePath).getParentFile();
+        final File folder = (folderParent == null) ? new File(System.getProperty(VM.Sys.USER_DIR)) : folderParent;
+        SdkData.checkTrue((folder.exists() || folder.mkdirs()), SdkError.ISAGENT_OPENFILE);
         Stream.writeToDisk(filePath, saveAllProfilesToJson(profiles, activeProfile, cipher));
     }
 
     /**
      * Save all profiles to json.
      *
-     * @param profiles
-     *            the device profiles we will serialize and encrypt
-     * @param activeProfile
-     *            the active profile we will serialize and encrypt
-     * @param cipher
-     *            - the cipher used to encrypt the deviceProfile.
+     * @param profiles      the device profiles we will serialize and encrypt
+     * @param activeProfile the active profile we will serialize and encrypt
+     * @param cipher        the cipher used to encrypt the deviceProfile
      * @return the encrypted bytes
-     * @throws IonicException
-     *             can throw an ISCRYPTO_ERROR on encrypt.
+     * @throws IonicException can throw an ISCRYPTO_ERROR on encrypt
      */
     protected static byte[] saveAllProfilesToJson(final List<DeviceProfile> profiles, final String activeProfile,
-            final CipherAbstract cipher) throws IonicException {
+                                                  final CipherAbstract cipher) throws IonicException {
 
         final JsonObjectBuilder devicePersistor = Json.createObjectBuilder();
         JsonTarget.addNotNull(devicePersistor, DeviceFields.FIELD_ACTIVE_DEVICE_ID, activeProfile);
@@ -238,56 +281,47 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     }
 
     /**
-     * Loads a Device profile from the file system, decrypts it and parsers the json
-     * into memory. Then we use the deserialzed json to create a list Device Profile
+     * Loads a Device profile from the file system, decrypts it and parses the json
+     * into memory. Then we use the deserialized json to create a list of Device Profile
      * objects.
      *
-     * @param filePath
-     *            - the file path of a device profile file.
-     * @return a Tuple that holds the list of Device profiles and the id of the
-     *         active profile.
-     * @throws IonicException
-     *             decrypt or json parsing can throw a sdk exception, expect
-     *             ISAGENT_PARSEFAILED, ISAGENT_MISSINGVALUE, or ISCRYPTO_ERROR
+     * @param filePath the file path of a device profile file
+     * @return a Tuple that holds the list of Device profiles and the id of the active profile
+     * @throws IonicException decrypt or json parsing can throw a sdk exception, expect
+     *                        ISAGENT_PARSEFAILED, ISAGENT_MISSINGVALUE, or ISCRYPTO_ERROR
      */
     private Tuple<List<DeviceProfile>, String> loadAllProfilesFromFile(final String filePath) throws IonicException {
-        return loadAllProfilesFromFile(filePath, mCipher);
+        final byte[] cipherText = Stream.loadFileIntoMemory(filePath);
+        return loadAllProfilesFromJson(cipherText, mCipher);
     }
 
     /**
-     * Load all profiles from file.
+     * Loads a Device profile from a URL, decrypts it and parses the json
+     * into memory. Then we use the deserialized json to create a list of Device Profile
+     * objects.
      *
-     * @param filePath
-     *            - The file path of a device profile.
-     * @param cipher
-     *            - the cipher used to decrypt the deviceProfile.
-     * @return a tuple of loaded profiles from disk.
-     * @throws IonicException
-     *             decrypt or json parsing can throw a sdk exception, expect
-     *             ISAGENT_PARSEFAILED, ISAGENT_MISSINGVALUE, or ISCRYPTO_ERROR
+     * @param url the URL of a device profile resource
+     * @return a Tuple that holds the list of Device profiles and the id of the active profile
+     * @throws IonicException decrypt or json parsing can throw a sdk exception, expect
+     *                        ISAGENT_PARSEFAILED, ISAGENT_MISSINGVALUE, or ISCRYPTO_ERROR
      */
-    private static Tuple<List<DeviceProfile>, String> loadAllProfilesFromFile(final String filePath,
-            final CipherAbstract cipher) throws IonicException {
-        final byte[] loadedFile = Stream.loadFileIntoMemory(filePath);
-        return loadAllProfilesFromJson(loadedFile, cipher);
+    private Tuple<List<DeviceProfile>, String> loadAllProfilesFromURL(final URL url) throws IonicException {
+        final byte[] cipherText = DeviceUtils.read(url);
+        return loadAllProfilesFromJson(cipherText, mCipher);
     }
 
     /**
      * A method used to decrypt and parse a json object in order to create Device
      * profiles.
      *
-     * @param cipherText
-     *            The input we want to decrypt.
-     * @param cipher
-     *            The cipher we will use to decrypt the inputed bytes.
-     * @return a Tuple that holds the list of Device profiles and the id of the
-     *         active profile.
-     * @throws IonicException
-     *             decrypt or json parsing can throw a sdk exception, expect
-     *             ISAGENT_PARSEFAILED or ISCRYPTO_ERROR
+     * @param cipherText The input we want to decrypt
+     * @param cipher     The cipher we will use to decrypt the inputed bytes
+     * @return a Tuple that holds the list of Device profiles and the id of the active profile
+     * @throws IonicException decrypt or json parsing can throw a sdk exception, expect
+     *                        ISAGENT_PARSEFAILED or ISCRYPTO_ERROR
      */
-    protected static Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(final byte[] cipherText,
-            final CipherAbstract cipher) throws IonicException {
+    protected static Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(
+            final byte[] cipherText, final CipherAbstract cipher) throws IonicException {
         final List<DeviceProfile> profiles = new ArrayList<DeviceProfile>();
         String activeDeviceId = null;
         final byte[] json = cipher.decrypt(cipherText);

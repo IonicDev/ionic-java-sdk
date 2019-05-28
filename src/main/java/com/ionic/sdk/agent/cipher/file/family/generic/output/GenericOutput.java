@@ -12,8 +12,11 @@ import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
+import com.ionic.sdk.json.JsonTarget;
 import com.ionic.sdk.key.KeyServices;
 
+import javax.json.Json;
+import javax.json.JsonObjectBuilder;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -104,35 +107,56 @@ public final class GenericOutput {
      * @throws IonicException on failure to decrypt the file signature (if present)
      */
     public int init(final FileCryptoEncryptAttributes encryptAttributes) throws IonicException, IOException {
+        // setup
         encryptAttributes.validateInput();
-        final String version = Value.defaultOnEmpty(
-                encryptAttributes.getVersion(), GenericFileCipher.VERSION_LATEST);
-        final CreateKeysResponse keysResponse = agent.createKey(
+        final String version = Value.defaultOnEmpty(encryptAttributes.getVersion(), GenericFileCipher.VERSION_DEFAULT);
+        // initial key fetch (v1.3 might use multiple keys)
+        final CreateKeysResponse createKeysResponse = agent.createKey(
                 encryptAttributes.getKeyAttributes(), encryptAttributes.getMutableKeyAttributes());
-        encryptAttributes.setFamily(CipherFamily.FAMILY_GENERIC);
-        encryptAttributes.setVersion(version);
-        final CreateKeysResponse.Key createKey = keysResponse.getFirstKey();
+        final CreateKeysResponse.Key createKey = createKeysResponse.getFirstKey();
         createKey.setAttributesMap(encryptAttributes.getKeyAttributes());
         createKey.setMutableAttributesMap(encryptAttributes.getMutableKeyAttributes());
         encryptAttributes.setKeyResponse(createKey);
-        final AesCtrCipher cipher = new AesCtrCipher(createKey.getKey());
-        final String headerText = new GenericHeaderOutput().write(
-                version, agent.getActiveProfile().getServer(), createKey.getId());
+        encryptAttributes.setFamily(CipherFamily.FAMILY_GENERIC);
+        encryptAttributes.setVersion(version);
+        // craft GenericFileCipher json header
+        final JsonObjectBuilder jsonHeaderBuilder = Json.createObjectBuilder();
         if (FileCipher.Generic.V11.LABEL.equals(version)) {
+            final AesCtrCipher cipher = new AesCtrCipher(createKey.getKey());
             plainText = ByteBuffer.allocate(FileCipher.Generic.V11.BLOCK_SIZE_PLAIN);
             cipherText = ByteBuffer.allocate(FileCipher.Generic.V11.BLOCK_SIZE_PLAIN + AesCipher.SIZE_IV);
             bodyOutput = new Generic11BodyOutput(targetStream, cipher);
         } else if (FileCipher.Generic.V12.LABEL.equals(version)) {
+            JsonTarget.addNotNull(jsonHeaderBuilder, FileCipher.Header.FAMILY, FileCipher.Generic.FAMILY);
+            final AesCtrCipher cipher = new AesCtrCipher(createKey.getKey());
             final int sizeBlock = (int) Math.min(sizeInput, FileCipher.Generic.V12.BLOCK_SIZE_PLAIN);
             plainText = ByteBuffer.allocate(sizeBlock);
             cipherText = ByteBuffer.allocate(sizeBlock + AesCipher.SIZE_IV);
             bodyOutput = new Generic12BodyOutput(targetStream, cipher, createKey, plainText, cipherText);
+        } else if (FileCipher.Generic.V13.LABEL.equals(version)) {
+            final String propMetaSize = encryptAttributes.getProperty(FileCipher.Generic.META_SIZE);
+            final String propBlockSize = encryptAttributes.getProperty(FileCipher.Generic.BLOCK_SIZE);
+            final int metaSize = Value.toInt(propMetaSize, FileCipher.Generic.V13.META_SIZE);
+            final int blockSize = Value.toInt(propBlockSize, FileCipher.Generic.V13.BLOCK_SIZE_PLAIN);
+            JsonTarget.addNotNull(jsonHeaderBuilder, FileCipher.Header.FAMILY, FileCipher.Generic.FAMILY);
+            JsonTarget.add(jsonHeaderBuilder, FileCipher.Generic.BLOCK_SIZE, blockSize);
+            JsonTarget.add(jsonHeaderBuilder, FileCipher.Generic.META_SIZE, metaSize);
+            plainText = ByteBuffer.allocate(blockSize);
+            cipherText = ByteBuffer.allocate(blockSize + AesCipher.SIZE_IV + AesCipher.SIZE_IV);
+            bodyOutput = new Generic13BodyOutput(targetStream, agent, createKey,
+                    blockSize, metaSize, plainText, cipherText);
         } else {
             throw new IonicException(SdkError.ISFILECRYPTO_VERSION_UNSUPPORTED);
         }
+        JsonTarget.addNotNull(jsonHeaderBuilder, FileCipher.Header.VERSION, version);
+        JsonTarget.addNotNull(jsonHeaderBuilder, FileCipher.Header.SERVER, agent.getActiveProfile().getServer());
+        JsonTarget.addNotNull(jsonHeaderBuilder, FileCipher.Header.TAG, createKey.getId());
+        // serialize GenericFileCipher json header
+        final String headerText = new GenericHeaderOutput().write(jsonHeaderBuilder, version);
         final byte[] header = Transcoder.utf8().decode(headerText);
         headerLength = header.length;
         targetStream.write(header);
+        // teardown
         final int countBodyInit = bodyOutput.init();
         outputLength += (headerLength + countBodyInit);
         return headerLength + countBodyInit;

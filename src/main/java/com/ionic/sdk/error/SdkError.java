@@ -21,7 +21,7 @@ public final class SdkError implements
     }
 
     /**
-     * Gets a ISAgentSDK::Module enum for any SDK error code emitted by any Ionic SDK module.
+     * Gets an {@link com.ionic.sdk.error.SdkModule} enum for any SDK error code emitted by any Ionic SDK module.
      *
      * @param errorCode The error code returned from any Ionic SDK function.
      * @return The module enumerator for the module, or MODULE_UNKNOWN for success or errors out of range.

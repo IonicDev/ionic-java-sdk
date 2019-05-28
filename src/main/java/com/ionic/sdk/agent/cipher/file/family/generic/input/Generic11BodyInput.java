@@ -25,6 +25,11 @@ final class Generic11BodyInput implements GenericBodyInput {
     private final BufferedInputStream sourceStream;
 
     /**
+     * The cryptography key used to decrypt and verify the file content.
+     */
+    private final AgentKey key;
+
+    /**
      * The Ionic cipher used to encrypt file blocks.
      */
     private final AesCtrCipher cipher;
@@ -38,8 +43,11 @@ final class Generic11BodyInput implements GenericBodyInput {
      */
     Generic11BodyInput(final BufferedInputStream sourceStream, final AgentKey key) throws IonicException {
         this.sourceStream = sourceStream;
-        cipher = new AesCtrCipher();
-        cipher.setKey(key.getKey());
+        this.key = key;
+        this.cipher = new AesCtrCipher();
+        if (key != null) {
+            this.cipher.setKey(key.getKey());
+        }
     }
 
     /**
@@ -68,8 +76,9 @@ final class Generic11BodyInput implements GenericBodyInput {
         } else if (block[count - 1] != FileCipher.Generic.V11.BLOCK_FOOTER_BYTE) {
             throw new IonicException(SdkError.ISFILECRYPTO_PARSEFAILED);
         } else {
-            final byte[] blockTrim = Arrays.copyOfRange(blockMax, 1, (count - 1));
-            return ByteBuffer.wrap(cipher.decryptBase64(Transcoder.utf8().encode(blockTrim)));
+            final String blockBase64 = Transcoder.utf8().encode(Arrays.copyOfRange(blockMax, 1, (count - 1)));
+            return ByteBuffer.wrap((key == null)
+                    ? Transcoder.base64().decode(blockBase64) : cipher.decryptBase64(blockBase64));
         }
     }
 

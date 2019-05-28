@@ -66,8 +66,9 @@ public class KeyVaultKey {
      *
      * To know the current time on the server in UTC seconds, which is required to
      * populate the issuedServerTimeUtcSeconds and expirationServerTimeUtcSeconds fields,
-     * the KeyVaultTimeUtil::getCurrentServerTimeUtcSeconds() should be used.
-     * @param keyData The key data object (typically produced via Agent::createKey(), Agent::getKey(), and variants).
+     * the {@link KeyVaultTimeUtil#getCurrentServerTimeUtcSeconds()} should be used.
+     * @param keyData The key data object (typically produced via {@link com.ionic.sdk.key.KeyServices#createKey()},
+     * {@link com.ionic.sdk.key.KeyServices#getKey(String)}, and variants).
      * @param issuedServerTimeUtcSeconds The time at which this key was issued, measured in UTC seconds according
      * to server time.
      * @param expirationServerTimeUtcSeconds The time at which this key expires, measured in UTC seconds according
@@ -89,8 +90,8 @@ public class KeyVaultKey {
      * Initializes the key object with provided inputs.
      *
      * To know the current time on the server in UTC seconds, which is required to
-     * populate the nIssuedServerTimeUtcSeconds and nExpirationServerTimeUtcSeconds fields,
-     * the ISKeyVaultTimeUtil::getCurrentServerTimeUtcSeconds() should be used.
+     * populate the issuedServerTimeUtcSeconds and expirationServerTimeUtcSeconds fields,
+     * the {@link KeyVaultTimeUtil#getCurrentServerTimeUtcSeconds()} should be used.
      * @param keyId The key ID (also known as the key tag).
      * @param keyBytes The raw key bytes. It must be exactly 32 bytes in length.
      * @param issuedServerTimeUtcSeconds The time at which this key was issued, measured in UTC seconds according
@@ -115,13 +116,14 @@ public class KeyVaultKey {
      * Initializes the key object with provided inputs.
      *
      * To know the current time on the server in UTC seconds, which is required to
-     * populate the nIssuedServerTimeUtcSeconds and nExpirationServerTimeUtcSeconds fields,
-     * the ISKeyVaultTimeUtil::getCurrentServerTimeUtcSeconds() should be used.
+     * populate the issuedServerTimeUtcSeconds and expirationServerTimeUtcSeconds fields,
+     * the {@link KeyVaultTimeUtil#getCurrentServerTimeUtcSeconds()} should be used.
      * @param keyId The key ID (also known as the key tag).
      * @param keyBytes The raw key bytes. It must be exactly 32 bytes in length.
      * @param mapKeyAttributes The key attributes (see KeyAttributesMap).
      * @param mapMutableKeyAttributes The key attributes (see KeyAttributesMap).
-     * @param mapKeyObligations The key obligations (see KeyObligationsMap and AgentKey::getObligations()).
+     * @param mapKeyObligations The key obligations (see {@link KeyObligationsMap} and
+     * {@link AgentKey#getObligationsMap()}).
      * @param issuedServerTimeUtcSeconds The time at which this key was issued, measured in UTC seconds according
      * to server time.
      * @param expirationServerTimeUtcSeconds The time at which this key expires, measured in UTC seconds according
@@ -235,7 +237,8 @@ public class KeyVaultKey {
     /**
      * Get the key obligations.
      *
-     * See KeyObligationsMap and AgentKey::getObligations() for more information on what key obligations are.
+     * See {@link KeyObligationsMap} and {@link AgentKey#getObligationsMap()} for more information on what key
+     * obligations are.
      * @return The key obligations.
      */
     public KeyObligationsMap getKeyObligations() {
@@ -245,7 +248,8 @@ public class KeyVaultKey {
     /**
      * Set the key obligations.
      *
-     * See KeyObligationsMap and AgentKey::getObligations() for more information on what key obligations are.
+     * See {@link KeyObligationsMap} and {@link AgentKey#getObligationsMap()} for more information on what key
+     * obligations are.
      * @param mapKeyObligations the key obligations.
      */
     public void setKeyObligations(final KeyObligationsMap mapKeyObligations) {
@@ -299,7 +303,7 @@ public class KeyVaultKey {
      * Determine if the key is expired given an optional server time.
      * @param currentServerTimeUtcSeconds The current time measured in UTC seconds according to server time.
      *  Optionally, zero can be provided, in which case this function will calculate the current server time
-     *  automatically via KeyVaultTimeUtil::getCurrentServerTimeUtcSeconds().
+     *  automatically via {@link KeyVaultTimeUtil#getCurrentServerTimeUtcSeconds()}.
      * @return True if the current time if greater than or equal to the expiration time, false otherwise
      */
     public boolean isExpired(final long currentServerTimeUtcSeconds) {
@@ -312,7 +316,7 @@ public class KeyVaultKey {
 
     /**
      * Determine if the key is expired using the current server time
-     * via KeyVaultTimeUtil::getCurrentServerTimeUtcSeconds().
+     * via {@link KeyVaultTimeUtil#getCurrentServerTimeUtcSeconds()}.
      * @return True if the current time if greater than or equal to the expiration time, false otherwise
      */
     public boolean isExpired() {
@@ -322,7 +326,7 @@ public class KeyVaultKey {
     /**
      * Override for equals for KeyVaultKey's so it can be compared meaningfully to KeyVaultKeyRecord's.
      * @param keyRecObj KeyVaultKey or KeyVaultKeyRecord to compare to
-     * @return True all the KeyVaultKey members equal the ones in the KeyVaultKeyRecord
+     * @return True if all the KeyVaultKey members equal the ones in the KeyVaultKeyRecord
      */
     @Override
     public boolean equals(final Object keyRecObj) {

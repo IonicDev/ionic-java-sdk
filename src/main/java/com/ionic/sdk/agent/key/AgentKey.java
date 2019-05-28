@@ -1,7 +1,10 @@
 package com.ionic.sdk.agent.key;
 
+import com.ionic.sdk.cipher.aes.AesCipher;
 import com.ionic.sdk.core.value.Value;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.Objects;
 
 /**
@@ -185,6 +188,15 @@ public class AgentKey implements KeyBase, KeyMetadata {
     @Override
     public final void setKey(final byte[] keyBytes) throws NullPointerException {
         this.keyBytes = Objects.requireNonNull(keyBytes.clone(), "keyBytes must not be null");
+    }
+
+    /**
+     * Get a {@link SecretKey} derived from the key bytes associated with this {@link AgentKey}.
+     *
+     * @return a {@link SecretKey} derived from this {@link AgentKey}
+     */
+    public final SecretKey getSecretKey() {
+        return new SecretKeySpec(this.keyBytes, 0, this.keyBytes.length, AesCipher.ALGORITHM);
     }
 
     /**
