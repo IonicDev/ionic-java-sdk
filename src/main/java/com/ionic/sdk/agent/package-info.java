@@ -23,15 +23,21 @@
  * 'getInstance()' call on the desired interface.
  * <pre>    md = MessageDigest.getInstance("SHA-256")</pre>
  * <p>
- * If no specific provider is specified, the Ionic SDK default is to automatically add the BouncyCastle provider, and
- * to use any implementation of the requested cryptography primitive that is available to the JCE.  If a provider is
+ * In SDK versions 2.0 - 2.5, the provider "org.bouncycastle.jce.provider.BouncyCastleProvider" was implicitly
+ * registered to the JRE on first use of Ionic cryptography.  In SDK versions 2.6+, if usage of BouncyCastle
+ * cryptography is desired, BouncyCastle must be explicitly registered (using the API
+ * {@link com.ionic.sdk.agent.AgentSdk#initialize(java.security.Provider)} prior to any other usage of the Ionic SDK.
+ * <p>
+ * If no specific {@link java.security.Provider} is specified in the API call
+ * {@link com.ionic.sdk.agent.AgentSdk#initialize(java.security.Provider)}, the Ionic SDK default is to use all
+ * providers registered to the JRE to satisfy a request for a cryptography primitive.  If a provider is
  * specified, it must implement any requested cryptography primitive.  Known limitations:
  * <ul>
  * <li>JRE 7 has no implementation of the AES GCM algorithm.  This is used by
  * {@link com.ionic.sdk.agent.cipher.chunk.ChunkCipherV3} and
  * {@link com.ionic.sdk.agent.cipher.file.GenericFileCipher} version 1.3.</li>
- * <li>No released JRE has an implementation of the RSA signature algorithm used by the Ionic SDK.  This algorithm is
- * used during  the API call
+ * <li>JRE 7-10 have no implementation of the RSA signature algorithm used by the Ionic SDK.  This algorithm is
+ * used during the API call
  * {@link com.ionic.sdk.agent.Agent#createDevice(com.ionic.sdk.agent.request.createdevice.CreateDeviceRequest)}.</li>
  * </ul>
  */

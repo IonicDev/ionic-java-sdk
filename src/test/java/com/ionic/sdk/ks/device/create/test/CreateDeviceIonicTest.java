@@ -6,7 +6,7 @@ import com.ionic.sdk.agent.request.createdevice.CreateDeviceResponse;
 import com.ionic.sdk.agent.request.createkey.CreateKeysResponse;
 import com.ionic.sdk.cipher.rsa.model.RsaKeyHolder;
 import com.ionic.sdk.core.vm.VM;
-import com.ionic.sdk.device.create.EnrollSAML;
+import com.ionic.sdk.device.create.EnrollIonicAuth;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.device.profile.persistor.ProfilePersistor;
 import com.ionic.sdk.error.IonicException;
@@ -21,9 +21,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Test mechanics of CreateDevice SAML transaction using SDK API class.
+ * Test mechanics of CreateDevice Ionic Auth transaction using SDK API class.
  */
-public class CreateDeviceAPITest {
+public class CreateDeviceIonicTest {
 
     /**
      * Class scoped logger.
@@ -44,19 +44,19 @@ public class CreateDeviceAPITest {
      * Test usage of API class to enroll a new device record on the server.
      */
     @Test
-    public final void testCreateDeviceSAML() {
+    public final void testCreateDeviceIonicAuth() {
         final IonicTestEnvironment ionicTestEnvironment = IonicTestEnvironment.getInstance();
         Assume.assumeTrue("don't register when using existing SEP", ionicTestEnvironment.isNewProfile());
         final String url = System.getenv("TEST_REGISTRATION_URL");
-        Assume.assumeFalse("only use with internal tenants", url.contains("https://enrollment.ionic.com/"));
+        Assume.assumeTrue("only use with 'Start For Free' tenants", url.contains("https://enrollment.ionic.com/"));
         try {
             final boolean useRsaExisting = System.getProperty(VM.Sys.OS_ARCH).equals("arm");
             final RsaKeyHolder rsaKeyHolder = useRsaExisting ? ionicTestEnvironment.getTestRsaKeyHolder() : null;
-            final EnrollSAML enrollSAML = new EnrollSAML(url, new Agent(), rsaKeyHolder);
+            final EnrollIonicAuth enrollIonicAuth = new EnrollIonicAuth(url, new Agent(), rsaKeyHolder);
             final String user = System.getenv("TEST_REGISTRATION_USER");
             final String pass = System.getenv("TEST_REGISTRATION_PASS");
             logger.info(String.format("ENROLL, URL=[%s], USER=[%s]", url, user));
-            final CreateDeviceResponse createDeviceResponse = enrollSAML.enroll(user, pass, getClass().getName());
+            final CreateDeviceResponse createDeviceResponse = enrollIonicAuth.enroll(user, pass, getClass().getName());
             final DeviceProfile deviceProfile = createDeviceResponse.getDeviceProfile();
             final String deviceId = deviceProfile.getDeviceId();
             logger.info(String.format("ENROLL SUCCESS, URL=[%s], USER=[%s], DEVICEID=[%s]", url, user, deviceId));

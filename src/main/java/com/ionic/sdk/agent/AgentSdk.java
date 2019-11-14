@@ -17,6 +17,16 @@ import java.util.logging.Logger;
 
 /**
  * Entry point into the Ionic SDK.
+ * <p>
+ * The API {@link #initialize(Provider)} may be used to specify the {@link Provider} to use when cryptography
+ * primitives are needed.  By default, SDK 2.6+ uses the <b>SunJCE</b> provider built into the JRE.  To use a different
+ * cryptography provider, call the API {@link #initialize(Provider)} prior to any other usage of the Ionic SDK.
+ * <p>
+ * An implicit call to {@link #initialize(Provider)} is made upon first usage of Ionic cryptography APIs.
+ * <p>
+ * The cryptography {@link Provider} specified in the first call to {@link #initialize(Provider)} will remain in effect
+ * for the lifetime of the hosting process.  In order to enable accountability of the cryptography provider, any
+ * subsequent calls to {@link #initialize(Provider)} will be ignored.
  */
 public final class AgentSdk {
 
@@ -40,7 +50,11 @@ public final class AgentSdk {
         CryptoAbstract cryptoAbstractCtor = null;
         IonicException exception = null;
         try {
-            final Provider providerUse = (provider == null) ? createProviderBouncyCastle() : provider;
+            // ensure that specified provider is registered in JCE
+            if ((provider != null)) {
+                Security.addProvider(provider);
+            }
+            final Provider providerUse = (provider == null) ? Security.getProvider(PROVIDER_SUNJCE) : provider;
             cryptoAbstractCtor = new CryptoAbstract(providerUse);
             checkForUnlimitedStrength(cryptoAbstractCtor);
             logger.log(Level.FINE, "initialize() = OK");
@@ -64,7 +78,7 @@ public final class AgentSdk {
      * @throws IonicException on cryptography initialization failures
      */
     public static CryptoAbstract getCrypto() throws IonicException {
-        final AgentSdk agentSdk = SingletonHelper.getInstance();
+        final AgentSdk agentSdk = SingletonHelper.getInstance();  // JCE-ok; internals of AgentSdk
         final IonicException exceptionInitialize = agentSdk.exceptionInitialize;
         if (exceptionInitialize == null) {
             return agentSdk.getCryptoAbstract();
@@ -87,7 +101,7 @@ public final class AgentSdk {
      * @throws IonicException on cryptography initialization failures
      */
     public static AgentSdk initialize(final Object applicationContext) throws IonicException {
-        final AgentSdk agentSdk = SingletonHelper.getInstance();
+        final AgentSdk agentSdk = SingletonHelper.getInstance();  // JCE-ok; internals of AgentSdk
         final IonicException exceptionInitialize = agentSdk.exceptionInitialize;
         if (exceptionInitialize == null) {
             return agentSdk;
@@ -135,7 +149,7 @@ public final class AgentSdk {
      * @throws IonicException on cryptography initialization failures
      */
     public static void initialize() throws IonicException {
-        final AgentSdk agentSdk = SingletonHelper.getInstance();
+        final AgentSdk agentSdk = SingletonHelper.getInstance();  // JCE-ok; internals of AgentSdk
         final IonicException exceptionInitialize = agentSdk.exceptionInitialize;
         if (exceptionInitialize != null) {
             throw exceptionInitialize;
@@ -168,7 +182,7 @@ public final class AgentSdk {
         /**
          * @return the per-process singleton of this object
          */
-        private static AgentSdk getInstance() {
+        private static AgentSdk getInstance() {  // JCE-ok; internals of AgentSdk
             if (instance == null) {
                 synchronized (SingletonHelper.class) {
                     if (instance == null) {
@@ -225,7 +239,7 @@ public final class AgentSdk {
             final byte[] bytes = new byte[AesCipher.KEY_BITS / Byte.SIZE];
             Arrays.fill(bytes, (byte) 0);
             final SecretKeySpec secretKeySpec = new SecretKeySpec(bytes, AesCipher.ALGORITHM);
-            final Cipher cipher = cryptoAbstract.getCipherAesCtr();
+            final Cipher cipher = Cipher.getInstance(AesCipher.TRANSFORM_CTR);  // JCE-ok (maven-shade workaround)
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
         } catch (GeneralSecurityException e) {
             throw new IonicException(SdkError.ISAGENT_INIT_FAILED_KEY_SIZE, e);
@@ -254,6 +268,11 @@ public final class AgentSdk {
             throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND, e);
         }
     }
+
+    /**
+     * Provider name for built-in JCE implementation.
+     */
+    private static final String PROVIDER_SUNJCE = "SunJCE";
 
     /**
      * Class name for BouncyCastle Security Provider.  When running in JRE less than or equal 7, BouncyCastle provides

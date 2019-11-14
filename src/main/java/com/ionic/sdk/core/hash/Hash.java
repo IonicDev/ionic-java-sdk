@@ -69,6 +69,11 @@ public final class Hash {
     private static final int HASH_BITS = 256;
 
     /**
+     * Length in bytes of default hash.
+     */
+    public static final int HASH_BYTES = HASH_BITS / Byte.SIZE;
+
+    /**
      * Label for hashing algorithm used by SDK.
      */
     public static final String ALGORITHM = "SHA-256";

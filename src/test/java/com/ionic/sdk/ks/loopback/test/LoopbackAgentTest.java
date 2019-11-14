@@ -72,7 +72,7 @@ public class LoopbackAgentTest {
 
     /**
      * Generate a new file to contain keys for this invocation of the test suite.  The timestamp of the test run is
-     * used to generate the filename, so each invocation of this {@link org.junit.runners.model.TestClass} will get a
+     * used to generate the filename, so each invocation of this "org.junit.runners.model.TestClass" will get a
      * fresh file.
      *
      * @throws IonicException on failure to configure the environment for the test (folder "testOutputs")
