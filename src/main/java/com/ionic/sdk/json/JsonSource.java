@@ -141,6 +141,16 @@ public final class JsonSource {
     }
 
     /**
+     * Get the "javax.json" data type of the specified JsonValue.
+     *
+     * @param jsonValue the item to query for type
+     * @return the data type of the specified child node if it exists; otherwise null
+     */
+    public static JsonValue.ValueType getValueType(final JsonValue jsonValue) {
+        return ((jsonValue == null) ? null : jsonValue.getValueType());
+    }
+
+    /**
      * Obtain a reference to the specified JsonObject descendant of the parameter object, or null if the child
      * is not present.
      *
@@ -241,6 +251,17 @@ public final class JsonSource {
     public static String getString(final JsonObject jsonObject, final String name) {
         final JsonValue jsonValue = jsonObject.get(name);
         return ((jsonValue instanceof JsonString) ? ((JsonString) jsonValue).getString() : null);
+    }
+
+    /**
+     * Utility function to read the boolean value associated with the name within a json object.
+     *
+     * @param jsonObject the object from which to get the boolean
+     * @param name       the name of the boolean value
+     * @return the boolean value associated with the name, or "false" if not present
+     */
+    public static boolean getBoolean(final JsonObject jsonObject, final String name) {
+        return jsonObject.getBoolean(name, false);
     }
 
     /**

@@ -16,6 +16,8 @@ import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.Provider;
 import java.security.Signature;
+import java.security.spec.MGF1ParameterSpec;
+import java.security.spec.PSSParameterSpec;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -142,6 +144,9 @@ public final class CryptoAbstract {
     /**
      * Return an instance of an RSA signature facility.
      *
+     * Reference <a href="https://bugs.openjdk.java.net/browse/JDK-8190180">JDK Bug System</a>
+     * Reference <a href="https://stackoverflow.com/questions/48803100/">RSA-PSS</a>
+     *
      * @return an instance of {@link Signature}, suitable for signing / verifying a byte stream
      * @throws IonicException if the signature facility is not provided by the configured CryptoAbstract implementation
      */
@@ -150,7 +155,11 @@ public final class CryptoAbstract {
             if (provider == null) {
                 return Signature.getInstance(RsaCipher.SIGNATURE_ALGORITHM);
             } else if (PROVIDER_SUNJCE.equals(provider.getName())) {
-                return Signature.getInstance(RsaCipher.SIGNATURE_ALGORITHM, PROVIDER_SUNJSSE);
+                // works on JRE >= 11, NoSuchAlgorithmException on previous versions
+                final Signature signature = Signature.getInstance(ALGORITHM_RSASIGN, PROVIDER_RSASIGN);
+                signature.setParameter(new PSSParameterSpec(
+                        Hash.ALGORITHM, MASK_GENERATION_RSASIGN, MGF1ParameterSpec.SHA256, Hash.HASH_BYTES, 1));
+                return signature;
             } else {
                 return Signature.getInstance(RsaCipher.SIGNATURE_ALGORITHM, provider);
             }
@@ -301,4 +310,19 @@ public final class CryptoAbstract {
      * Provider name for built-in JCE implementation.
      */
     private static final String PROVIDER_SUNJSSE = "SunJSSE";
+
+    /**
+     * Algorithm name for built-in JCE implementation.
+     */
+    private static final String ALGORITHM_RSASIGN = "RSASSA-PSS";
+
+    /**
+     * Provider name for built-in JCE implementation.
+     */
+    private static final String PROVIDER_RSASIGN = "SunRsaSign";
+
+    /**
+     * The algorithm name of the mask generation function.
+     */
+    private static final String MASK_GENERATION_RSASIGN = "MGF1";
 }

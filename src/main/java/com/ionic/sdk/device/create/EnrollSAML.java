@@ -24,7 +24,17 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * A utility class used to enroll a new device to an Ionic enrollment server.
+ * A utility class used to enroll a new device to an Ionic key tenant via using Security Assertion Markup Language
+ * (SAML) authentication.
+ * <p>
+ * The enrollment procedure consists of the following HTTP transactions:
+ * <ol>
+ *     <li>Ionic authentication credentials are validated</li>
+ *     <li>the SAML request payload is sent to the URL specified in the previous HTTP response</li>
+ *     <li>the SAML response payload is sent to the SAML relay URL</li>
+ *     <li>the Ionic key server asymmetric public key is fetched</li>
+ *     <li>the "createDevice()" request payload is crafted, and sent to the Ionic enrollment HTTPS endpoint</li>
+ * </ol>
  */
 public final class EnrollSAML {
 

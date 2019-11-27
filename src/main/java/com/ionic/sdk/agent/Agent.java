@@ -26,6 +26,7 @@ import com.ionic.sdk.agent.request.updatekey.UpdateKeysTransaction;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.core.date.DateTime;
 import com.ionic.sdk.device.profile.DeviceProfile;
+import com.ionic.sdk.device.profile.persistor.DeviceProfiles;
 import com.ionic.sdk.device.profile.persistor.ProfilePersistor;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.IonicServerException;
@@ -93,6 +94,17 @@ public class Agent extends MetadataHolder implements KeyServices {
     public Agent(final ProfilePersistor persistor) throws IonicException {
         this();
         initializeInternal(agentConfig, persistor, new MetadataMap(), new Fingerprint(null));
+    }
+
+    /**
+     * Convenience constructor that allows for instantiation of an initialized Agent in a single step.
+     *
+     * @param deviceProfiles The device profiles with which to initialize the Agent.
+     * @throws IonicException on errors
+     */
+    public Agent(final DeviceProfiles deviceProfiles) throws IonicException {
+        this();
+        initializeInternal(agentConfig, deviceProfiles, new MetadataMap(), new Fingerprint(null));
     }
 
     /**
@@ -307,9 +319,19 @@ public class Agent extends MetadataHolder implements KeyServices {
                 throw e;
             }
         }
-        final String deviceId = activeProfileParam[0];
-        this.deviceProfiles = deviceProfilesInit;
-        setActiveProfileInternal(deviceId);
+        loadProfilesInternal(deviceProfilesInit, activeProfileParam[0]);
+    }
+
+    /**
+     * Initialize this agent's device profile set with the supplied information.  This function facilitates SDK usages
+     * in cloud contexts, where {@link ProfilePersistor} objects are inappropriate.
+     *
+     * @param deviceProfiles  list of {@link DeviceProfile} for use by the agent
+     * @param activeProfileId the device id of the {@link DeviceProfile} designated as active
+     */
+    private void loadProfilesInternal(final List<DeviceProfile> deviceProfiles, final String activeProfileId) {
+        this.deviceProfiles = deviceProfiles;
+        setActiveProfileInternal(activeProfileId);
     }
 
     /**
@@ -833,7 +855,7 @@ public class Agent extends MetadataHolder implements KeyServices {
      * @throws IonicException if an error occurs
      */
     private void initializeWithoutProfilesInternal(final AgentConfig agentConfig) throws IonicException {
-        initializeInternal(agentConfig, null, new MetadataMap(), new Fingerprint(null));
+        initializeInternal(agentConfig, (ProfilePersistor) null, new MetadataMap(), new Fingerprint(null));
     }
 
     /**
@@ -853,6 +875,29 @@ public class Agent extends MetadataHolder implements KeyServices {
         }
         AgentSdk.initialize();
         loadProfilesInternal(persistor);
+        this.initialized = true;
+        this.agentConfig = agentConfig;
+        setMetadata(metadata);
+        setMetadata(IDC.Metadata.IONIC_AGENT, SdkVersion.getAgentString());
+        this.fingerprint = fingerprint;
+    }
+
+    /**
+     * Initialize the agent with a configuration object and specified profile set.
+     *
+     * @param agentConfig    Configuration object.
+     * @param deviceProfiles Device profile information for use by the Agent.
+     * @param metadata       Device server metadata object.
+     * @param fingerprint    Device fingerprint object.
+     * @throws IonicException if an error occurs
+     */
+    private void initializeInternal(final AgentConfig agentConfig, final DeviceProfiles deviceProfiles,
+                                    final MetadataMap metadata, final Fingerprint fingerprint) throws IonicException {
+        if (initialized) {
+            throw new IonicException(SdkError.ISAGENT_DOUBLEINIT);
+        }
+        AgentSdk.initialize();
+        loadProfilesInternal(deviceProfiles.getProfiles(), deviceProfiles.getActiveProfileId());
         this.initialized = true;
         this.agentConfig = agentConfig;
         setMetadata(metadata);
@@ -943,6 +988,7 @@ public class Agent extends MetadataHolder implements KeyServices {
         agentClone.activeProfile = agent.activeProfile;
         agentClone.agentConfig = new AgentConfig(agent.agentConfig);
         agentClone.fingerprint = agent.fingerprint;
+        agentClone.setMetadata(agent.getMetadata());
         return agentClone;
     }
 

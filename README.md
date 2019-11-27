@@ -15,6 +15,73 @@ Visit [Getting Started Tutorial](https://dev.ionic.com/getting-started) for a gu
 
 ## Release Notes
 
+### 2.6.0
+
+### New Features
+
+#### Use JRE Built-In Provider by Default
+The Java interface [java.security.Provider](https://docs.oracle.com/javase/7/docs/api/java/security/Provider.html) 
+represents a "provider" for the Java Security API.  Implementations include support for cryptography primitives, such
+as algorithms and cryptography key management.  The JRE includes a built-in provider.
+
+In versions 2.0 through 2.5, the Java SDK used the third 
+party [Bouncy Castle](https://www.bouncycastle.org/java.html) library implementation of cryptography algorithms.  In 
+version 2.6, the SDK uses the built-in provider by default.  This change eliminates a project dependency, avoids some 
+compatibility problems, and reduces the memory, disk, and network footprint of Java SDK-enabled applications.
+
+#### New Constructor for Agent Class
+An additional constructor has been added for the class ```com.ionic.sdk.agent.Agent```.  This constructor accepts the 
+serialized representation of the JSON associated with a set of ```com.ionic.sdk.device.profile.DeviceProfile``` 
+objects.  This constructor facilitates use of the SDK in Amazon Web Services Lambda functions, and other cloud contexts. 
+
+#### Support for Device Enrollment Using *Ionic Authentication* Enrollment Method
+Software developers may use the [Machina Start for Free](https://ionic.com/start-for-free/) workflow to provision a 
+dedicated web service tenant, allowing them to try out the Machina platform and engine.  The *Start for Free* program 
+uses the *Ionic Authentication* enrollment method by default to enroll new devices.
+
+The class ```com.ionic.sdk.device.create.EnrollIonicAuth``` provides SDK *Start for Free* users with a means to enroll 
+devices.  See the github sample 
+[Create Profile Start for Free](https://github.com/IonicDev/samples/tree/master/java/create-profile-start-for-free) 
+for more information.
+
+### Known Issues
+- None
+
+### Corrected Issues
+- The Maven project descriptor files have been adjusted to provide correct information.
+- The build distributable has been corrected to include missing build content.
+- Several incompatibilities between various Bouncy Castle library versions and various JREs have been addressed.
+- The ```com.ionic.sdk.agent.Agent.clone()``` method has been corrected to copy all source data to the new Object.
+
+### Additional Notes
+
+#### Bouncy Castle Compatibility
+The cryptography provider built into the JRE is used by default in Java SDK 2.6.  To use the Bouncy Castle cryptography 
+provider, add the following statement in your code to execute in your process before any usage of Ionic cryptography:
+```
+com.ionic.sdk.agent.AgentSdk.initialize(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+```
+
+If you choose to use the Bouncy Castle provider in your application, please make sure to declare the dependency as 
+needed for your development / runtime environment.  The Maven declaration is as follows:
+```
+<dependency>
+    <groupId>org.bouncycastle</groupId>
+    <artifactId>bcprov-jdk15to18</artifactId>
+    <version>1.63</version>
+</dependency>
+```
+
+Due to size constraints, and to the complexity inherent in a project dependency, we recommend the use of the 
+Bouncy Castle library only if it is needed by your application.
+
+- If your JRE is version 11+, use the built in cryptography provider.
+- If your JRE is version 8+, and if enrollment is handled external to your application, use the built in cryptography 
+provider.
+- If your JRE is version 8+, and if enrollment is handled by your application, use the Bouncy Castle cryptography 
+provider.
+- If your JRE is version 7, use the Bouncy Castle cryptography provider.
+
 ### 2.5.0
 
 ### New Features
