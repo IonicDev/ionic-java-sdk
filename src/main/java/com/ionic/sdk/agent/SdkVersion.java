@@ -54,7 +54,7 @@ public final class SdkVersion {
     /**
      * Define the SDK patch version number.
      */
-    public static final int IONIC_SDK_PATCH = 0;
+    public static final int IONIC_SDK_PATCH = 1;
 
     /**
      * The built in Ionic SDK version used as a fallback when the version cannot be loaded from the jar manifest.
