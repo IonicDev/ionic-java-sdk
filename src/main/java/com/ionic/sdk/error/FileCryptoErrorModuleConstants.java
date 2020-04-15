@@ -11,7 +11,7 @@ public interface FileCryptoErrorModuleConstants {
     int ISFILECRYPTO_OK = 0;
 
     /**
-     * error code range base.
+     * FileCrypto module error code range base.
      */
     int ISFILECRYPTO_ERROR_BASE = 80000;
 
@@ -130,7 +130,7 @@ public interface FileCryptoErrorModuleConstants {
      * A file failed to be renamed.
      * <p>
      * This normally happens because a temporary file was attempted to be renamed in order
-     * to overwrite an input file during in-place encryption or decryption, but the rename attempt failed
+     * to overwrite an input file during in-place encryption or decryption, but the rename attempt failed.
      * <p>
      * A system level error code is emitted to the logger in this case.
      * <p>

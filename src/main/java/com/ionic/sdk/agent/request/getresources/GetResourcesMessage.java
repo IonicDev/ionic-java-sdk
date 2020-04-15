@@ -1,10 +1,9 @@
 package com.ionic.sdk.agent.request.getresources;
 
-import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.ServiceProtocol;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
-import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.json.JsonTarget;
 
@@ -25,11 +24,11 @@ public class GetResourcesMessage extends MessageBase {
     /**
      * Constructor.
      *
-     * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
+     * @param protocol the protocol used by the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      * @throws IonicException on random number generation failure
      */
-    GetResourcesMessage(final Agent agent) throws IonicException {
-        super(agent, AgentTransactionUtil.generateConversationId(agent.getActiveProfile(), null));
+    GetResourcesMessage(final ServiceProtocol protocol) throws IonicException {
+        super(protocol);
     }
 
     /**

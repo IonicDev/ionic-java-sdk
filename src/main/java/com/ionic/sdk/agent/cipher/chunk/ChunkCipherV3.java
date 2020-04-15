@@ -10,7 +10,28 @@ import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.key.KeyServices;
 
 /**
- * Wrapper object used to abstract Ionic cryptography operations.
+ * Ionic Machina Tools chunk crypto implementation, version 3.  This wrapper object can be used to abstract Machina
+ * cryptography operations.  This format is an AES-GCM based encryption scheme, encoded in Base64, and using
+ * delimiters that are shorter than the "legacy" ones in {@link ChunkCipherV1}.
+ * <p>
+ * This format is an AES-GCM based encryption scheme, encoded in Base64. This scheme provides for both data
+ * confidentiality and integrity due to the use of the authenticated encryption Galois/Counter Mode (GCM).  While
+ * GCM guarantees data integrity, it requires additional space to store the encrypted version of the string.
+ * <p>
+ * Sample:
+ * <pre>
+ * public final void testChunkCipherV3_EncryptDecryptString() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final String plainText = "Hello, Machina!";
+ *     final ChunkCipherAbstract chunkCipher = new ChunkCipherV3(keyServices);
+ *     final String cipherText = chunkCipher.encrypt(plainText);
+ *     final String plainTextRecover = chunkCipher.decrypt(cipherText);
+ *     Assert.assertEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/chunk' target='_blank'>Machina Developers</a> for more information
+ * on the different chunk crypto data formats.
  */
 public class ChunkCipherV3 extends ChunkCipherAbstract {
 
@@ -135,7 +156,7 @@ public class ChunkCipherV3 extends ChunkCipherAbstract {
     /**
      * Encrypt some bytes, using Ionic infrastructure to abstract away the key management and cryptography.
      *
-     * @param plainText some bytes to be encrypted
+     * @param plainText         some bytes to be encrypted
      * @param encryptAttributes the attributes to pass along to the key created by the operation
      * @return the Ionic encoded encrypted representation of the input
      * @throws IonicException on cryptography errors

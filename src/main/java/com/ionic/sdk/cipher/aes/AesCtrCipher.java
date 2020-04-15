@@ -13,7 +13,45 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
- * Cipher that implements AES CTR mode encryption / decryption.
+ * Ionic Machina Tools cipher implementation wrapping JCE-provided AES-CTR algorithm.  This cipher object
+ * implements AES CTR mode encryption / decryption.
+ * <p>
+ * AES-CTR (Counter Mode) is a streaming cipher variant of AES where the next key stream block is calculated by
+ * encrypting increasing values of a "counter".
+ * <p>
+ * Class API variants are available to encrypt input strings into either raw byte arrays, or into the
+ * base64-encoded string representation of a raw byte array.
+ * <p>
+ * Sample:
+ * <pre>
+ * public final void testAesCtrCipher_EncryptDecryptStringToBytes() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final CreateKeysResponse.Key key = keyServices.createKey().getFirstKey();
+ *     final String plainText = "Hello, Machina!";
+ *     final AesCtrCipher cipher = new AesCtrCipher();
+ *     cipher.setKey(key.getSecretKey());
+ *     final byte[] cipherText = cipher.encryptString(plainText);
+ *     final String plainTextRecover = cipher.decryptToString(cipherText);
+ *     Assert.assertEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * Sample:
+ * <pre>
+ * public final void testAesCtrCipher_EncryptDecryptStringToString() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final CreateKeysResponse.Key key = keyServices.createKey().getFirstKey();
+ *     final String plainText = "Hello, Machina!";
+ *     final AesCipherAbstract cipher = new AesCtrCipher();
+ *     cipher.setKey(key.getSecretKey());
+ *     final String cipherText = cipher.encryptToBase64(plainText);
+ *     final String plainTextRecover = cipher.decryptBase64ToString(cipherText);
+ *     Assert.assertEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/crypto-aes-ctr' target='_blank'>Machina Developers</a> for
+ * more information on this cryptography implementation.
  */
 public class AesCtrCipher extends AesCipherAbstract {
 

@@ -178,14 +178,14 @@ public final class Stream {
      *
      * @param path
      *            the path to write to.
-     * @param dataTowrite
+     * @param dataToWrite
      *            the data to write to disk.
      * @throws IonicException
      *             throws an ISAGENT_OPENFILE exception if File.write fails.
      */
-    public static void writeToDisk(final String path, final byte[] dataTowrite) throws IonicException {
+    public static void writeToDisk(final String path, final byte[] dataToWrite) throws IonicException {
         try {
-            Files.write(Paths.get(path), dataTowrite);
+            Files.write(Paths.get(path), dataToWrite);
         } catch (final IOException e) {
             throw new IonicException(SdkError.ISAGENT_OPENFILE, e);
         }
@@ -195,7 +195,7 @@ public final class Stream {
      * Load file into memory.
      *
      * @param fullPath
-     *            - the file path to a file we will read into memory
+     *              the file path to a file we will read into memory
      * @return the in-memory file
      */
     public static byte[] loadFileIntoMemory(final String fullPath) {

@@ -97,8 +97,8 @@ public class Http {
          * This integer value determines the maximum number, for a given request, of HTTP redirects that will be
          * automatically followed by the protocol handler.
          *
-         * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html">
-         * Networking Properties</a>
+         * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html"
+         * target="_blank">Networking Properties</a>
          */
         public static final String MAX_REDIRECTS = "http.maxRedirects";
     }

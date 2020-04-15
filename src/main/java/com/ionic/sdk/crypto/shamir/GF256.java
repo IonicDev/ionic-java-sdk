@@ -7,14 +7,16 @@ import java.util.Random;
 /**
  * An implementation of GF(256).  Uses AES field polynomial and generator.
  * <p>
- * <a href="https://research.swtch.com/field">Finite Field Arithmetic and Reed-Solomon Coding</a>
+ * <a href="https://research.swtch.com/field" target="_blank">Finite Field Arithmetic and Reed-Solomon Coding</a>
  * <p>
- * <a href="http://www.cs.utsa.edu/~wagner/laws/FFM.html">The Laws of Cryptography: The Finite Field GF(256)</a>
+ * <a href="http://www.cs.utsa.edu/~wagner/laws/FFM.html"
+ * target="_blank">The Laws of Cryptography: The Finite Field GF(256)</a>
  * <p>
- * <a href="http://www.cs.utsa.edu/~wagner/laws/AFFMultTables.html">
+ * <a href="http://www.cs.utsa.edu/~wagner/laws/AFFMultTables.html" target="_blank">
  * The Laws of Cryptography:  Generate Multiplication Tables</a>
  * <p>
- * <a href="https://github.com/codahale/shamir/blob/master/src/main/java/com/codahale/shamir/GF256.java">
+ * <a href="https://github.com/codahale/shamir/blob/master/src/main/java/com/codahale/shamir/GF256.java"
+ * target="_blank">
  * codahale / shamir</a>
  */
 public final class GF256 {
@@ -27,7 +29,8 @@ public final class GF256 {
     }
 
     /**
-     * Generated from code derived from <a href="http://www.cs.utsa.edu/~wagner/laws/AFFMultTables.html">
+     * Generated from code derived from <a href="http://www.cs.utsa.edu/~wagner/laws/AFFMultTables.html"
+     * target="_blank">
      * Generate Multiplication Tables</a>.
      *
      * The first two bytes are inverted from the output of FiniteFieldGeneratorTest
@@ -46,7 +49,8 @@ public final class GF256 {
             + "441192d923202e89b47cb8267799e3a5674aeddec531fe180d638c80c0f77007");
 
     /**
-     * Generated from code derived from <a href="http://www.cs.utsa.edu/~wagner/laws/AFFMultTables.html">
+     * Generated from code derived from <a href="http://www.cs.utsa.edu/~wagner/laws/AFFMultTables.html"
+     * target="_blank">
      * Generate Multiplication Tables</a>.
      */
     private static final byte[] EXP = Transcoder.hex().decode(""

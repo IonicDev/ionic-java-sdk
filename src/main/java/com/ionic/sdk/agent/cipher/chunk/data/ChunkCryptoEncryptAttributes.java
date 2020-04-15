@@ -8,11 +8,29 @@ import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 
 /**
- * On an Ionic SDK encrypt operation, this class provides the ability to specify cryptography key attributes (fixed
- * and mutable) and request metadata that should be sent to the server along with the cryptography key request.
+ * On an Ionic Machina Tools encrypt operation, this class provides the ability to exchange information with the
+ * Machina server about the operation.
  * <p>
- * The usage pattern for this object is to supply a fresh instance to each API call. The Ionic SDK will reject any
- * <code>encrypt()</code> operation that is attempted using a previously used {@link ChunkCryptoEncryptAttributes}.
+ * Request metadata may be sent to the server along with the cryptography key request.  This may specify information
+ * about the client making the request.  See <a href='https://dev.ionic.com/sdk/tasks/set-request-metadata'
+ * target='_blank'>Set
+ * Request Metadata</a> for more information.
+ * <p>
+ * The cryptography key used for the encryption might have associated key attributes (fixed and mutable).  These are
+ * used to indicate metadata that is associated with the encryption.  For example, a 'classification' attribute may
+ * indicate the desired security level of the encrypted data.  The Machina key release policy may then be configured
+ * to allow data access only to the devices of designated individuals and groups.  This
+ * information is communicated from the SDK caller to Machina in this object.  See
+ * <a href='https://dev.ionic.com/sdk/tasks/create-key-with-fixed-attributes' target='_blank'>Fixed Attributes</a> and
+ * <a href='https://dev.ionic.com/sdk/tasks/create-key-with-mutable-attributes'
+ * target='_blank'>Mutable Attributes</a> for more
+ * information.
+ * <p>
+ * The usage pattern for this object is to supply a fresh instance to each API call.  The Machina Tools SDK will reject
+ * any <code>encrypt()</code> operation that is attempted using a previously used {@link ChunkCryptoEncryptAttributes}.
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/chunk' target='_blank'>Machina Developers</a> for more information
+ * on Machina data chunk encryption.
  */
 public final class ChunkCryptoEncryptAttributes extends EncryptAttributes {
 

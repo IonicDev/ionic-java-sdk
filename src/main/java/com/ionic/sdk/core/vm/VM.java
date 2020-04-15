@@ -141,6 +141,15 @@ public final class VM {
     }
 
     /**
+     * Read the Java system property used to denote the active user.
+     *
+     * @return the native operating system active user
+     */
+    public static String getUserName() {
+        return System.getProperty(Sys.USER_NAME);
+    }
+
+    /**
      * Read the Java system property used to denote the line separator of the active operating system.
      *
      * @return the line separator character sequence

@@ -88,13 +88,13 @@ public final class AgentSdk {
     }
 
     /**
-     * Initialize the Ionic SDK for usage.  In Java, this implementation:
-     * <ol>
-     * <li>checks the active JRE for the policy jurisdiction files needed to work with AES 256 bit keys,</li>
-     * <li>adds the Bouncycastle provider (in JRE 7) so that necessary cryptography primitives are available.</li>
-     * </ol>
+     * Initialize the Ionic SDK for usage.  In Java, this implementation checks the active JRE for the policy
+     * jurisdiction files needed to work with AES 256 bit keys.
      * <p>
-     * https://www.journaldev.com/1377/java-singleton-design-pattern-best-practices-examples
+     * See this
+     * <a href='https://www.journaldev.com/1377/java-singleton-design-pattern-best-practices-examples'
+     * target='_blank'>link</a> for
+     * some background on singleton initialization.
      *
      * @param applicationContext the platform-specific context needed by the underlying platform
      * @return the per-process singleton of this object
@@ -138,13 +138,13 @@ public final class AgentSdk {
     }
 
     /**
-     * Initialize the Ionic SDK for usage.  In Java, this implementation:
-     * <ol>
-     * <li>checks the active JRE for the policy jurisdiction files needed to work with AES 256 bit keys,</li>
-     * <li>adds the Bouncycastle provider (in JRE 7) so that necessary cryptography primitives are available.</li>
-     * </ol>
+     * Initialize the Ionic SDK for usage.  In Java, this implementation checks the active JRE for the policy
+     * jurisdiction files needed to work with AES 256 bit keys.
      * <p>
-     * https://www.journaldev.com/1377/java-singleton-design-pattern-best-practices-examples
+     * See this
+     * <a href='https://www.journaldev.com/1377/java-singleton-design-pattern-best-practices-examples'
+     * target='_blank'>link</a> for
+     * some background on singleton initialization.
      *
      * @throws IonicException on cryptography initialization failures
      */
@@ -247,10 +247,10 @@ public final class AgentSdk {
     }
 
     /**
-     * Using reflection, add BouncyCastle provider to provider list.
+     * Using reflection, add Bouncy Castle provider to provider list.
      *
      * @return the provider implementation that should be used to satisfy requests for cryptography objects
-     * @throws IonicException if BouncyCastle provider is not in classpath or available
+     * @throws IonicException if Bouncy Castle provider is not in classpath or available
      */
     private static Provider createProviderBouncyCastle() throws IonicException {
         final String className = CLASSNAME_BC_PROVIDER;
@@ -275,7 +275,7 @@ public final class AgentSdk {
     private static final String PROVIDER_SUNJCE = "SunJCE";
 
     /**
-     * Class name for BouncyCastle Security Provider.  When running in JRE less than or equal 7, BouncyCastle provides
+     * Class name for Bouncy Castle Security Provider.  When running in JRE less than or equal 7, Bouncy Castle provides
      * implementation of AES/GCM transform (needed for communications with ionic.com).
      */
     private static final String CLASSNAME_BC_PROVIDER = "org.bouncycastle.jce.provider.BouncyCastleProvider";

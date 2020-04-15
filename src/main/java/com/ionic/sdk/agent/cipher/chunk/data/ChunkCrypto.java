@@ -3,7 +3,10 @@ package com.ionic.sdk.agent.cipher.chunk.data;
 import com.ionic.sdk.agent.cipher.chunk.ChunkCipherAuto;
 
 /**
- * Utility class for evaluating strings to determine the operant Ionic chunk format.
+ * Utility class for evaluating Ionic Machina ciphertext strings to determine the operant Ionic chunk format.
+ *
+ * When presented with a encrypted string, this class can identify whether the string is encrypted using a Machina
+ * chunk cipher, and if so, the chunk cipher format version used to encrypt the string.
  */
 public final class ChunkCrypto {
 

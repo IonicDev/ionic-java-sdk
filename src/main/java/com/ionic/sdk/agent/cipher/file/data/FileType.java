@@ -4,6 +4,8 @@ package com.ionic.sdk.agent.cipher.file.data;
  * Enumeration of all supported Ionic file cipher file types.
  * <p>
  * As of SDK version 2.3, only the FILETYPE_CSV type is a supported file type.
+ * <p>
+ * As of SDK version 2.4, all enumerated types are supported.
  */
 public enum FileType {
 
@@ -13,42 +15,44 @@ public enum FileType {
     FILETYPE_UNKNOWN,
 
     /**
-     * Not yet implemented.
+     * Represents the Word file type, as used by {@link com.ionic.sdk.agent.cipher.file.OpenXmlFileCipher}.
      */
     FILETYPE_DOCX,
 
     /**
-     * Not yet implemented.
+     * Represents the PowerPoint file type, as used by {@link com.ionic.sdk.agent.cipher.file.OpenXmlFileCipher}.
      */
     FILETYPE_PPTX,
 
     /**
-     * Not yet implemented.
+     * Represents the Excel file type, as used by {@link com.ionic.sdk.agent.cipher.file.OpenXmlFileCipher}.
      */
     FILETYPE_XLSX,
 
     /**
-     * Not yet implemented.
+     * Represents the Word Macro file type, as used by {@link com.ionic.sdk.agent.cipher.file.OpenXmlFileCipher}.
      */
     FILETYPE_DOCM,
 
     /**
-     * Not yet implemented.
+     * Represents the PowerPoint Macro file type, as used by {@link com.ionic.sdk.agent.cipher.file.OpenXmlFileCipher}.
      */
     FILETYPE_PPTM,
 
     /**
-     * Not yet implemented.
+     * Represents the Excel Macro file type, as used by {@link com.ionic.sdk.agent.cipher.file.OpenXmlFileCipher}.
      */
     FILETYPE_XLSM,
 
     /**
-     * Not yet implemented.
+     * Represents the Portable Document Format file type, as used
+     * by {@link com.ionic.sdk.agent.cipher.file.PdfFileCipher}.
      */
     FILETYPE_PDF,
 
     /**
-     * Represents the comma-separated variable (CSV) file type.
+     * Represents the comma-separated variable (CSV) file type, as used
+     * by {@link com.ionic.sdk.agent.cipher.file.CsvFileCipher}.
      */
     FILETYPE_CSV,
 }

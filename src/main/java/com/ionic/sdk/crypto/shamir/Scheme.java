@@ -11,7 +11,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * An implementation of <a href="https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing">Shamir's Secret Sharing</a>,
+ * An implementation of <a href="https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing"
+ * target="_blank">Shamir's Secret Sharing</a>,
  * allowing for the splitting of a secret into multiple parts, some or all of which are needed to recover the original
  * secret.
  */

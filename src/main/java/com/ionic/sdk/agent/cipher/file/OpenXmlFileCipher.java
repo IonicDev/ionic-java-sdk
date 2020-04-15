@@ -40,7 +40,56 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Cipher that supports OpenXML (MS Office files) file encryption / decryption.
+ * Ionic Machina Tools OpenXML (MS Office files) file crypto implementation.  This object can be used to perform
+ * encryption and decryption operations on filesystem files that are in the OpenXML format.
+ * <p>
+ * An instance of {@link com.ionic.sdk.agent.cipher.file.OpenXmlFileCipher} has the following format versions:
+ * <ul>
+ * <li>version 1.0 files use AES-CTR encryption, and encode the file data using base64, and so are appropriate for
+ * applications where the file data must traverse a medium where binary data causes problems</li>
+ * <li>version 1.1 files use AES-CTR encryption, and encode the file data as binary, minimizing the storage
+ * requirement</li>
+ * </ul>
+ * <p>
+ * {@link OpenXmlFileCipher} provides APIs to perform file encryption on filesystem files, and also on in-memory
+ * byte arrays.
+ * <p>
+ * Sample (byte[] API):
+ * <pre>
+ * public final void testFileCipherPdf_EncryptDecryptBytes() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final byte[] plainText = new FileCryptoCoverPageServicesDefault().getCoverPage(FileType.FILETYPE_DOCX);
+ *     final FileCipherAbstract fileCipher = new OpenXmlFileCipher(keyServices);
+ *     final FileCryptoEncryptAttributes encryptAttributes = new FileCryptoEncryptAttributes();
+ *     final FileCryptoDecryptAttributes decryptAttributes = new FileCryptoDecryptAttributes();
+ *     final byte[] cipherText = fileCipher.encrypt(plainText, encryptAttributes);
+ *     final byte[] plainTextRecover = fileCipher.decrypt(cipherText, decryptAttributes);
+ *     Assert.assertArrayEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * Sample (file path API):
+ * <pre>
+ * public final void testFileCipherPdf_EncryptDecryptFile() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final byte[] plainText = new FileCryptoCoverPageServicesDefault().getCoverPage(FileType.FILETYPE_DOCX);
+ *     final File filePlainText = new File("plainText.docx");
+ *     final File fileCipherText = new File("cipherText.docx");
+ *     final File filePlainTextRecover = new File("plainText.recover.docx");
+ *     DeviceUtils.write(filePlainText, plainText);
+ *     final FileCipherAbstract fileCipher = new OpenXmlFileCipher(keyServices);
+ *     final FileCryptoEncryptAttributes encryptAttributes = new FileCryptoEncryptAttributes();
+ *     final FileCryptoDecryptAttributes decryptAttributes = new FileCryptoDecryptAttributes();
+ *     fileCipher.encrypt(filePlainText.getPath(), fileCipherText.getPath(), encryptAttributes);
+ *     fileCipher.decrypt(fileCipherText.getPath(), filePlainTextRecover.getPath(), decryptAttributes);
+ *     final String sha256PlainText = CryptoUtils.sha256ToHexString(DeviceUtils.read(filePlainText));
+ *     final String sha256Recover = CryptoUtils.sha256ToHexString(DeviceUtils.read(filePlainTextRecover));
+ *     Assert.assertEquals(sha256PlainText, sha256Recover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/file-crypto-openxml' target='_blank'>Machina Developers</a> for
+ * more information on the different file crypto data formats.
  */
 public final class OpenXmlFileCipher extends FileCipherAbstract {
 
@@ -50,22 +99,27 @@ public final class OpenXmlFileCipher extends FileCipherAbstract {
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
-     * File format family OpenXML (comma-separated variable).
+     * File format family OpenXML.
      */
     public static final String FAMILY = FileCipher.OpenXml.FAMILY;
 
     /**
-     * File format family OpenXML (comma-separated variable), version 1.1.
+     * File format family OpenXML, version 1.0.
      */
     public static final String VERSION_1_0 = FileCipher.OpenXml.V10.LABEL;
 
     /**
-     * File format family OpenXML (comma-separated variable), version 1.1.
+     * File format family OpenXML, version 1.1.
      */
     public static final String VERSION_1_1 = FileCipher.OpenXml.V11.LABEL;
 
     /**
-     * File format family OpenXML (comma-separated variable), latest version.
+     * File format family OpenXML, default version.
+     */
+    public static final String VERSION_DEFAULT = VERSION_1_1;
+
+    /**
+     * File format family OpenXML, latest version.
      */
     public static final String VERSION_LATEST = VERSION_1_1;
 

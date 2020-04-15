@@ -18,7 +18,11 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Wrapper object used to abstract Ionic cryptography operations.
+ * Ionic Machina Tools chunk crypto abstract implementation.  Subclasses of ChunkCipherAbstract implement the
+ * different Machina chunk data formats.
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/chunk' target='_blank'>Machina Developers</a> for more information
+ * on the different chunk crypto data formats.
  */
 public abstract class ChunkCipherAbstract {
 

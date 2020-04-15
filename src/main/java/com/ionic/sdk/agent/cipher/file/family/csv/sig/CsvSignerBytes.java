@@ -82,8 +82,9 @@ public final class CsvSignerBytes {
         // re-serialize the wrapped resource content with the signature
         int cursorCsv = headerLengthCsv;
         for (int cursorEmbed = 0; (cursorEmbed < bytesToApply.length); cursorEmbed += FileCipher.Csv.V10.WIDTH_RAW) {
+            final int length = Math.min(FileCipher.Csv.V10.WIDTH_RAW, (bytesToApply.length - cursorEmbed));
             final byte[] bytesLine = Transcoder.utf8().decode(Transcoder.base64().encode(
-                    Arrays.copyOfRange(bytesToApply, cursorEmbed, cursorEmbed + FileCipher.Csv.V10.WIDTH_RAW)));
+                    Arrays.copyOfRange(bytesToApply, cursorEmbed, cursorEmbed + length)));
             System.arraycopy(bytesLine, 0, byteBuffer.array(), cursorCsv, bytesLine.length);
             cursorCsv += FileCipher.Csv.V10.WIDTH + countDelimiter;
         }

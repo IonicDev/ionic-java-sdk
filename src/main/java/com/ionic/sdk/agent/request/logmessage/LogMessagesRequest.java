@@ -6,7 +6,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Represents the input for an Agent.logMessages() request.
+ * Represents the input for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#logMessages(LogMessagesRequest)} API call.
+ * <p>
+ * The request will contain information about {@link Message} objects, which allow client information to be posted
+ * to the Machina infrastructure for later analysis.
  */
 public class LogMessagesRequest extends AgentRequestBase {
 

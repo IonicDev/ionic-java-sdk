@@ -115,7 +115,7 @@ public class CryptoRng {
 
     /**
      * The number of extra bits needed to generate a FIPS cryptographically secure random number, as described
-     * <a href='https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-90Ar1.pdf'>here</a>.
+     * <a href='https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-90Ar1.pdf' target='_blank'>here</a>.
      * <p>
      * A.5.3 - The Simple Modular Method
      */

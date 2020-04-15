@@ -1,13 +1,11 @@
 package com.ionic.sdk.agent.request.getkey;
 
-import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.ServiceProtocol;
 import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
-import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.core.value.Value;
-import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.json.JsonIO;
@@ -33,12 +31,11 @@ public class GetKeysMessage extends MessageBase {
     /**
      * Constructor.
      *
-     * @param agent         the {@link com.ionic.sdk.key.KeyServices} implementation
-     * @param deviceProfile the relevant {@link DeviceProfile} record for the request
+     * @param protocol the protocol used by the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      * @throws IonicException on random number generation failure
      */
-    GetKeysMessage(final Agent agent, final DeviceProfile deviceProfile) throws IonicException {
-        super(agent, AgentTransactionUtil.generateConversationId(deviceProfile, IDC.Message.SERVER_API_CID));
+    GetKeysMessage(final ServiceProtocol protocol) throws IonicException {
+        super(protocol);
     }
 
     /**

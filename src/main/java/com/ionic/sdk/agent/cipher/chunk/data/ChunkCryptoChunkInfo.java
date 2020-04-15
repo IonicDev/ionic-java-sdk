@@ -1,7 +1,8 @@
 package com.ionic.sdk.agent.cipher.chunk.data;
 
 /**
- * Data class used to describe attributes of a data chunk.
+ * Data class used to encapsulate and describe the data formatting attributes of a chunk of Ionic
+ * Machina-encrypted text.
  */
 public class ChunkCryptoChunkInfo {
 

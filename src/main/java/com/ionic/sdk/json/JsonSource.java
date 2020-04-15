@@ -35,6 +35,7 @@ public final class JsonSource {
      * @throws IonicException if the value is not of the expected JsonString type
      */
     public static JsonString toJsonString(final JsonValue jsonValue, final String message) throws IonicException {
+        SdkData.checkTrue(jsonValue != null, SdkError.ISAGENT_MISSINGVALUE, message);
         SdkData.checkTrue(jsonValue instanceof JsonString, SdkError.ISAGENT_INVALIDVALUE, message);
         return (JsonString) jsonValue;
     }
@@ -48,6 +49,7 @@ public final class JsonSource {
      * @throws IonicException if the value is not of the expected type
      */
     public static JsonObject toJsonObject(final JsonValue jsonValue, final String message) throws IonicException {
+        SdkData.checkTrue(jsonValue != null, SdkError.ISAGENT_MISSINGVALUE, message);
         SdkData.checkTrue(jsonValue instanceof JsonObject, SdkError.ISAGENT_INVALIDVALUE, message);
         return (JsonObject) jsonValue;
     }
@@ -61,6 +63,7 @@ public final class JsonSource {
      * @throws IonicException if the value is not of the expected type
      */
     public static JsonArray toJsonArray(final JsonValue jsonValue, final String message) throws IonicException {
+        SdkData.checkTrue(jsonValue != null, SdkError.ISAGENT_MISSINGVALUE, message);
         SdkData.checkTrue(jsonValue instanceof JsonArray, SdkError.ISAGENT_INVALIDVALUE, message);
         return (JsonArray) jsonValue;
     }
@@ -178,6 +181,7 @@ public final class JsonSource {
      */
     public static JsonObject getJsonObject(final JsonObject jsonObject, final String name) throws IonicException {
         final JsonValue jsonValue = jsonObject.get(name);
+        SdkData.checkTrue(jsonValue != null, SdkError.ISAGENT_MISSINGVALUE, name);
         SdkData.checkTrue(jsonValue instanceof JsonObject, SdkError.ISAGENT_INVALIDVALUE, name);
         return (JsonObject) jsonValue;
     }
@@ -192,6 +196,7 @@ public final class JsonSource {
      */
     public static JsonArray getJsonArray(final JsonObject jsonObject, final String name) throws IonicException {
         final JsonValue jsonValue = jsonObject.get(name);
+        SdkData.checkTrue(jsonValue != null, SdkError.ISAGENT_MISSINGVALUE, name);
         SdkData.checkTrue(jsonValue instanceof JsonArray, SdkError.ISAGENT_INVALIDVALUE, name);
         return (JsonArray) jsonValue;
     }
@@ -223,6 +228,7 @@ public final class JsonSource {
      */
     public static JsonString getJsonString(final JsonObject jsonObject, final String name) throws IonicException {
         final JsonValue jsonValue = jsonObject.get(name);
+        SdkData.checkTrue(jsonValue != null, SdkError.ISAGENT_MISSINGVALUE, name);
         SdkData.checkTrue(jsonValue instanceof JsonString, SdkError.ISAGENT_INVALIDVALUE, name);
         return (JsonString) jsonValue;
     }
@@ -237,6 +243,7 @@ public final class JsonSource {
      */
     public static JsonNumber getJsonNumber(final JsonObject jsonObject, final String name) throws IonicException {
         final JsonValue jsonValue = jsonObject.get(name);
+        SdkData.checkTrue(jsonValue != null, SdkError.ISAGENT_MISSINGVALUE, name);
         SdkData.checkTrue(jsonValue instanceof JsonNumber, SdkError.ISAGENT_INVALIDVALUE, name);
         return (JsonNumber) jsonValue;
     }

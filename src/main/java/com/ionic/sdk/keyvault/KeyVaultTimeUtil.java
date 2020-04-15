@@ -25,6 +25,7 @@ public final class KeyVaultTimeUtil {
      * {@link KeyVaultKey#setExpirationServerTimeUtcSeconds(long)}).
      *
      * @return Server time in UTC seconds
+     * @see com.ionic.sdk.core.date.DateTime
      */
     public static long getCurrentServerTimeUtcSeconds() {
         return Agent.getServerTimeUtcSecs();

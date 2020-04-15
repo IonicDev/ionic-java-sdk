@@ -7,7 +7,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the input for an Agent.createKeys() request.
+ * Represents the input for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#createKeys(CreateKeysRequest)} API call.
+ * <p>
+ * The request will contain information about {@link Key} objects, which specify the desired quantity of keys, as
+ * well as attributes that should be associated with the requested keys.  {@link CreateKeysRequest} may
+ * contain 1..n {@link Key} objects.
+ * <p>
+ * Each key returned from the call will be identified using a key id, accessed
+ * via {@link com.ionic.sdk.agent.key.KeyBase#getId()}.  This key id is typically associated with the data encrypted
+ * using the key.
+ * <p>
+ * The CreateKey / CreateKeys family of APIs allow for new AES keys to be securely generated, in the context of a data
+ * encryption usage.  Subsequent GetKey / GetKeys calls allow for the retrieval of the keys, via the key id, to enable
+ * permitted decryption of the secured data.
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/create-key' target='_blank'>Machina Developers</a> for
+ * more information about the CreateKey operation.
  */
 public class CreateKeysRequest extends AgentRequestBase {
 
@@ -168,9 +184,8 @@ public class CreateKeysRequest extends AgentRequestBase {
 
         /**
          * @return the attributes to be associated with the keys requested by this key request
-         * @deprecated
-         *      Please migrate usages to the replacement {@link #getMutableAttributesMap()}
-         *      method (Ionic SDK 1.x API compatibility).
+         * @deprecated Please migrate usages to the replacement {@link #getMutableAttributesMap()}
+         * method (Ionic SDK 1.x API compatibility).
          */
         @Deprecated
         public final KeyAttributesMap getMutableAttributes() {

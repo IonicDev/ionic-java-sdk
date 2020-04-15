@@ -35,7 +35,63 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Cipher that supports generic file encryption / decryption.
+ * Ionic Machina Tools generic file crypto implementation.  This object can be used to perform encryption and
+ * decryption operations on filesystem files that are not known to be in a specific format.
+ * <p>
+ * An instance of {@link com.ionic.sdk.agent.cipher.file.GenericFileCipher} has the following format versions:
+ * <ul>
+ * <li>version 1.1 files use AES-CTR encryption, and encode the file data using base64, and so are appropriate for
+ * applications where the file data must traverse a medium where binary data causes problems</li>
+ * <li>version 1.2 files use AES-CTR encryption, and encode the file data as binary, minimizing the storage
+ * requirement</li>
+ * <li>version 1.3 files use AES-GCM encryption, and encode the file data as binary, minimizing the storage
+ * requirement</li>
+ * </ul>
+ * <p>
+ * By default, files encrypted using {@link GenericFileCipher} are written using format version 1.3.  To override
+ * the default, use the APIs {@link #encrypt(byte[], FileCryptoEncryptAttributes)} or
+ * {@link #encrypt(String, FileCryptoEncryptAttributes)}, where the desired version is specified in
+ * the {@link FileCryptoEncryptAttributes} parameter.
+ * <p>
+ * {@link GenericFileCipher} provides APIs to perform file encryption on filesystem files, and also on in-memory
+ * byte arrays.
+ * <p>
+ * Sample (byte[] API):
+ * <pre>
+ * public final void testFileCipherGeneric_EncryptDecryptBytes() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final byte[] plainText = new byte[1024];
+ *     final FileCipherAbstract fileCipher = new GenericFileCipher(keyServices);
+ *     final FileCryptoEncryptAttributes encryptAttributes = new FileCryptoEncryptAttributes();
+ *     final FileCryptoDecryptAttributes decryptAttributes = new FileCryptoDecryptAttributes();
+ *     final byte[] cipherText = fileCipher.encrypt(plainText, encryptAttributes);
+ *     final byte[] plainTextRecover = fileCipher.decrypt(cipherText, decryptAttributes);
+ *     Assert.assertArrayEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * Sample (file path API):
+ * <pre>
+ * public final void testFileCipherGeneric_EncryptDecryptFile() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final byte[] plainText = new byte[1024];
+ *     final File filePlainText = new File("generic.plainText.txt");
+ *     final File fileCipherText = new File("generic.cipherText.txt");
+ *     final File filePlainTextRecover = new File("generic.plainText.recover.txt");
+ *     DeviceUtils.write(filePlainText, plainText);
+ *     final FileCipherAbstract fileCipher = new GenericFileCipher(keyServices);
+ *     final FileCryptoEncryptAttributes encryptAttributes = new FileCryptoEncryptAttributes();
+ *     final FileCryptoDecryptAttributes decryptAttributes = new FileCryptoDecryptAttributes();
+ *     fileCipher.encrypt(filePlainText.getPath(), fileCipherText.getPath(), encryptAttributes);
+ *     fileCipher.decrypt(fileCipherText.getPath(), filePlainTextRecover.getPath(), decryptAttributes);
+ *     final String sha256PlainText = CryptoUtils.sha256ToHexString(DeviceUtils.read(filePlainText));
+ *     final String sha256Recover = CryptoUtils.sha256ToHexString(DeviceUtils.read(filePlainTextRecover));
+ *     Assert.assertEquals(sha256PlainText, sha256Recover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/file-crypto-generic' target='_blank'>Machina Developers</a> for
+ * more information on the different file crypto data formats.
  */
 public final class GenericFileCipher extends FileCipherAbstract {
 
@@ -67,12 +123,12 @@ public final class GenericFileCipher extends FileCipherAbstract {
     /**
      * File format family generic, default version.
      */
-    public static final String VERSION_DEFAULT = FileCipher.Generic.V13.LABEL;
+    public static final String VERSION_DEFAULT = VERSION_1_3;
 
     /**
      * File format family generic, latest version.
      */
-    public static final String VERSION_LATEST = FileCipher.Generic.V13.LABEL;
+    public static final String VERSION_LATEST = VERSION_1_3;
 
     /**
      * Constructor.

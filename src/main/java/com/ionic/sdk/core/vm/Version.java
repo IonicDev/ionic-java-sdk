@@ -3,7 +3,7 @@ package com.ionic.sdk.core.vm;
 /**
  * Encapsulate logic to evaluate version of running JRE.
  * <p>
- * <a href='https://en.wikipedia.org/wiki/Java_version_history'>Java version history</a>
+ * <a href='https://en.wikipedia.org/wiki/Java_version_history' target='_blank'>Java version history</a>
  */
 public final class Version {
 

@@ -40,8 +40,11 @@ public class AgentConfig {
     private String originFile;
 
     /**
-     * Initializes the object to be empty. All properties will be unset with exception to the following: 1) Maximum
-     * redirects default value is 2. 2) User-Agent default value is "Ionic Fusion Agent".
+     * Initializes the object to be empty. All properties will be unset with exception to the following:
+     * <ol>
+     * <li>Maximum redirects default value is 2.</li>
+     * <li>User-Agent default value is "Ionic Fusion Agent".</li>
+     * </ol>
      */
     public AgentConfig() {
         this.properties = new Properties();
@@ -82,6 +85,21 @@ public class AgentConfig {
         this.httpTimeoutSecs = HTTP_TIMEOUT_SECS_DEFAULT;
         this.maxRedirects = HTTP_REDIRECTS_DEFAULT;
         this.originFile = "";
+    }
+
+    /**
+     * Initialize configuration values with those from another {@link AgentConfig} instance.
+     *
+     * @param agentConfig the existing config which should be copied
+     */
+    public final void initialize(final AgentConfig agentConfig) {
+        clearInternal();
+        this.properties.putAll(agentConfig.properties);
+        this.setUserAgent(agentConfig.getUserAgent());
+        this.setHttpImpl(agentConfig.getHttpImpl());
+        this.setHttpTimeoutSecs(agentConfig.getHttpTimeoutSecs());
+        this.setMaxRedirects(agentConfig.getMaxRedirects());
+        this.originFile = agentConfig.getOriginFile();
     }
 
     /**
@@ -239,8 +257,12 @@ public class AgentConfig {
     public static class Key {
 
         /**
-         * If set to true, all device profiles within a <code>ProfilePersistor</code> will be considered when choosing
-         * a server on a GetKeys request.
+         * If set to true, all {@link com.ionic.sdk.device.profile.DeviceProfile} objects associated with the
+         * relevant {@link com.ionic.sdk.agent.Agent} will be considered when choosing
+         * a server on
+         * a {@link com.ionic.sdk.agent.Agent#getKeys(com.ionic.sdk.agent.request.getkey.GetKeysRequest)} operation.
+         * <p>
+         * If unspecified, default is {@link Boolean#TRUE}.
          */
         public static final String AUTOSELECT_PROFILE = "autoselectprofile";
     }

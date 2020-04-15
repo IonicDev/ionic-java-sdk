@@ -13,7 +13,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the output for an Agent.createKeys() request.
+ * Represents the output for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#createKeys(CreateKeysRequest)} API call.
+ * <p>
+ * The request will contain 0..n {@link CreateKeysResponse.Key} objects, which contain cryptography keys for use in
+ * subsequent crypto operations.
+ * <p>
+ * Each key returned from the call will be identified using a key id, accessed
+ * via {@link com.ionic.sdk.agent.key.KeyBase#getId()}.  This key id is typically associated with the data encrypted
+ * using the key.
+ * <p>
+ * The CreateKey / CreateKeys family of APIs allow for new AES keys to be securely generated, in the context of a data
+ * encryption usage.  Subsequent GetKey / GetKeys calls allow for the retrieval of the keys, via the key id, to enable
+ * permitted decryption of the secured data.
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/create-key' target='_blank'>Machina Developers</a> for
+ * more information about the CreateKey operation.
  */
 public class CreateKeysResponse extends AgentResponseBase {
 

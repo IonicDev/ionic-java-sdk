@@ -82,7 +82,7 @@ public final class CryptoUtils {
      * function provided through the JCE accepts passwords consisting of char arrays (PKCS12), and converts them
      * internally using the UTF-8 encoding.
      * <p>
-     * This function makes use of code derived from the BouncyCastle class PKCS5S2ParametersGenerator.  The code is
+     * This function makes use of code derived from the Bouncy Castle class PKCS5S2ParametersGenerator.  The code is
      * needed to meet conflicting requirements for the Ionic Java SDK:
      * <ol>
      * <li>The SDK must allow the substitution of alternative cryptography provider.</li>
@@ -98,7 +98,7 @@ public final class CryptoUtils {
      */
     private static byte[] pbkdf2ToBytesInternal(final byte[] value, final byte[] salt,
                                                 final long iterations, final long hashLength) throws IonicException {
-/* this algorithm uses BouncyCastle library explicitly, and so is being removed to eliminate the dependency
+/* this algorithm uses Bouncy Castle library explicitly, and so is being removed to eliminate the dependency
         // retained for reference purposes
         final org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator generator =
                 new org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator(

@@ -12,7 +12,7 @@ public interface ChunkCryptoErrorModuleConstants {
      int ISCHUNKCRYPTO_OK = 0;
 
     /**
-     * A general error occurred, but its specific problem is not represented with its own code.
+     * ChunkCrypto module error code range base.
      */
      int ISCHUNKCRYPTO_ERROR_BASE = 20000;
 

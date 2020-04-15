@@ -40,7 +40,48 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Cipher that supports PDF (PDF 32000-1:2008) file encryption / decryption.
+ * Ionic Machina Tools PDF (PDF 32000-1:2008) file crypto implementation.  This object can be used to perform
+ * encryption and decryption operations on filesystem files that are in the PDF format.
+ * <p>
+ * {@link PdfFileCipher} provides APIs to perform file encryption on filesystem files, and also on in-memory
+ * byte arrays.
+ * <p>
+ * Sample (byte[] API):
+ * <pre>
+ * public final void testFileCipherPdf_EncryptDecryptBytes() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final byte[] plainText = new FileCryptoCoverPageServicesDefault().getCoverPage(FileType.FILETYPE_PDF);
+ *     final FileCipherAbstract fileCipher = new PdfFileCipher(keyServices);
+ *     final FileCryptoEncryptAttributes encryptAttributes = new FileCryptoEncryptAttributes();
+ *     final FileCryptoDecryptAttributes decryptAttributes = new FileCryptoDecryptAttributes();
+ *     final byte[] cipherText = fileCipher.encrypt(plainText, encryptAttributes);
+ *     final byte[] plainTextRecover = fileCipher.decrypt(cipherText, decryptAttributes);
+ *     Assert.assertArrayEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * Sample (file path API):
+ * <pre>
+ * public final void testFileCipherPdf_EncryptDecryptFile() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final byte[] plainText = new FileCryptoCoverPageServicesDefault().getCoverPage(FileType.FILETYPE_PDF);
+ *     final File filePlainText = new File("plainText.pdf");
+ *     final File fileCipherText = new File("cipherText.pdf");
+ *     final File filePlainTextRecover = new File("plainText.recover.pdf");
+ *     DeviceUtils.write(filePlainText, plainText);
+ *     final FileCipherAbstract fileCipher = new PdfFileCipher(keyServices);
+ *     final FileCryptoEncryptAttributes encryptAttributes = new FileCryptoEncryptAttributes();
+ *     final FileCryptoDecryptAttributes decryptAttributes = new FileCryptoDecryptAttributes();
+ *     fileCipher.encrypt(filePlainText.getPath(), fileCipherText.getPath(), encryptAttributes);
+ *     fileCipher.decrypt(fileCipherText.getPath(), filePlainTextRecover.getPath(), decryptAttributes);
+ *     final String sha256PlainText = CryptoUtils.sha256ToHexString(DeviceUtils.read(filePlainText));
+ *     final String sha256Recover = CryptoUtils.sha256ToHexString(DeviceUtils.read(filePlainTextRecover));
+ *     Assert.assertEquals(sha256PlainText, sha256Recover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/file-crypto-pdf' target='_blank'>Machina Developers</a> for
+ * more information on the different file crypto data formats.
  */
 public final class PdfFileCipher extends FileCipherAbstract {
 
@@ -57,7 +98,7 @@ public final class PdfFileCipher extends FileCipherAbstract {
     /**
      * File format family PDF, version 1.0.
      */
-    private static final String VERSION_1_0 = "1.0";
+    public static final String VERSION_1_0 = "1.0";
 
     /**
      * File format family PDF, latest version.

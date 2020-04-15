@@ -4,9 +4,9 @@
  * <p>
  * References:
  * <ul>
- * <li><a href='https://docs.oracle.com/javaee/7/api/javax/json/package-summary.html'>
+ * <li><a href='https://docs.oracle.com/javaee/7/api/javax/json/package-summary.html' target='_blank'>
  * javax.json (docs.oracle.com)</a></li>
- * <li><a href='https://mvnrepository.com/artifact/org.glassfish/javax.json/1.0.4'>
+ * <li><a href='https://mvnrepository.com/artifact/org.glassfish/javax.json/1.0.4' target='_blank'>
  * javax.json (mvnrepository.com)</a></li>
  * </ul>
  */

@@ -95,7 +95,7 @@ public final class EnrollSAML {
      * @param pass              the password of the identity to which the new device profile should be associated
      * @param deviceProfileName the label for the new device profile
      * @return the {@link CreateDeviceResponse} object containing the new device profile information
-     * @throws IonicException on failure of any step in the SAML enrollment process
+     * @throws IonicException on failure of any step in the enrollment process
      */
     public CreateDeviceResponse enroll(
             final String user, final String pass, final String deviceProfileName) throws IonicException {
@@ -116,7 +116,7 @@ public final class EnrollSAML {
      *
      * @param httpClient the object encapsulating the http transactions needed to enroll a new device
      * @param url        the URL of the enrollment server
-     * @return the http server response to this request, containing the SAML request and URLs for subsequent requests
+     * @return the http server response to this request, containing the request and URLs for subsequent requests
      * @throws IOException    on http failures during the server request
      * @throws IonicException on invalid input URL, or on receipt of an http request error code
      */

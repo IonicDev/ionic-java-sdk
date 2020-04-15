@@ -10,7 +10,27 @@ import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.key.KeyServices;
 
 /**
- * Wrapper object used to abstract Ionic cryptography operations.
+ * Ionic Machina Tools chunk crypto implementation, version 1.  This wrapper object can be used to abstract Machina
+ * cryptography operations.  This format is an AES-CTR based encryption scheme, encoded in Base64, and using fixed
+ * text delimiters.
+ * <p>
+ * AES-CTR (Counter Mode) is a streaming cipher variant of AES where the next key stream block is calculated by
+ * encrypting increasing values of a "counter".
+ * <p>
+ * Sample:
+ * <pre>
+ * public final void testChunkCipherV1_EncryptDecryptString() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final String plainText = "Hello, Machina!";
+ *     final ChunkCipherAbstract chunkCipher = new ChunkCipherV1(keyServices);
+ *     final String cipherText = chunkCipher.encrypt(plainText);
+ *     final String plainTextRecover = chunkCipher.decrypt(cipherText);
+ *     Assert.assertEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/chunk' target='_blank'>Machina Developers</a> for more information
+ * on the different chunk crypto data formats.
  */
 public class ChunkCipherV1 extends ChunkCipherAbstract {
 

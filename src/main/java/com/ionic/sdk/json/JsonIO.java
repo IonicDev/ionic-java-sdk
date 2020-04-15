@@ -66,6 +66,20 @@ public final class JsonIO {
     /**
      * A helper function that converts a byte array into a JsonObject.  The byte array is assumed to be a
      * string encoded using the UTF-8 encoding.
+     * <p>
+     * If input parameter is null, then null is returned.
+     *
+     * @param jsonBytes a byte array that can be parsed into a JsonObject
+     * @return the JsonObject representation of the input string if non-null
+     * @throws IonicException on failure parsing the input json
+     */
+    public static JsonObject readObjectNotNull(final byte[] jsonBytes) throws IonicException {
+        return (jsonBytes == null) ? null : readObjectInternal(jsonBytes, null);
+    }
+
+    /**
+     * A helper function that converts a byte array into a JsonObject.  The byte array is assumed to be a
+     * string encoded using the UTF-8 encoding.
      *
      * @param jsonBytes a byte array that can be parsed into a JsonObject
      * @param level     the level at which JsonException should be logged, if encountered

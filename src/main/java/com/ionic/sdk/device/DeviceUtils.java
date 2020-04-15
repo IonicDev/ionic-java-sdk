@@ -9,6 +9,8 @@ import com.ionic.sdk.error.SdkError;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
@@ -118,6 +120,21 @@ public final class DeviceUtils {
     }
 
     /**
+     * Write the parameter byte array to the parameter output stream.
+     *
+     * @param os    the target output stream  of the written bytes
+     * @param bytes the source array to be written
+     * @throws IonicException if an I/O error occurs
+     */
+    public static void write(final OutputStream os, final byte[] bytes) throws IonicException {
+        try {
+            Stream.write(os, bytes);
+        } catch (IOException e) {
+            throw new IonicException(SdkError.ISAGENT_OPENFILE, e);
+        }
+    }
+
+    /**
      * Resolve a classpath resource to its filesystem location.
      *
      * @param resource the path of a resource expected to be on the JRE process classpath
@@ -131,6 +148,23 @@ public final class DeviceUtils {
             return new File(url.toURI());
         } catch (URISyntaxException e) {
             throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND, e);
+        }
+    }
+
+    /**
+     * Construct a valid {@link URL} from its string representation.
+     *
+     * @param url the string representation of a URL
+     * @return a valid {@link URL}
+     * @throws IonicException on failure to interpret the input as a {@link URL}
+     */
+    public static URL toUrl(final String url) throws IonicException {
+        try {
+            return new URL(url);
+        } catch (NullPointerException e) {
+            throw new IonicException(SdkError.ISAGENT_NULL_INPUT, e);
+        } catch (MalformedURLException e) {
+            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, e);
         }
     }
 }

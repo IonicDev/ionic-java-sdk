@@ -38,9 +38,19 @@ public final class IDC {
         public static final String KEYS_CREATE = "/%s/keys/create";
 
         /**
+         * Resource for CreateKeys requests (prepend with context-specific path).
+         */
+        public static final String KEYS_CREATE_BASE = "/keys/create";
+
+        /**
          * Resource for GetKeys requests (substitute server api version).
          */
         public static final String KEYS_GET = "/%s/keys/fetch";
+
+        /**
+         * Resource for CreateKeys requests (prepend with context-specific path).
+         */
+        public static final String KEYS_GET_BASE = "/keys/fetch";
 
         /**
          * Resource for UpdateKeys requests (substitute server api version).
@@ -58,9 +68,14 @@ public final class IDC {
         public static final String RESOURCES_GET = "/%s/resources";
 
         /**
-         * Resource for CreateDevice requests (substitute server api version).
+         * Resource for CreateDevice requests (substitute server api version, keyspace).
          */
         public static final String DEVICE_CREATE = "/%s/register/%s";
+
+        /**
+         * Resource for GetKeyspace requests (substitute server api version, keyspace).
+         */
+        public static final String KEYSPACE_GET = "/%s/kns/keyspaces/%s";
     }
 
     /**
@@ -161,6 +176,11 @@ public final class IDC {
         /**
          * Request / response JSON attribute name.
          */
+        public static final String ANSWERS = "answers";
+
+        /**
+         * Request / response JSON attribute name.
+         */
         public static final String AUTH = "AUTH";
 
         /**
@@ -196,6 +216,11 @@ public final class IDC {
         /**
          * Request / response JSON attribute name.
          */
+        public static final String ENROLL = "enroll";
+
+        /**
+         * Request / response JSON attribute name.
+         */
         public static final String ENVELOPE = "envelope";
 
         /**
@@ -212,6 +237,11 @@ public final class IDC {
          * Request / response JSON attribute name.
          */
         public static final String FORCE = "force";
+
+        /**
+         * Request / response JSON attribute name.
+         */
+        public static final String FQDN = "fqdn";
 
         /**
          * Request / response JSON attribute name.
@@ -242,6 +272,11 @@ public final class IDC {
          * Request / response JSON attribute name.
          */
         public static final String KEY = "key";
+
+        /**
+         * Request / response JSON attribute name.
+         */
+        public static final String KEYSPACE = "keyspace";
 
         /**
          * Request / response JSON attribute name.
@@ -337,6 +372,21 @@ public final class IDC {
          * Request / response JSON attribute name.
          */
         public static final String SIGS = "sigs";
+
+        /**
+         * Request / response JSON attribute name.
+         */
+        public static final String TENANT_ID = "tenantid";
+
+        /**
+         * Request / response JSON attribute name.
+         */
+        public static final String TTLSECONDS = "ttlSeconds";
+
+        /**
+         * Request / response JSON attribute name.
+         */
+        public static final String URL = "url";
 
         /**
          * Request / response JSON attribute name.

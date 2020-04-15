@@ -12,7 +12,13 @@ import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.RSAPublicKeySpec;
 
 /**
- * Class encapsulating capability to generate asymmetric cryptography keypairs.
+ * Ionic Machina Tools key generator implementation wrapping JCE-provided RSA algorithm.  It encapsulates the
+ * capability to generate asymmetric cryptography keypairs.
+ * <p>
+ * RSA is used internally by Machina in the context of the device enrollment operation.
+ * <p>
+ * On systems containing older CPUs, this operation can take a long time.  On these systems, the use of
+ * pre-existing key pairs is preferred to generating new key pairs.
  */
 public final class RsaKeyGenerator {
 

@@ -14,18 +14,19 @@
  * registered.
  * <ul>
  * <li>"SunJCE" - the default provider, built into the JRE</li>
- * <li>"BC" - the BouncyCastle provider, a popular third-party library</li>
+ * <li>"BC" - the Bouncy Castle provider, a popular third-party library</li>
  * </ul>
  * <p>
  * Any library to be used by the Ionic SDK must conform to the JCE architecture described
- * <a href='https://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#Architecture'>
+ * <a href='https://docs.oracle.com/javase/7/docs/technotes/guides/security/crypto/CryptoSpec.html#Architecture'
+ * target='_blank'>
  * here</a>.  In particular, instantiation of cryptography primitives is achieved through the use of a
  * 'getInstance()' call on the desired interface.
  * <pre>    md = MessageDigest.getInstance("SHA-256")</pre>
  * <p>
  * In SDK versions 2.0 - 2.5, the provider "org.bouncycastle.jce.provider.BouncyCastleProvider" was implicitly
- * registered to the JRE on first use of Ionic cryptography.  In SDK versions 2.6+, if usage of BouncyCastle
- * cryptography is desired, BouncyCastle must be explicitly registered (using the API
+ * registered to the JRE on first use of Ionic cryptography.  In SDK versions 2.6+, if usage of Bouncy Castle
+ * cryptography is desired, Bouncy Castle must be explicitly registered (using the API
  * {@link com.ionic.sdk.agent.AgentSdk#initialize(java.security.Provider)} prior to any other usage of the Ionic SDK.
  * <p>
  * If no specific {@link java.security.Provider} is specified in the API call

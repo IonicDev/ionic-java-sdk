@@ -10,7 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the output for an Agent.updateKeys() request.
+ * Represents the output for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#updateKeys(UpdateKeysRequest)} API call.
+ * <p>
+ * The response will contain updated information about the {@link Key} objects involved in the request.
+ * <p>
+ * The UpdateKey / UpdateKeys family of APIs allow for the mutable attributes associated with existing AES keys to
+ * be updated.  Subsequent GetKey / GetKeys calls allow for the retrieval of the keys, via the key id, and receive any
+ * updates to the key's mutable attributes.
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/update-key' target='_blank'>Machina Developers</a> for
+ * more information about the UpdateKey operation.
  */
 public class UpdateKeysResponse extends AgentResponseBase {
 

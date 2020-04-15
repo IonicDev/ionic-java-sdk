@@ -13,7 +13,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the output for an Agent.getKeys() request.
+ * Represents the output for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#getKeys(GetKeysRequest)} API call.
+ * <p>
+ * The response will contain a set of 0..n {@link Key} objects, which contain cryptography keys for use in
+ * subsequent crypto operations.
+ * <p>
+ * The CreateKey / CreateKeys family of APIs allow for new AES keys to be securely generated, in the context of a data
+ * encryption usage.  Subsequent GetKey / GetKeys calls allow for the retrieval of the keys, to enable permitted
+ * decryption of the secured data.
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/get-key' target='_blank'>Get Key</a> and
+ * <a href='https://dev.ionic.com/sdk/tasks/get-key-by-external-id' target='_blank'>Get Key By External Id</a> for
+ * more information about the GetKey operation.
  */
 public class GetKeysResponse extends AgentResponseBase {
 
@@ -384,12 +396,13 @@ public class GetKeysResponse extends AgentResponseBase {
     public static class QueryResult {
 
         /**
-         * A String denoting the id of the key.
+         * A String denoting the requested external id of the key.
          */
         private String keyId;
 
         /**
-         * Represents a list of mapped ids.
+         * Represents a list of mapped ids.  These are the ids of the Ionic keys associated with the
+         * specified external id.
          */
         private List<String> mappedIdList;
 
@@ -406,7 +419,7 @@ public class GetKeysResponse extends AgentResponseBase {
         /**
          * Constructor.
          *
-         * @param keyId        the key ID (also known as the key tag)
+         * @param keyId        the external ID of the key (also known as the external key tag)
          * @param errorCode    the error code provided by an Ionic server
          * @param errorMessage the error message string provided by an Ionic server
          */
@@ -420,8 +433,8 @@ public class GetKeysResponse extends AgentResponseBase {
         /**
          * Constructor.
          *
-         * @param keyId           the key ID (also known as the key tag)
-         * @param mappedIdList    a list of ids mapped on the server
+         * @param keyId        the external ID of the key (also known as the external key tag)
+         * @param mappedIdList a list of Ionic key ids mapped on the server
          */
         public QueryResult(final String keyId, final List<String> mappedIdList) {
             this.keyId = keyId;
@@ -431,16 +444,16 @@ public class GetKeysResponse extends AgentResponseBase {
         }
 
         /**
-         * @return The key ID (also known as the key tag).
+         * @return The external ID of the key (also known as the key tag).
          */
         public final String getKeyId() {
             return keyId;
         }
 
         /**
-         * Set the key ID (key tag).
+         * Set the external ID of the key (key tag).
          *
-         * @param keyId The key ID (also known as the key tag)
+         * @param keyId The external ID of the key (also known as the key tag)
          */
         public final void setKeyId(final String keyId) {
             this.keyId = keyId;
@@ -454,9 +467,9 @@ public class GetKeysResponse extends AgentResponseBase {
         }
 
         /**
-         * Set the list of mapped ids.
+         * Set the list of Ionic key ids mapped on the server.
          *
-         * @param mappedIdList The list of mapped ids.
+         * @param mappedIdList The list of Ionic key ids mapped on the server.
          */
         public final void setMappedIds(final List<String> mappedIdList) {
             this.mappedIdList = new ArrayList<String>(mappedIdList);

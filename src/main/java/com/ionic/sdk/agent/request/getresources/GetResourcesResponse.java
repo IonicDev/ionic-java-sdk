@@ -6,7 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the output for an Agent.getResources() request.
+ * Represents the output for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#getResources(GetResourcesRequest)} API call.
+ * <p>
+ * The request will contain information about {@link GetResourcesRequest.Resource} objects, which identify the desired
+ * service resources (for example, cover pages for data formats supported by the organization).
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/get-resource' target='_blank'>Machina Developers</a> for
+ * more information about the GetResources operation.
  */
 public class GetResourcesResponse extends AgentResponseBase {
 

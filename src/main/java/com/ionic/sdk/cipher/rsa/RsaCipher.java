@@ -17,7 +17,10 @@ import java.security.PublicKey;
 import java.security.Signature;
 
 /**
- * Cipher that implements RSA encryption / decryption.
+ * Ionic Machina Tools cipher implementation wrapping JCE-provided RSA algorithm.  This cipher object
+ * implements RSA asymmetric encryption / decryption.
+ * <p>
+ * RSA is used internally by Machina in the context of the device enrollment operation.
  */
 public final class RsaCipher {
 
