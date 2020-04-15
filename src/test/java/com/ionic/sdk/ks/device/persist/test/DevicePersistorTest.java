@@ -47,7 +47,8 @@ public class DevicePersistorTest {
     @Test
     public final void testDevicePersistor_SaveLoadProfiles_Success() throws IonicException {
         final DeviceProfile deviceProfile = new DeviceProfile("faux-persistor", 0L,
-                "faux.D.513ddebb-c5af-435e-ad7e-8d810daffb9f", "https://localhost", new byte[0], new byte[0]);
+                "faux.D.513ddebb-c5af-435e-ad7e-8d810daffb9f", "https://localhost",
+                new byte[AesCipher.KEY_BYTES], new byte[AesCipher.KEY_BYTES]);
         final List<DeviceProfile> deviceProfiles = Collections.singletonList(deviceProfile);
         final File folder = IonicTestEnvironment.getInstance().getFolderTestOutputsMkdir();
         final Collection<ProfilePersistor> persistors = new ArrayList<ProfilePersistor>();

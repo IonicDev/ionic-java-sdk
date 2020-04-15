@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 /**
  * Implementation of Password-Based Key Derivation Function that is backward compatible with existing Ionic
- * PBKDF data.  Derived from BouncyCastle implementation of PKCS5S2ParametersGenerator, which is compatible
+ * PBKDF data.  Derived from Bouncy Castle implementation of PKCS5S2ParametersGenerator, which is compatible
  * with "cryptopp" implementation used by Ionic core SDK.
  */
 public class IonicPbkdf2 {

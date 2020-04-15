@@ -22,7 +22,7 @@ public class PassThroughCipher extends CipherAbstract {
 
     /**
      * Cipher that does nothing.
-     * @param cipher - ignored.
+     * @param cipher ignored.
      */
     public PassThroughCipher(final Cipher cipher) {
         super(cipher);

@@ -1,14 +1,12 @@
 package com.ionic.sdk.agent.request.base;
 
 import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.ServiceProtocol;
 import com.ionic.sdk.agent.config.AgentConfig;
-import com.ionic.sdk.agent.request.createdevice.CreateDeviceTransaction;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
-import com.ionic.sdk.cipher.aes.AesGcmCipher;
-import com.ionic.sdk.core.codec.Transcoder;
+import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.device.DeviceUtils;
-import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.IonicServerException;
 import com.ionic.sdk.error.SdkData;
@@ -30,13 +28,13 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * The base class for agent transactions, which encapsulate an http request made to the Ionic server infrastructure,
  * and the associated server response (if any).
  */
+@InternalUseOnly
 public abstract class AgentTransactionBase {
 
     /**
@@ -45,9 +43,9 @@ public abstract class AgentTransactionBase {
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
-     * The {@link com.ionic.sdk.key.KeyServices} implementation.
+     * The protocol of the {@link com.ionic.sdk.key.KeyServices} client (authentication, state).
      */
-    private final Agent agent;
+    private final ServiceProtocol protocol;
 
     /**
      * The client request to send to the server.
@@ -62,22 +60,22 @@ public abstract class AgentTransactionBase {
     /**
      * Constructor.
      *
-     * @param agent        the KeyServices implementation
+     * @param protocol      the protocol of the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      * @param requestBase  the client request
      * @param responseBase the server response
      */
     public AgentTransactionBase(
-            final Agent agent, final AgentRequestBase requestBase, final AgentResponseBase responseBase) {
-        this.agent = agent;
+            final ServiceProtocol protocol, final AgentRequestBase requestBase, final AgentResponseBase responseBase) {
+        this.protocol = protocol;
         this.requestBase = requestBase;
         this.responseBase = responseBase;
     }
 
     /**
-     * @return the KeyServices implementation
+     * @return the protocol of the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      */
-    protected final Agent getAgent() {
-        return agent;
+    public ServiceProtocol getProtocol() {
+        return protocol;
     }
 
     /**
@@ -96,19 +94,25 @@ public abstract class AgentTransactionBase {
 
     /**
      * Request data from the server.  This encapsulates inclusion of fingerprint data in the request, and auto-recovery
-     * from server errors encountered in the context of the request.
+     * from server errors encountered in the protocol of the request.
      *
      * @throws IonicException on errors assembling the request or processing the response
      */
     public final void run() throws IonicException {
         // agent must be initialized before transactions are allowed
-        SdkData.checkTrue(agent.isInitialized(), SdkError.ISAGENT_NOINIT);
-        // agent must (except CreateDevice) have an active profile to perform IDC transactions
-        final boolean isOkProfile = (agent.hasActiveProfile() || (this instanceof CreateDeviceTransaction));
-        SdkData.checkTrue(isOkProfile, SdkError.ISAGENT_NO_DEVICE_PROFILE);
+        SdkData.checkTrue(protocol.isInitialized(), SdkError.ISAGENT_NOINIT);
+        // agent needs an active profile to perform most IDC transactions
+        if (isIdentityNeeded()) {
+            SdkData.checkTrue(protocol.hasIdentity(), SdkError.ISAGENT_NO_DEVICE_PROFILE);
+            try {
+                protocol.isValidIdentity();
+            } catch (IonicException e) {
+                throw new IonicException(SdkError.ISAGENT_NO_DEVICE_PROFILE, e);
+            }
+        }
         // set up the fingerprint field (hashed + hexed)
         final Properties fingerprint = new Properties();
-        fingerprint.setProperty(IDC.Payload.HFPHASH, agent.getFingerprint().getHfpHash());
+        fingerprint.setProperty(IDC.Payload.HFPHASH, protocol.getFingerprint().getHfpHash());
         // keep track of which auto-recoverable errors we have handled so that we don't
         // try to handle the same one multiple times
         final Set<Integer> autoRecoverErrorsHandled = new TreeSet<Integer>();
@@ -134,7 +138,7 @@ public abstract class AgentTransactionBase {
      */
     private void runWithFingerprint(final Properties fingerprint) throws IonicException {
         final HttpRequest httpRequest = buildHttpRequest(fingerprint);
-        final AgentConfig config = agent.getConfig();
+        final AgentConfig config = protocol.getConfig();
         final HttpClient httpClientIDC = HttpClientFactory.create(config, httpRequest.getUrl().getProtocol());
         try {
             final HttpResponse httpResponse = httpClientIDC.execute(httpRequest);
@@ -182,8 +186,8 @@ public abstract class AgentTransactionBase {
      * @param fingerprint authentication data associated with the client state to be included in the request
      */
     private void handleFingerprintDeniedError(final Properties fingerprint) {
-        fingerprint.setProperty(IDC.Payload.HFP, agent.getFingerprint().getHfp());
-        fingerprint.setProperty(IDC.Payload.HFPHASH, agent.getFingerprint().getHfpHash());
+        fingerprint.setProperty(IDC.Payload.HFP, protocol.getFingerprint().getHfp());
+        fingerprint.setProperty(IDC.Payload.HFPHASH, protocol.getFingerprint().getHfpHash());
     }
 
     /**
@@ -193,13 +197,12 @@ public abstract class AgentTransactionBase {
      * @param httpRequest   the server request
      * @param httpResponse  the server response
      * @param cidQ          the cid of the client request (for comparison to the one found in the server response)
-     * @param deviceProfile the relevant {@link DeviceProfile} record for the request
      * @throws IonicException on server error code, inability to deserialize response, unexpected response content,
      *                        or problems parsing the response payload bytes
      */
     protected final void parseHttpResponseBase(
             final HttpRequest httpRequest, final HttpResponse httpResponse,
-            final String cidQ, final DeviceProfile deviceProfile) throws IonicException {
+            final String cidQ) throws IonicException {
         responseBase.setHttpResponseCode(httpResponse.getStatusCode());
         // log an error if we got an unexpected HTTP response code
         if (AgentTransactionUtil.isHttpErrorCode(httpResponse.getStatusCode())) {
@@ -211,52 +214,20 @@ public abstract class AgentTransactionBase {
         final String contentType = httpResponse.getHttpHeaders().getHeaderValue(Http.Header.CONTENT_TYPE);
         SdkData.checkNotNull(contentType, Http.Header.CONTENT_TYPE);
         SdkData.checkTrue(contentType.contains(Http.Header.CONTENT_TYPE_SERVER), SdkError.ISAGENT_BADRESPONSE);
-        if (cidQ != null) {
-            // deserialize, validate server response entity
-            final byte[] responseEntity = DeviceUtils.read(httpResponse.getEntity());
-            final JsonObject jsonSecure = JsonIO.readObject(responseEntity, Level.WARNING);
-            logger.fine(JsonIO.write(jsonSecure, true));
-            final String cid = JsonSource.getString(jsonSecure, IDC.Payload.CID);
-            final String envelope = JsonSource.getString(jsonSecure, IDC.Payload.ENVELOPE);
-            try {
-                AgentTransactionUtil.checkNotNull(cid, IDC.Payload.CID, cid);
-                AgentTransactionUtil.checkNotNull(envelope, IDC.Payload.ENVELOPE, envelope);
-                AgentTransactionUtil.checkEqual(cidQ, cidQ, cid);
-            } catch (IonicException e) {
-                throw new IonicException(e.getReturnCode(), e.getMessage(), new IonicServerException(
-                        SdkError.ISAGENT_REQUESTFAILED, JsonIO.write(jsonSecure, false)));
-            }
-            parseHttpResponseBase2(httpRequest.getResource(), cid, envelope, deviceProfile);
-        }
-    }
-
-    /**
-     * Unwrap the secured response from the response envelope.
-     *
-     * @param resource      the server endpoint specified in the request
-     * @param cid           the cid in the server response
-     * @param envelope      the ciphertext containing the protected server response
-     * @param deviceProfile the relevant {@link DeviceProfile} record for the request
-     * @throws IonicException on cryptography or server response errors
-     */
-    private void parseHttpResponseBase2(final String resource, final String cid, final String envelope,
-                                        final DeviceProfile deviceProfile) throws IonicException {
-        // unwrap content of secure envelope
-        final AesGcmCipher cipher = new AesGcmCipher();
-        cipher.setKey(deviceProfile.getAesCdIdcProfileKey());
-        cipher.setAuthData(Transcoder.utf8().decode(cid));
-        final byte[] entityClear = cipher.decryptBase64(envelope);
-        // validate response entity
-        //logger.finest(Transcoder.utf8().encode(entityClear));  // plaintext json; IDC http entity (for debugging)
+        // deserialize, validate server response entity
+        final byte[] entitySecure = DeviceUtils.read(httpResponse.getEntity());
         // decompose cleartext content of server response
         // according to "https://dev.ionic.com/api/device/device-request-payload-format", server responses to
         // device requests are expected to be secure JSON, and the unwrapped response is also expected to be JSON
+        final byte[] entityClear = protocol.transformResponsePayload(entitySecure, cidQ);
         final JsonObject jsonPayload = JsonIO.readObject(entityClear);
         final JsonObject error = JsonSource.getJsonObjectNullable(jsonPayload, IDC.Payload.ERROR);
-        responseBase.setConversationId(cid);
+        responseBase.setConversationId((cidQ == null)
+                ? JsonSource.getString(jsonPayload, IDC.Payload.CID) : cidQ);
         responseBase.setJsonPayload(jsonPayload);
         responseBase.setServerErrorCode((error == null) ? 0 : JsonSource.getInt(error, IDC.Payload.CODE));
-        responseBase.setServerErrorMessage((error == null) ? null : JsonSource.getString(error, IDC.Payload.MESSAGE));
+        responseBase.setServerErrorMessage((error == null)
+                ? null : JsonSource.getString(error, IDC.Payload.MESSAGE));
         responseBase.setServerErrorDataJson((error == null) ? null : JsonIO.write(error, false));
         if (responseBase.getServerErrorDataJson() != null) {
             logger.severe(responseBase.getServerErrorDataJson());
@@ -264,7 +235,7 @@ public abstract class AgentTransactionBase {
         // Because IonicServerException needs to derive from ServerException; we must wrap here.
         // on removal of ServerException, this stuff can be simplified
         try {
-            processResponseErrorServer(cid);
+            processResponseErrorServer(cidQ);
         } catch (IonicServerException e) {
             throw new IonicException(e.getReturnCode(), e);
         }
@@ -386,8 +357,9 @@ public abstract class AgentTransactionBase {
     protected final HttpHeaders getHttpHeaders() {
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(new HttpHeader(Http.Header.CONTENT_TYPE, Http.Header.CONTENT_TYPE_CLIENT));
-        httpHeaders.add(new HttpHeader(Http.Header.USER_AGENT, agent.getConfig().getUserAgent()));
+        httpHeaders.add(new HttpHeader(Http.Header.USER_AGENT, protocol.getConfig().getUserAgent()));
         httpHeaders.add(new HttpHeader(Http.Header.ACCEPT_ENCODING, Http.Header.ACCEPT_ENCODING_VALUE));
+        protocol.addHeader(httpHeaders);
         return httpHeaders;
     }
 
@@ -409,6 +381,17 @@ public abstract class AgentTransactionBase {
      */
     protected abstract void parseHttpResponse(
             HttpRequest httpRequest, HttpResponse httpResponse) throws IonicException;
+
+    /**
+     * Indicate whether derived transaction needs to indicate an client identity to the server.  Key
+     * transactions must specify a client identity.  Derived transactions where no identity is needed may override
+     * this method.
+     *
+     * @return true iff the server transaction requires client authentication
+     */
+    protected boolean isIdentityNeeded() {
+        return true;
+    }
 
     /**
      * Automatic error recovery options.

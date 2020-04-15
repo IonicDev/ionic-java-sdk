@@ -1,5 +1,8 @@
 package com.ionic.sdk.error;
 
+import com.ionic.sdk.agent.SdkVersion;
+import com.ionic.sdk.core.value.Value;
+
 /**
  * An Exception class for representing Ionic SDK-specific exceptions.
  * <p>
@@ -27,7 +30,25 @@ public class IonicException extends SdkException {
      */
     @Override
     public final String getMessage() {
-        return Integer.toString(super.getReturnCode()) + SPACER + super.getMessage();
+        return Value.join(SPACER, super.getReturnCode(), super.getMessage(),
+                getConversationIdInternal(), SdkVersion.getVersionString());
+    }
+
+    /**
+     * @return conversation id associated with failed server communication
+     */
+    public String getConversationId() {
+        return getConversationIdInternal();
+    }
+
+    /**
+     * @return conversation id associated with failed server communication
+     */
+    private String getConversationIdInternal() {
+        final Throwable cause = getCause();
+        final IonicServerException serverException =
+                (cause instanceof IonicServerException) ? ((IonicServerException) cause) : null;
+        return (serverException == null ? null : serverException.getConversationId());
     }
 
     /**
@@ -61,7 +82,7 @@ public class IonicException extends SdkException {
      * @param message   the text description of the error
      */
     public IonicException(final int errorCode, final String message) {
-        super(errorCode, message);
+        super(errorCode, Value.join(SPACER, SdkError.getErrorString(errorCode), message));
     }
 
     /**
@@ -91,6 +112,6 @@ public class IonicException extends SdkException {
      * @param cause     the underlying cause of this exception, if any
      */
     public IonicException(final int errorCode, final String message, final Throwable cause) {
-        super(errorCode, message, cause);
+        super(errorCode, Value.join(SPACER, SdkError.getErrorString(errorCode), message), cause);
     }
 }

@@ -14,6 +14,14 @@ import com.ionic.sdk.error.IonicException;
 /**
  * The interface that defines the contract that {@link com.ionic.sdk.agent.Agent} implements, with regard to access to
  * cryptography keys.
+ * <p>
+ * The subclasses of {@link com.ionic.sdk.agent.request.base.AgentResponseBase} that are returned by KeyServices
+ * implementations are constructed with empty fields.  Implementations should populate instances of these fields as
+ * appropriate.
+ * <p>
+ * On operation failures, implementations should throw {@link IonicException} with an appropriate error code.  If the
+ * failure is due to an underlying platform exception, {@link IonicException} should wrap that exception.  Unchecked
+ * exceptions (like {@link RuntimeException}) should not be intentionally thrown from KeyServices operations.
  */
 public interface KeyServices {
 

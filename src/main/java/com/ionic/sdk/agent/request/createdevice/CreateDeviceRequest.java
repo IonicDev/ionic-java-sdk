@@ -4,7 +4,14 @@ import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.cipher.rsa.model.RsaKeyHolder;
 
 /**
- * Represents the input for an Agent.getResources() request.
+ * Represents the input for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#createDevice(CreateDeviceRequest)} API call.
+ * <p>
+ * This API is used to enroll devices with Machina, allowing for subsequent requests for cryptography keys and
+ * service resources.
+ * <p>
+ * See <a href='https://dev.ionic.com/api/device/create-profile' target='_blank'>Machina Developers</a> for
+ * more information about the CreateDevice operation.
  */
 public final class CreateDeviceRequest extends AgentRequestBase {
 

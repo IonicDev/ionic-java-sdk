@@ -15,7 +15,8 @@ import java.nio.channels.SeekableByteChannel;
  * interfaces.  This class wraps ByteBuffer in a SeekableByteChannel, so byte[] and File APIs may be implemented
  * using the SeekableByteChannel interfaces.
  * <p>
- * See also <a href='http://errorprone.info/bugpattern/ByteBufferBackingArray'>rationale for constructor API.</a>
+ * See also <a href='http://errorprone.info/bugpattern/ByteBufferBackingArray'
+ * target='_blank'>rationale for constructor API.</a>
  */
 @InternalUseOnly
 public final class SeekableByteBufferChannel implements SeekableByteChannel {

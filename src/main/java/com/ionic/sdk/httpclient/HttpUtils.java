@@ -19,7 +19,9 @@ public final class HttpUtils {
     /**
      * @param value the input to be encoded
      * @return the URL encoded representation of the input
-     * @throws UnsupportedEncodingException should never happen {@link StandardCharsets}
+     * @throws UnsupportedEncodingException should never happen (as is noted in {@link StandardCharsets}, support for
+     *                                      the "UTF-8" charset is guaranteed to be available on every implementation
+     *                                      of the Java platform)
      */
     public static String urlEncode(final String value) throws UnsupportedEncodingException {
         return URLEncoder.encode(value, StandardCharsets.UTF_8.displayName());

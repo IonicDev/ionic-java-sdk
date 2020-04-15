@@ -1,6 +1,6 @@
 package com.ionic.sdk.agent.request.createdevice;
 
-import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.ServiceProtocol;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
 import com.ionic.sdk.agent.request.base.AgentTransactionBase;
@@ -13,9 +13,9 @@ import com.ionic.sdk.cipher.rsa.RsaCipher;
 import com.ionic.sdk.cipher.rsa.model.RsaKeyGenerator;
 import com.ionic.sdk.cipher.rsa.model.RsaKeyHolder;
 import com.ionic.sdk.cipher.rsa.model.RsaKeyPersistor;
+import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.date.DateTime;
-import com.ionic.sdk.core.io.Stream;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.device.profile.DeviceProfile;
@@ -31,14 +31,15 @@ import com.ionic.sdk.json.JsonSource;
 import javax.json.Json;
 import javax.json.JsonObject;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
 import java.util.logging.Logger;
 
 /**
- * An object encapsulating the server request and response for an Agent.getResources() request.
+ * An object encapsulating the server request and response for
+ * an {@link com.ionic.sdk.agent.Agent#createDevice(CreateDeviceRequest)} request.
  */
+@InternalUseOnly
 public class CreateDeviceTransaction extends AgentTransactionBase {
 
     /**
@@ -59,15 +60,15 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
     /**
      * Constructor.
      *
-     * @param agent        the persistent data associated with the device's Secure Enrollment Profile
+     * @param protocol     the protocol used by the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      * @param requestBase  the client request
      * @param responseBase the server response
      * @throws IonicException on errors generating session cryptography keys for use in the request
      */
     public CreateDeviceTransaction(
-            final Agent agent, final AgentRequestBase requestBase,
+            final ServiceProtocol protocol, final AgentRequestBase requestBase,
             final AgentResponseBase responseBase) throws IonicException {
-        super(agent, requestBase, responseBase);
+        super(protocol, requestBase, responseBase);
         final int errorCode = SdkError.ISAGENT_ERROR;
         SdkData.checkTrue(requestBase instanceof CreateDeviceRequest, errorCode, SdkError.getErrorString(errorCode));
         final CreateDeviceRequest request = (CreateDeviceRequest) requestBase;
@@ -154,34 +155,30 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
     protected final void parseHttpResponse(
             final HttpRequest httpRequest, final HttpResponse httpResponse) throws IonicException {
         // unwrap the server response
-        parseHttpResponseBase(httpRequest, httpResponse, null, null);
-        try {
-            // deserialize, validate server response entity
-            final String entity = Transcoder.utf8().encode(Stream.read(httpResponse.getEntity()));
-            logger.fine(entity);
-            final CreateDeviceRequest request = (CreateDeviceRequest) getRequestBase();
-            final CreateDeviceResponse response = (CreateDeviceResponse) getResponseBase();
-            final JsonObject json = JsonIO.readObject(entity, SdkError.ISAGENT_PARSEFAILED);
-            final String cid = JsonSource.getString(json, IDC.Payload.CID);
-            logger.finest(cid);
-            final String deviceId = JsonSource.getString(json, IDC.Payload.DEVICE_ID);
-            final String sepAesk = JsonSource.getString(json, IDC.Payload.SEPAESK);
-            final String sepAeskIdc = JsonSource.getString(json, IDC.Payload.SEPAESK_IDC);
+        parseHttpResponseBase(httpRequest, httpResponse, null);
+        final CreateDeviceRequest request = (CreateDeviceRequest) getRequestBase();
+        final CreateDeviceResponse response = (CreateDeviceResponse) getResponseBase();
+        final JsonObject json = response.getJsonPayload();
+        final String deviceId = JsonSource.getString(json, IDC.Payload.DEVICE_ID);
+        final String sepAesk = JsonSource.getString(json, IDC.Payload.SEPAESK);
+        final String sepAeskIdc = JsonSource.getString(json, IDC.Payload.SEPAESK_IDC);
 
-            final AesCtrCipher aesCipher = new AesCtrCipher();
-            aesCipher.setKey(aesKeyHolder.getKey().getEncoded());
-            final byte[] keyEI = aesCipher.decrypt(CryptoUtils.base64ToBin(sepAesk));
+        final AesCtrCipher aesCipher = new AesCtrCipher();
+        aesCipher.setKey(aesKeyHolder.getKey().getEncoded());
+        final byte[] keyEI = aesCipher.decrypt(CryptoUtils.base64ToBin(sepAesk));
 
-            final RsaCipher rsaCipher = new RsaCipher();
-            rsaCipher.setKeypairInstance(rsaKeyHolder.getKeypair());
-            final byte[] keyIDC = rsaCipher.decrypt(CryptoUtils.base64ToBin(sepAeskIdc));
+        final RsaCipher rsaCipher = new RsaCipher();
+        rsaCipher.setKeypairInstance(rsaKeyHolder.getKeypair());
+        final byte[] keyIDC = rsaCipher.decrypt(CryptoUtils.base64ToBin(sepAeskIdc));
 
-            final long creationTimestamp = (System.currentTimeMillis() / DateTime.ONE_SECOND_MILLIS);
-            final DeviceProfile deviceProfile = new DeviceProfile(request.getDeviceProfileName(),
-                    creationTimestamp, deviceId, request.getServer(), keyIDC, keyEI);
-            response.setDeviceProfile(deviceProfile);
-        } catch (IOException e) {
-            throw new IonicException(SdkError.ISAGENT_BADRESPONSE, e);
-        }
+        final long creationTimestamp = (System.currentTimeMillis() / DateTime.ONE_SECOND_MILLIS);
+        final DeviceProfile deviceProfile = new DeviceProfile(request.getDeviceProfileName(),
+                creationTimestamp, deviceId, request.getServer(), keyIDC, keyEI);
+        response.setDeviceProfile(deviceProfile);
+    }
+
+    @Override
+    protected final boolean isIdentityNeeded() {
+        return false;
     }
 }

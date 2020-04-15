@@ -15,7 +15,10 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 /**
- * Class encapsulating capability to serialize asymmetric cryptography keypairs.
+ * Ionic Machina Tools serialization implementation wrapping JCE-provided RSA key pair.  This object
+ * implements the ability to persist RSA asymmetric cryptography key pairs.
+ * <p>
+ * RSA is used internally by Machina in the context of the device enrollment operation.
  */
 public final class RsaKeyPersistor {
 

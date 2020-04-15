@@ -1,5 +1,11 @@
 package com.ionic.sdk.device.profile;
 
+import com.ionic.sdk.cipher.aes.AesCipher;
+import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkError;
+
+import java.security.InvalidKeyException;
+
 /**
  * This class represents the device profile of the machine we are on.
  */
@@ -69,8 +75,8 @@ public class DeviceProfile {
         this.timestamp = creationTimestamp;
         this.deviceProfileId = deviceId;
         this.serverName = server;
-        this.aesCdIdcProfileKey = aesCdIdcKey.clone();
-        this.aesCdEiProfileKey = aesCdEiKey.clone();
+        this.aesCdIdcProfileKey = (aesCdIdcKey == null ? null : aesCdIdcKey.clone());
+        this.aesCdEiProfileKey = (aesCdEiKey == null ? null : aesCdEiKey.clone());
     }
 
     /**
@@ -80,6 +86,27 @@ public class DeviceProfile {
      */
     public final boolean isLoaded() {
         return !deviceProfileId.isEmpty() && aesCdIdcProfileKey.length != 0 && aesCdEiProfileKey.length != 0;
+    }
+
+    /**
+     * Determine if this profile is valid.  Any validation checks of member variables should be done here.
+     *
+     * @return the validity state of the {@link DeviceProfile} data
+     * @throws IonicException on invalid {@link DeviceProfile} data
+     */
+    public final boolean isValid() throws IonicException {
+        if ((aesCdIdcProfileKey == null) || (aesCdEiProfileKey == null)) {
+            throw new IonicException(SdkError.ISAGENT_INVALID_KEY, new InvalidKeyException((String) null));
+        }
+        if (aesCdIdcProfileKey.length != AesCipher.KEY_BYTES) {
+            throw new IonicException(SdkError.ISAGENT_INVALID_KEY,
+                    new InvalidKeyException(Integer.toString(aesCdIdcProfileKey.length)));
+        }
+        if (aesCdEiProfileKey.length != AesCipher.KEY_BYTES) {
+            throw new IonicException(SdkError.ISAGENT_INVALID_KEY,
+                    new InvalidKeyException(Integer.toString(aesCdEiProfileKey.length)));
+        }
+        return true;
     }
 
     /**
@@ -104,6 +131,7 @@ public class DeviceProfile {
      * Get the time at which this profile was created.
      *
      * @return Returns creation time in UTC seconds since January 1, 1970.
+     * @see com.ionic.sdk.core.date.DateTime
      */
     public final long getCreationTimestampSecs() {
         return timestamp;
@@ -114,6 +142,7 @@ public class DeviceProfile {
      *
      * @param timestamp Creation time must be specified in UTC seconds since January 1,
      *                  1970.
+     * @see com.ionic.sdk.core.date.DateTime
      */
     public final void setCreationTimestampSecs(final long timestamp) {
         this.timestamp = timestamp;
@@ -168,7 +197,7 @@ public class DeviceProfile {
      * @return The private AES key shared between client and Ionic.com.
      */
     public final byte[] getAesCdIdcProfileKey() {
-        return aesCdIdcProfileKey.clone();
+        return aesCdIdcProfileKey == null ? null : aesCdIdcProfileKey.clone();
     }
 
     /**
@@ -177,7 +206,9 @@ public class DeviceProfile {
      * @param keyBytes The raw AES key bytes.
      */
     public final void setAesCdIdcProfileKey(final byte[] keyBytes) {
-        aesCdIdcProfileKey = keyBytes.clone();
+        if (keyBytes != null) {
+            aesCdIdcProfileKey = keyBytes.clone();
+        }
     }
 
     /**
@@ -188,7 +219,7 @@ public class DeviceProfile {
      * Infrastructure).
      */
     public final byte[] getAesCdEiProfileKey() {
-        return aesCdEiProfileKey.clone();
+        return aesCdEiProfileKey == null ? null : aesCdEiProfileKey.clone();
     }
 
     /**
@@ -198,7 +229,9 @@ public class DeviceProfile {
      * @param keyBytes The raw AES key bytes.
      */
     public final void setAesCdEiProfileKey(final byte[] keyBytes) {
-        aesCdEiProfileKey = keyBytes.clone();
+        if (keyBytes != null) {
+            aesCdEiProfileKey = keyBytes.clone();
+        }
     }
 
     /**

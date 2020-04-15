@@ -23,7 +23,8 @@ import java.util.logging.Logger;
 
 /**
  * The Ionic Java SDK provides pass-through access to various JCE facilities implemented in either the base Java
- * Runtime Environment, or in third-party libraries (for example, <a href='http://bouncycastle.org/'>BouncyCastle</a>).
+ * Runtime Environment, or in third-party libraries (for example, <a href='http://bouncycastle.org/'
+ * target='_blank'>Bouncy Castle</a>).
  * <p>
  * This interface is intended to enable Ionic SDK users to substitute their own cryptography
  * library into an Ionic SDK-enabled process.  If so configured, the SDK will use only the facilities provided by that
@@ -144,8 +145,8 @@ public final class CryptoAbstract {
     /**
      * Return an instance of an RSA signature facility.
      *
-     * Reference <a href="https://bugs.openjdk.java.net/browse/JDK-8190180">JDK Bug System</a>
-     * Reference <a href="https://stackoverflow.com/questions/48803100/">RSA-PSS</a>
+     * Reference <a href="https://bugs.openjdk.java.net/browse/JDK-8190180" target="_blank">JDK Bug System</a>
+     * Reference <a href="https://stackoverflow.com/questions/48803100/" target="_blank">RSA-PSS</a>
      *
      * @return an instance of {@link Signature}, suitable for signing / verifying a byte stream
      * @throws IonicException if the signature facility is not provided by the configured CryptoAbstract implementation

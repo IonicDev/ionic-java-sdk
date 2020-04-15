@@ -1,6 +1,7 @@
 package com.ionic.sdk.httpclient;
 
 import com.ionic.sdk.agent.config.AgentConfig;
+import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
@@ -11,6 +12,7 @@ import java.lang.reflect.Constructor;
 /**
  * Encapsulate the assembly of a new http client, given a string specifying the requested type.
  */
+@InternalUseOnly
 public final class HttpClientFactory {
 
     /**

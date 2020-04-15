@@ -12,7 +12,7 @@ public interface AgentErrorModuleConstants {
     int ISAGENT_OK = 0;
 
     /**
-     * error code range base.
+     * Agent module error code range base.
      */
     int ISAGENT_ERROR_BASE = 40000;
 
@@ -48,7 +48,7 @@ public interface AgentErrorModuleConstants {
 
     /**
      * The agent was used before being initialized. Make sure that you call
-     * {@link com.ionic.sdk.agent.Agent#initialize()}, {@link com.ionic.sdk.agent.Agent#initializeWithoutProfiles()}),
+     * {@link com.ionic.sdk.agent.Agent#initialize()}, {@link com.ionic.sdk.agent.Agent#initializeWithoutProfiles()},
      * or another
      * initialization function before trying to use the Agent object.
      */
@@ -112,7 +112,7 @@ public interface AgentErrorModuleConstants {
     int ISAGENT_BADRESPONSE = 40015;
 
     /**
-     * The server redirected the agent to an invalid location (e.g. an empty URL)
+     * The server redirected the agent to an invalid location (e.g.&nbsp;an empty URL).
      * This is typically indicative that there is a problem on the server side.
      */
     int ISAGENT_BADREDIRECT = 40016;
@@ -149,8 +149,8 @@ public interface AgentErrorModuleConstants {
 
     /**
      * An active device profile has not been set. This happens when a function is
-     * called that requires an active device profile, but there is no profile set
-     * yet (e.g. {@link com.ionic.sdk.agent.Agent#createKeys(CreateKeysRequest)}).
+     * called that requires an active device profile, but there is no profile set yet
+     * (e.g. {@link com.ionic.sdk.agent.Agent#createKeys(com.ionic.sdk.agent.request.createkey.CreateKeysRequest)}).
      */
     int ISAGENT_NO_DEVICE_PROFILE = 40022;
 
@@ -193,8 +193,7 @@ public interface AgentErrorModuleConstants {
     int ISAGENT_LOAD_PROFILES_FAILED = 40029;
 
     /**
-     * A key is invalid in some way (key ID, key bytes, etc). This may happen if a
-     * key was found to be invalid. For example, if the key is the wrong size (any
+     * A key is invalid in some way (key ID, key bytes, etc). For example, if the key is the wrong size (any
      * size other than 32 bytes), the key ID string is empty or contains invalid
      * characters, etc.
      */
@@ -242,7 +241,7 @@ public interface AgentErrorModuleConstants {
     int ISAGENT_NO_SECURE_CONNECTION = 40034;
 
     /**
-     * error code range base.
+     * Agent module (Java) error code range base.
      */
     int ISAGENT_ERROR_BASE_JAVA = 42000;
 
@@ -254,7 +253,7 @@ public interface AgentErrorModuleConstants {
 
     /**
      * SDK initialization failed.  This can be due to the use of a JRE that does not support needed cryptography
-     * primitives.  The bouncycastle library (1.56+) may be added to the JRE security providers to correct this issue.
+     * primitives.
      */
     int ISAGENT_INIT_FAILED_PLATFORM = 42002;
 }

@@ -1,6 +1,7 @@
 /**
  * The Ionic Java SDK provides pass-through access to various JCE facilities implemented in either the base Java
- * Runtime Environment, or in third-party libraries (for example, <a href="http://bouncycastle.org/">BouncyCastle</a>).
+ * Runtime Environment, or in third-party libraries (for example, <a href="http://bouncycastle.org/"
+ * target="_blank">Bouncy Castle</a>).
  * <p>
  * More information:
  * <ul>

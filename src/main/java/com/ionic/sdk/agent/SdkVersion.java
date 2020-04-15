@@ -49,12 +49,12 @@ public final class SdkVersion {
     /**
      * Define the SDK minor version number.
      */
-    public static final int IONIC_SDK_MINOR = 6;
+    public static final int IONIC_SDK_MINOR = 7;
 
     /**
      * Define the SDK patch version number.
      */
-    public static final int IONIC_SDK_PATCH = 1;
+    public static final int IONIC_SDK_PATCH = 0;
 
     /**
      * The built in Ionic SDK version used as a fallback when the version cannot be loaded from the jar manifest.

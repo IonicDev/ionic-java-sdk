@@ -1,14 +1,9 @@
 package com.ionic.sdk.agent.request.base;
 
-import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.ServiceProtocol;
 import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
-import com.ionic.sdk.cipher.aes.AesGcmCipher;
-import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.core.hash.Hash;
-import com.ionic.sdk.core.value.Value;
-import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
@@ -22,7 +17,6 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
-import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -34,34 +28,34 @@ import java.util.Properties;
 public abstract class MessageBase {
 
     /**
-     * The {@link com.ionic.sdk.key.KeyServices} implementation.
+     * The protocol of the {@link com.ionic.sdk.key.KeyServices} client (authentication, state, assembly of
+     * service request payloads).
      */
-    private final Agent agent;
+    private final ServiceProtocol protocol;
 
     /**
-     * A unique id used to identify a particular server transaction, and to help secure its content during transit.
+     * The unique Ionic conversation ID.  It is supplied by the client in the corresponding request, and is used to
+     * identify and correlate a particular server transaction, and to help secure its content during transit.
      */
     private final String cid;
 
     /**
      * Constructor.
      *
-     * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
-     * @param cid   the conversation id associated with the client request
+     * @param protocol the protocol of the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      * @throws IonicException on NULL input
      */
-    public MessageBase(final Agent agent, final String cid) throws IonicException {
-        this.agent = agent;
-        this.cid = cid;
-        SdkData.checkNotNull(agent, Agent.class.getName());
-        SdkData.checkNotNull(cid, IDC.Payload.CID);
+    public MessageBase(final ServiceProtocol protocol) throws IonicException {
+        SdkData.checkNotNull(protocol, ServiceProtocol.class.getName());
+        this.protocol = protocol;
+        this.cid = protocol.generateCid();
     }
 
     /**
-     * @return the KeyServices implementation
+     * @return the protocol of the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      */
-    public final Agent getAgent() {
-        return agent;
+    public final ServiceProtocol getProtocol() {
+        return protocol;
     }
 
     /**
@@ -84,7 +78,7 @@ public abstract class MessageBase {
             final AgentRequestBase requestBase, final Properties fingerprint) throws IonicException {
         return Json.createObjectBuilder()
                 .add(IDC.Payload.DATA, getJsonData(requestBase))
-                .add(IDC.Payload.META, AgentTransactionUtil.buildStandardJsonMeta(agent, requestBase, fingerprint))
+                .add(IDC.Payload.META, AgentTransactionUtil.buildStandardJsonMeta(protocol, requestBase, fingerprint))
                 .build();
     }
 
@@ -114,35 +108,11 @@ public abstract class MessageBase {
     }
 
     /**
-     * Calculate the signature associated with the request attributes.
-     * <p>
-     * a2\IonicAgents\SDK\ISAgentSDK\ISAgentLib\ISAgentTransactionUtil.cpp:buildSignedAttributes()
-     *
-     * @param keyId      the identifier for the key used in the signature calculation
-     * @param extra      additional data used in the signature calculation
-     * @param attrs      the attributes to be associated with any keys generated as part of this request
-     * @param areMutable a signal used to construct appropriate authData to use in signature
-     * @return a signature to be incorporated into the request payload (for verification)
-     * @throws IonicException on cryptography errors
-     */
-    protected final String buildSignedAttributes(final String keyId, final String extra,
-                                                 final String attrs, final boolean areMutable) throws IonicException {
-        final AesGcmCipher cipher = new AesGcmCipher();
-        cipher.setKey(agent.getActiveProfile().getAesCdEiProfileKey());
-        final String authData = areMutable
-                ? Value.join(IDC.Signature.DELIMITER, cid, IDC.Signature.MUTABLE, keyId, extra)
-                : Value.join(IDC.Signature.DELIMITER, cid, keyId, extra);
-        cipher.setAuthData(Transcoder.utf8().decode(authData));
-        final byte[] plainText = new Hash().sha256(Transcoder.utf8().decode(attrs));
-        return cipher.encryptToBase64(plainText);
-    }
-
-    /**
      * Evaluate attribute names to determine if "protected attribute" logic should apply.
      *
      * @param name the name of the attribute
      * @return true iff the attribute value should be protected
-     * @see <a href="https://dev.ionic.com/device-requests/keys/create.html">Create Keys</a>
+     * @see <a href="https://dev.ionic.com/device-requests/keys/create.html" target="_blank">Create Keys</a>
      */
     protected final boolean isIonicProtect(final String name) {
         final boolean isIonicProtected = (name.startsWith(IDC.Protect.PREFIX));
@@ -159,13 +129,8 @@ public abstract class MessageBase {
      * @throws IonicException on cryptography initialization / execution failures
      */
     protected final JsonArray encryptIonicAttrs(final String name, final JsonArray jsonArray) throws IonicException {
-        final String value = JsonSource.toString(jsonArray);
-        final AesGcmCipher cipher = new AesGcmCipher();
-        cipher.setKey(agent.getActiveProfile().getAesCdEiProfileKey());
-        cipher.setAuthData(Transcoder.utf8().decode(name));
         final JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-        final String encryptedJsonString = cipher.encryptToBase64(value);
-        JsonTarget.addNotNull(arrayBuilder, encryptedJsonString);
+        JsonTarget.addNotNull(arrayBuilder, protocol.protectAttributes(name, JsonSource.toString(jsonArray)));
         return arrayBuilder.build();
     }
 
@@ -185,31 +150,8 @@ public abstract class MessageBase {
         SdkData.checkTrue(JsonSource.isSize(jsonArray, 1), SdkError.ISAGENT_INVALIDVALUE, JsonArray.class.getName());
         final JsonValue jsonValueIt = JsonSource.getIterator(jsonArray).next();  // grab the first and only entry
         final String value = JsonSource.toString(jsonValueIt);
-        final AesGcmCipher cipher = new AesGcmCipher();
-        cipher.setKey(key);
-        cipher.setAuthData(Transcoder.utf8().decode(keyId));
-        final String jsonStringArray = cipher.decryptBase64ToString(value);
+        final String jsonStringArray = protocol.unprotectAttributes(keyId, value, key);
         return JsonIO.readArray(jsonStringArray);
-    }
-
-    /**
-     * Verify the signature provided in the response against a locally generated signature.
-     *
-     * @param name        the attribute whose value should be checked
-     * @param sigExpected the (server-provided) value
-     * @param attrs       the source material for the signature
-     * @param key         the key to use in calculating the signature
-     * @throws IonicException on cryptography errors
-     */
-    public final void verifySignature(
-            final String name, final String sigExpected, final String attrs, final byte[] key) throws IonicException {
-        if (sigExpected != null) {
-            final String sigActual = CryptoUtils.hmacSHA256Base64(Transcoder.utf8().decode(attrs), key);
-            if (!sigExpected.equals(sigActual)) {
-                throw new IonicException(SdkError.ISAGENT_INVALIDVALUE,
-                        new GeneralSecurityException(String.format("%s:[%s]!=[%s]", name, sigExpected, sigActual)));
-            }
-        }
     }
 
     /**

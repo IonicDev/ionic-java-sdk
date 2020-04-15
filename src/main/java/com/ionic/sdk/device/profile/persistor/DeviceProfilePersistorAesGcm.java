@@ -7,6 +7,10 @@ import java.io.InputStream;
 import java.net.URL;
 
 /**
+ * DeviceProfilePersistorAesGcm provides for serialization to and deserialization from an accessible filesystem
+ * file of a set of {@link com.ionic.sdk.device.profile.DeviceProfile}.  These DeviceProfile objects allow for service
+ * interactions with 1..n Ionic Machina service keyspaces, which broker authenticated cryptography key transactions.
+ * <p>
  * DeviceProfilePersistorAesGcm is a persistor that uses the AesGcmCipher with a user-supplied key and authData.
  * <p>
  * The constructor {@link #DeviceProfilePersistorAesGcm(InputStream)} may be used to load the serialized store of
@@ -21,6 +25,35 @@ import java.net.URL;
  * deserialized in the context of the {@link #loadAllProfiles(String[])} API.  Before calling the
  * {@link #saveAllProfiles(java.util.List, String)} API, the save file path must be set using the
  * {@link #setFilePath(String)} API.
+ * <p>
+ * Sample:
+ * <pre>
+ * public final void testProfilePersistorAesGcm_SaveLoadProfiles() throws IonicException {
+ *     final byte[] keyBytes = new byte[AesCipher.KEY_BYTES];
+ *     final byte[] aad = new byte[AesCipher.KEY_BYTES];
+ *     final ProfilePersistor profilePersistorTest = IonicTestEnvironment.getInstance().getProfilePersistor();
+ *     final Agent agent1 = new Agent(profilePersistorTest);
+ *     // persist the DeviceProfile information to a new file
+ *     final File folderUserDir = new File(System.getProperty("user.dir"));
+ *     final File filePersistor = new File(folderUserDir, getClass().getSimpleName() + ".aesgcm.sep");
+ *     final DeviceProfilePersistorAesGcm profilePersistor1 =
+ *             new DeviceProfilePersistorAesGcm(filePersistor.getPath());
+ *     profilePersistor1.setKey(keyBytes);
+ *     profilePersistor1.setAuthData(aad);
+ *     agent1.saveProfiles(profilePersistor1);
+ *     // load the DeviceProfile information from the new file
+ *     final DeviceProfilePersistorAesGcm profilePersistor2 =
+ *             new DeviceProfilePersistorAesGcm(filePersistor.getPath());
+ *     profilePersistor2.setKey(keyBytes);
+ *     profilePersistor2.setAuthData(aad);
+ *     final Agent agent2 = new Agent(profilePersistor2);
+ *     Assert.assertEquals(agent1.getActiveProfile().getDeviceId(), agent2.getActiveProfile().getDeviceId());
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/initialize-agent-with-aes-persistor'
+ * target='_blank'>Machina Developers</a> for
+ * more information on this ProfilePersistor.
  */
 public class DeviceProfilePersistorAesGcm extends DeviceProfilePersistorBase {
 
@@ -120,4 +153,13 @@ public class DeviceProfilePersistorAesGcm extends DeviceProfilePersistorBase {
         cipherCast.setKey(mKeyData);
     }
 
+    @Override
+    protected final String getFormat() {
+        return FORMAT_AESGCM;
+    }
+
+    /**
+     * Ionic Secure Enrollment Profile type header field value.
+     */
+    public static final String FORMAT_AESGCM = "aesgcm";
 }

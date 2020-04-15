@@ -268,6 +268,7 @@ public class KeyVaultKey {
     /**
      * Get the issued time of the key measured in UTC seconds according to server time.
      * @return  The issued time of the key measured in UTC seconds according to server time.
+     * @see com.ionic.sdk.core.date.DateTime
      */
     public long getIssuedServerTimeUtcSeconds() {
         return issuedServerTimeUtcSeconds;
@@ -277,6 +278,7 @@ public class KeyVaultKey {
      * Set the issued time of the key measured in UTC seconds according to server time.
      * @param issuedServerTimeUtcSeconds The issued time of the key measured in UTC seconds according
      * to server time.
+     * @see com.ionic.sdk.core.date.DateTime
      */
     public void setIssuedServerTimeUtcSeconds(final long issuedServerTimeUtcSeconds) {
         this.issuedServerTimeUtcSeconds = issuedServerTimeUtcSeconds;
@@ -285,6 +287,7 @@ public class KeyVaultKey {
     /**
      * Get the expiration time of the key measured in UTC seconds according to server time.
      * @return The expiration time of the key measured in UTC seconds according to server time.
+     * @see com.ionic.sdk.core.date.DateTime
      */
     public long getExpirationServerTimeUtcSeconds() {
         return expirationServerTimeUtcSeconds;
@@ -294,7 +297,8 @@ public class KeyVaultKey {
      * Set the expiration time of the key measured in UTC seconds according to server time.
      * @param expirationServerTimeUtcSeconds The expiration time of the key measured in UTC seconds according
      * to server time.
-    */
+     * @see com.ionic.sdk.core.date.DateTime
+     */
     public void setExpirationServerTimeUtcSeconds(final long expirationServerTimeUtcSeconds) {
         this.expirationServerTimeUtcSeconds = expirationServerTimeUtcSeconds;
     }
@@ -305,6 +309,7 @@ public class KeyVaultKey {
      *  Optionally, zero can be provided, in which case this function will calculate the current server time
      *  automatically via {@link KeyVaultTimeUtil#getCurrentServerTimeUtcSeconds()}.
      * @return True if the current time if greater than or equal to the expiration time, false otherwise
+     * @see com.ionic.sdk.core.date.DateTime
      */
     public boolean isExpired(final long currentServerTimeUtcSeconds) {
         if (currentServerTimeUtcSeconds <= 0) {
@@ -318,6 +323,7 @@ public class KeyVaultKey {
      * Determine if the key is expired using the current server time
      * via {@link KeyVaultTimeUtil#getCurrentServerTimeUtcSeconds()}.
      * @return True if the current time if greater than or equal to the expiration time, false otherwise
+     * @see com.ionic.sdk.core.date.DateTime
      */
     public boolean isExpired() {
         return (KeyVaultTimeUtil.getCurrentServerTimeUtcSeconds() >= expirationServerTimeUtcSeconds);

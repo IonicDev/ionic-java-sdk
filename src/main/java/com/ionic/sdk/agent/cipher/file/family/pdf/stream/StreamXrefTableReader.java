@@ -128,7 +128,8 @@ public final class StreamXrefTableReader {
     /**
      * Decode PNG encoded table to obtain true values.
      * <p>
-     * See also: <a href='https://en.wikipedia.org/wiki/Portable_Network_Graphics#Filtering'>PNG filtering</a>
+     * See also: <a href='https://en.wikipedia.org/wiki/Portable_Network_Graphics#Filtering'
+     * target='_blank'>PNG filtering</a>
      *
      * @param record     the bytes associated with one serialized xref record
      * @param recordLast the previous xref record (used by decompression filter, which saves offsets from previous)

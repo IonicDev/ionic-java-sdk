@@ -5,8 +5,13 @@ import com.ionic.sdk.core.value.Value;
 import javax.json.JsonObject;
 
 /**
- * The base class for server responses to agent requests, which encapsulate the server response to an http request made
- * to the Ionic server infrastructure (if any).
+ * The base class for Ionic Machina Tools service responses to client requests.   These encapsulate the server
+ * response to an https request made to the Machina server infrastructure.
+ * <p>
+ * Service errors encountered in the context of a service request are passed back to the API caller via this object.
+ * <p>
+ * Machina will generate a "conversation id" (CID) internally for each service interaction.  On service errors, the
+ * CID will be helpful to the Machina support team in identifying the cause of the error.
  */
 public class AgentResponseBase {
 

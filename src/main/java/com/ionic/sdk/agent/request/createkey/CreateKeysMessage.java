@@ -1,10 +1,9 @@
 package com.ionic.sdk.agent.request.createkey;
 
-import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.ServiceProtocol;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
-import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.json.JsonIO;
 import com.ionic.sdk.json.JsonTarget;
@@ -37,12 +36,11 @@ public class CreateKeysMessage extends MessageBase {
     /**
      * Constructor.
      *
-     * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
+     * @param protocol the protocol used by the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      * @throws IonicException on random number generation failure
      */
-    public CreateKeysMessage(final Agent agent) throws IonicException {
-        super(agent, AgentTransactionUtil.generateConversationId(
-                agent.getActiveProfile(), IDC.Message.SERVER_API_CID));
+    public CreateKeysMessage(final ServiceProtocol protocol) throws IonicException {
+        super(protocol);
         this.csigs = new Properties();
         this.msigs = new Properties();
     }
@@ -84,6 +82,7 @@ public class CreateKeysMessage extends MessageBase {
      */
     private JsonArray getJsonProtectionKeys(final CreateKeysRequest createKeysRequest)
             throws IonicException {
+        final String cid = getCid();
         final Collection<JsonObject> jsonProtectionKeys = new ArrayList<JsonObject>();
         for (CreateKeysRequest.Key key : createKeysRequest.getKeys()) {
             final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
@@ -91,15 +90,13 @@ public class CreateKeysMessage extends MessageBase {
             JsonTarget.addNotNull(objectBuilder, IDC.Payload.REF, refId);
             JsonTarget.add(objectBuilder, IDC.Payload.QTY, key.getQuantity());
             final String cattrs = JsonIO.write(super.generateJsonAttrs(key.getAttributesMap()), false);
-            final String csig = super.buildSignedAttributes(refId, null, cattrs, false);
-            JsonTarget.addNotNull(objectBuilder, IDC.Payload.CATTRS, cattrs);
-            JsonTarget.addNotNull(objectBuilder, IDC.Payload.CSIG, csig);
-            csigs.put(refId, csig);
             final String mattrs = JsonIO.write(super.generateJsonAttrs(key.getMutableAttributesMap()), false);
-            final String msig = super.buildSignedAttributes(refId, null, mattrs, true);
+            JsonTarget.addNotNull(objectBuilder, IDC.Payload.CATTRS, cattrs);
             JsonTarget.addNotNull(objectBuilder, IDC.Payload.MATTRS, mattrs);
+            final String csig = getProtocol().signAttributes(cid, refId, null, csigs, cattrs, false);
+            final String msig = getProtocol().signAttributes(cid, refId, null, msigs, mattrs, true);
+            JsonTarget.addNotNull(objectBuilder, IDC.Payload.CSIG, csig);
             JsonTarget.addNotNull(objectBuilder, IDC.Payload.MSIG, msig);
-            msigs.put(refId, msig);
             final JsonObject jsonProtectionKey = objectBuilder.build();
             jsonProtectionKeys.add(jsonProtectionKey);
         }

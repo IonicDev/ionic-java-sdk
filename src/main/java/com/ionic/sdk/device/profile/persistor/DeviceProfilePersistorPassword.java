@@ -3,13 +3,26 @@ package com.ionic.sdk.device.profile.persistor;
 import com.ionic.sdk.cipher.aes.AesCipher;
 import com.ionic.sdk.cipher.aes.AesGcmCipher;
 import com.ionic.sdk.core.codec.Transcoder;
+import com.ionic.sdk.core.rng.CryptoRng;
 import com.ionic.sdk.crypto.CryptoUtils;
+import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.json.JsonIO;
+import com.ionic.sdk.json.JsonSource;
+import com.ionic.sdk.json.JsonTarget;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 
 /**
+ * DeviceProfilePersistorPassword provides for serialization to and deserialization from an accessible filesystem
+ * file of a set of {@link com.ionic.sdk.device.profile.DeviceProfile}.  These DeviceProfile objects allow for service
+ * interactions with 1..n Ionic Machina service keyspaces, which broker authenticated cryptography key transactions.
+ * <p>
  * DeviceProfilePersistorPassword is a persistor that uses the AesGcmCipher with a user-supplied password
  * hashed with pbkdf2.
  * <p>
@@ -25,6 +38,32 @@ import java.net.URL;
  * deserialized in the context of the {@link #loadAllProfiles(String[])} API.  Before calling the
  * {@link #saveAllProfiles(java.util.List, String)} API, the save file path must be set using the
  * {@link #setFilePath(String)} API.
+ * <p>
+ * Sample:
+ * <pre>
+ * public final void testProfilePersistorPassword_SaveLoadProfiles() throws IonicException {
+ *     final String password = Long.toString(System.currentTimeMillis());
+ *     final ProfilePersistor profilePersistorTest = IonicTestEnvironment.getInstance().getProfilePersistor();
+ *     final Agent agent1 = new Agent(profilePersistorTest);
+ *     // persist the DeviceProfile information to a new file
+ *     final File folderUserDir = new File(System.getProperty("user.dir"));
+ *     final File filePersistor = new File(folderUserDir, getClass().getSimpleName() + ".password.sep");
+ *     final DeviceProfilePersistorPassword profilePersistor1 =
+ *             new DeviceProfilePersistorPassword(filePersistor.getPath());
+ *     profilePersistor1.setPassword(password);
+ *     agent1.saveProfiles(profilePersistor1);
+ *     // load the DeviceProfile information from the new file
+ *     final DeviceProfilePersistorPassword profilePersistor2 =
+ *             new DeviceProfilePersistorPassword(filePersistor.getPath());
+ *     profilePersistor2.setPassword(password);
+ *     final Agent agent2 = new Agent(profilePersistor2);
+ *     Assert.assertEquals(agent1.getActiveProfile().getDeviceId(), agent2.getActiveProfile().getDeviceId());
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/initialize-agent-with-password-persistor'
+ * target='_blank'>Machina Developers</a> for
+ * more information on this ProfilePersistor.
  */
 public class DeviceProfilePersistorPassword extends DeviceProfilePersistorBase {
 
@@ -32,6 +71,11 @@ public class DeviceProfilePersistorPassword extends DeviceProfilePersistorBase {
      * The AesGcmCipher cast of the mCipher.
      */
     private final AesGcmCipher cipherCast;
+
+    /**
+     * The password used to generate the key protecting the file data.
+     */
+    private String password;
 
     /**
      * The Ionic auth string.
@@ -85,14 +129,47 @@ public class DeviceProfilePersistorPassword extends DeviceProfilePersistorBase {
      * Provide password used to protect the serialized byte stream containing DeviceProfile objects.
      *
      * @param password the client-supplied string used to protect the DeviceProfile objects on serialization
-     * @throws IonicException on cryptography initialization failures; bad input; cryptography operation failures
      */
-    public final void setPassword(final String password) throws IonicException {
+    public final void setPassword(final String password) {
+        this.password = password;
+    }
+
+    @Override
+    protected final String getFormat() {
+        return FORMAT_PASSWORD;
+    }
+
+    @Override
+    protected final void initializeCipher(final String jsonHeader) throws IonicException {
+        byte[] salt = new byte[0];
+        if (jsonHeader != null) {
+            final JsonObject jsonObject = JsonIO.readObject(Transcoder.utf8().decode(jsonHeader));
+            final JsonObject extra = JsonSource.getJsonObjectNullable(jsonObject, EXTRA);
+            salt = Transcoder.base64().decode(JsonSource.getString(extra, SALT));
+        }
         // derive a key from the password using PBKDF2 (mimic current C++ behavior)
         final int iterations = 2000;
         cipherCast.setKey(CryptoUtils.pbkdf2ToBytes(
-                Transcoder.utf8().decode(password), new byte[0], iterations, AesCipher.KEY_BYTES));
+                Transcoder.utf8().decode(password), salt, iterations, AesCipher.KEY_BYTES));
         // set a hard-coded, known auth data
         cipherCast.setAuthData(Transcoder.utf8().decode(IONIC_AUTH_DATA));
     }
+
+    @Override
+    public final void saveAllProfiles(
+            final List<DeviceProfile> profiles, final String activeProfile) throws IonicException {
+        // generate new salt for this encryption
+        final JsonObjectBuilder extraBuilder = Json.createObjectBuilder();
+        final int saltBytes = 32;
+        JsonTarget.addNotNull(extraBuilder, SALT,
+                Transcoder.base64().encode(new CryptoRng().rand(new byte[saltBytes])));
+        setExtra(JsonIO.write(extraBuilder.build(), false));
+        // delegate file write
+        super.saveAllProfiles(profiles, activeProfile);
+    }
+
+    /**
+     * Ionic Secure Enrollment Profile type header field value.
+     */
+    public static final String FORMAT_PASSWORD = "password";
 }

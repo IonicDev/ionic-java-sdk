@@ -4,7 +4,17 @@ import com.ionic.sdk.agent.request.base.AgentResponseBase;
 import com.ionic.sdk.device.profile.DeviceProfile;
 
 /**
- * Represents the output for an Agent.createDevice() request.
+ * Represents the output for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#createDevice(CreateDeviceRequest)} API call.
+ * <p>
+ * This API is used to enroll devices with Machina, allowing for subsequent requests for cryptography keys and
+ * service resources.
+ * <p>
+ * On success, the response contains a {@link com.ionic.sdk.device.profile.DeviceProfile} object, containing
+ * information used by the device to make subsequent API calls.
+ * <p>
+ * See <a href='https://dev.ionic.com/api/device/create-profile' target='_blank'>Machina Developers</a> for
+ * more information about the CreateDevice operation.
  */
 public final class CreateDeviceResponse extends AgentResponseBase {
 
@@ -34,5 +44,12 @@ public final class CreateDeviceResponse extends AgentResponseBase {
      */
     public void setDeviceProfile(final DeviceProfile deviceProfile) {
         this.deviceProfile = deviceProfile;
+    }
+
+    /**
+     * @return whether server response payload requires a "data" component
+     */
+    protected boolean isDataRequired() {
+        return false;
     }
 }

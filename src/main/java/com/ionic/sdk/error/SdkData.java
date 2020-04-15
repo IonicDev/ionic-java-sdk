@@ -22,7 +22,7 @@ public final class SdkData {
     public static void checkNotNull(final Object value, final String message) throws IonicException {
         if (value == null) {
             final int error = SdkError.ISAGENT_NULL_INPUT;
-            throw new IonicException(error, new IonicException(error, message));
+            throw new IonicException(error, message);
         }
     }
 
@@ -62,7 +62,7 @@ public final class SdkData {
      */
     public static void checkTrue(final boolean value, final int error, final String message) throws IonicException {
         if (!value) {
-            throw new IonicException(error, new IonicException(error, message));
+            throw new IonicException(error, message);
         }
     }
 }

@@ -6,7 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents the input for an Agent.getKeys() request.
+ * Represents the input for a request to the Ionic Machina
+ * Tools {@link com.ionic.sdk.agent.Agent#getKeys(GetKeysRequest)} API call.
+ * <p>
+ * The request may contain a set of 1..n key ids.  Each key id uniquely identifies an cryptography key stored by the
+ * Machina infrastructure.
+ * <p>
+ * The request may also contain a set of 1..n external ids.  Each external id identifies a set of cryptography keys
+ * stored by the Machina infrastructure.
+ * <p>
+ * The CreateKey / CreateKeys family of APIs allow for new AES keys to be securely generated, in the context of a data
+ * encryption usage.  Subsequent GetKey / GetKeys calls allow for the retrieval of the keys, to enable permitted
+ * decryption of the secured data.
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/tasks/get-key' target='_blank'>Get Key</a> and
+ * <a href='https://dev.ionic.com/sdk/tasks/get-key-by-external-id' target='_blank'>Get Key By External Id</a> for
+ * more information about the GetKey operation.
  */
 public class GetKeysRequest extends AgentRequestBase {
 

@@ -40,7 +40,48 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Cipher that supports CSV (comma-separated variable) file encryption / decryption.
+ * Ionic Machina Tools CSV (comma-separated variable) file crypto implementation.  This object can be used to perform
+ * encryption and decryption operations on filesystem files that are in the CSV format.
+ * <p>
+ * {@link CsvFileCipher} provides APIs to perform file encryption on filesystem files, and also on in-memory
+ * byte arrays.
+ * <p>
+ * Sample (byte[] API):
+ * <pre>
+ * public final void testFileCipherCsv_EncryptDecryptBytes() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final byte[] plainText = Transcoder.utf8().decode("a,b,c\n1,2,3\n");
+ *     final FileCipherAbstract fileCipher = new CsvFileCipher(keyServices);
+ *     final FileCryptoEncryptAttributes encryptAttributes = new FileCryptoEncryptAttributes();
+ *     final FileCryptoDecryptAttributes decryptAttributes = new FileCryptoDecryptAttributes();
+ *     final byte[] cipherText = fileCipher.encrypt(plainText, encryptAttributes);
+ *     final byte[] plainTextRecover = fileCipher.decrypt(cipherText, decryptAttributes);
+ *     Assert.assertArrayEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * Sample (file path API):
+ * <pre>
+ * public final void testFileCipherCsv_EncryptDecryptFile() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final byte[] plainText = Transcoder.utf8().decode("a,b,c\n1,2,3\n");
+ *     final File filePlainText = new File("csv.plainText.txt");
+ *     final File fileCipherText = new File("csv.cipherText.txt");
+ *     final File filePlainTextRecover = new File("csv.plainText.recover.txt");
+ *     DeviceUtils.write(filePlainText, plainText);
+ *     final FileCipherAbstract fileCipher = new CsvFileCipher(keyServices);
+ *     final FileCryptoEncryptAttributes encryptAttributes = new FileCryptoEncryptAttributes();
+ *     final FileCryptoDecryptAttributes decryptAttributes = new FileCryptoDecryptAttributes();
+ *     fileCipher.encrypt(filePlainText.getPath(), fileCipherText.getPath(), encryptAttributes);
+ *     fileCipher.decrypt(fileCipherText.getPath(), filePlainTextRecover.getPath(), decryptAttributes);
+ *     final String sha256PlainText = CryptoUtils.sha256ToHexString(DeviceUtils.read(filePlainText));
+ *     final String sha256Recover = CryptoUtils.sha256ToHexString(DeviceUtils.read(filePlainTextRecover));
+ *     Assert.assertEquals(sha256PlainText, sha256Recover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/file-crypto-csv' target='_blank'>Machina Developers</a> for
+ * more information on the different file crypto data formats.
  */
 public final class CsvFileCipher extends FileCipherAbstract {
 

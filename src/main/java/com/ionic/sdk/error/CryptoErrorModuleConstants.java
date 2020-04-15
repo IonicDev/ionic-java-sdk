@@ -12,7 +12,7 @@ public interface CryptoErrorModuleConstants {
      int ISCRYPTO_OK = 0;
 
     /**
-     * Crypto module range base.
+     * Crypto module error code range base.
      */
      int ISCRYPTO_ERROR_BASE = 50000;
 
@@ -39,8 +39,10 @@ public interface CryptoErrorModuleConstants {
      int ISCRYPTO_BAD_INPUT = 50004;
 
     /**
-     * CryptoAbstract module has not been initialized.
-     * The crypto module was used before being initialized via cryptoImpl_initialize().
+     * Crypto module has not been initialized.
+     * <p>
+     * This error code is present in order to maintain compatibility with the C++ SDK.  It is unused
+     * in this language implementation.
      */
      int ISCRYPTO_NO_INIT = 50005;
 
@@ -69,9 +71,12 @@ public interface CryptoErrorModuleConstants {
      * A seed overflow occurred during RSA private key generation.
      * During RSA private key generation, it is possible for the random seed to overflow
      * (although extremely unlikely).  In that situation, RSA key generation is aborted and the
-     * ISCRYPTO_RSA_SEED_OVERFLOW error code is returned.
+     * ISCRYPTO_SEED_OVERFLOW error code is returned.
      * <p>
      * When this error is encountered, it is recommended to simply try again.
+     * <p>
+     * This error code is present in order to maintain compatibility with the C++ SDK.  It is unused
+     * in this language implementation.
      */
      int ISCRYPTO_SEED_OVERFLOW = 50009;
 

@@ -10,7 +10,30 @@ import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.key.KeyServices;
 
 /**
- * Wrapper object used to abstract Ionic cryptography operations.
+ * Ionic Machina Tools chunk crypto implementation.  This wrapper object can be used to abstract Ionic
+ * cryptography operations.  Instances of this class use underlying Machina chunk cipher implementations to perform
+ * operations:
+ * <ul>
+ * <li>encryption operations are performed using the default cipher: {@link ChunkCipherV2},</li>
+ * <li>decryption operations are performed using the cipher format used to produce the ciphertext.</li>
+ * </ul>
+ * <p>
+ * Sample:
+ * <pre>
+ * public final void testChunkCipherAuto_EncryptDecryptString() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final String plainText = "Hello, Machina!";
+ *     final ChunkCipherAbstract chunkCipher = new ChunkCipherAuto(keyServices);
+ *     final String cipherText = chunkCipher.encrypt(plainText);
+ *     final ChunkCryptoChunkInfo chunkInfo = chunkCipher.getChunkInfo(cipherText);
+ *     Assert.assertEquals(ChunkCipherV2.ID, chunkInfo.getCipherId());
+ *     final String plainTextRecover = chunkCipher.decrypt(cipherText);
+ *     Assert.assertEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/chunk' target='_blank'>Machina Developers</a> for more information
+ * on the different chunk crypto data formats.
  */
 public class ChunkCipherAuto extends ChunkCipherAbstract {
 

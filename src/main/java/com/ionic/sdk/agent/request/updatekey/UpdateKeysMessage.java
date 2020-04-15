@@ -1,11 +1,10 @@
 package com.ionic.sdk.agent.request.updatekey;
 
-import com.ionic.sdk.agent.Agent;
+import com.ionic.sdk.agent.ServiceProtocol;
 import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
-import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
@@ -38,12 +37,11 @@ public class UpdateKeysMessage extends MessageBase {
     /**
      * Constructor.
      *
-     * @param agent the {@link com.ionic.sdk.key.KeyServices} implementation
+     * @param protocol the protocol used by the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      * @throws IonicException on random number generation failure
      */
-    UpdateKeysMessage(final Agent agent) throws IonicException {
-        super(agent, AgentTransactionUtil.generateConversationId(
-                agent.getActiveProfile(), IDC.Message.SERVER_API_CID));
+    UpdateKeysMessage(final ServiceProtocol protocol) throws IonicException {
+        super(protocol);
         this.msigs = new Properties();
     }
 
@@ -60,7 +58,7 @@ public class UpdateKeysMessage extends MessageBase {
      * @param requestBase the user-generated object containing the attributes of the request
      * @return a {@link JsonObject} to be incorporated into the request payload
      * @throws IonicException on cryptography errors
-     *                      final CreateKeysRequest createKeysRequest
+     *                        final CreateKeysRequest createKeysRequest
      */
     @Override
     protected final JsonObject getJsonData(final AgentRequestBase requestBase) throws IonicException {
@@ -96,8 +94,7 @@ public class UpdateKeysMessage extends MessageBase {
             JsonTarget.addNotNull(objectBuilder, IDC.Payload.PREVMSIG, prevmsig);
             final String extra = (key.getForceUpdate() ? IDC.Signature.FORCE : null);
             final String mattrs = JsonIO.write(super.generateJsonAttrs(key.getMutableAttributesMap()), false);
-            final String msig = super.buildSignedAttributes(id, extra, mattrs, true);
-            msigs.put(id, msig);
+            final String msig = getProtocol().signAttributes(getCid(), id, extra, msigs, mattrs, true);
             JsonTarget.addNotNull(objectBuilder, IDC.Payload.MATTRS, mattrs);
             JsonTarget.addNotNull(objectBuilder, IDC.Payload.MSIG, msig);
             final JsonObject jsonProtectionKey = objectBuilder.build();

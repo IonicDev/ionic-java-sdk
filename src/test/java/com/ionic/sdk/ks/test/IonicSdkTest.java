@@ -19,18 +19,19 @@ public class IonicSdkTest {
     private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
-     * Test coverage for {@link SdkVersion APIs}.
+     * Test coverage for {@link SdkVersion APIs}.  When tests are run against undecorated code, git commit
+     * is not available.
      */
     @Test
     public final void testSdkVersion_APIs_Success() {
         final String versionString = SdkVersion.getVersionString();
-        logger.info(versionString);
-        final int expectedLength = 12;
-        Assert.assertEquals(expectedLength, versionString.length());
+        logger.info(versionString.length() + "::" + versionString);
+        final int expectedMinLength = 12;  // 12 version, 1 space, 7-9 git commit
+        Assert.assertTrue(versionString.length() >= expectedMinLength);
     }
 
     /**
-     * Test coverage for {@link SdkModule APIs}.
+     * Test coverage for {@link SdkModule APIs}.  Compatibility checks against legacy JNI wrapper APIs.
      */
     @Test
     public final void testSdkErrorModule_APIs_Success() {

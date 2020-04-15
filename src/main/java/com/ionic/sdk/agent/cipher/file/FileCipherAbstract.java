@@ -17,7 +17,11 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Cipher that supports generic file encryption / decryption.
+ * Ionic Machina Tools file crypto abstract implementation.  Subclasses of FileCipherAbstract implement the
+ * different Machina file data formats.
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/features' target='_blank'>Machina Developers</a> for more information
+ * on the different file crypto data formats.
  */
 public abstract class FileCipherAbstract {
 
@@ -125,7 +129,8 @@ public abstract class FileCipherAbstract {
      * of the in-use JVM should be tuned to accommodate very large byte buffers, if needed.
      * <p>
      * See also:
-     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'>Tuning Java Virtual Machines</a>
+     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'
+     * target='_blank'>Tuning Java Virtual Machines</a>
      *
      * @param plainText  the binary plain text input buffer
      * @param attributes the attributes to be used in the context of the encrypt operation
@@ -144,7 +149,8 @@ public abstract class FileCipherAbstract {
      * of the in-use JVM should be tuned to accommodate very large byte buffers, if needed.
      * <p>
      * See also:
-     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'>Tuning Java Virtual Machines</a>
+     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'
+     * target='_blank'>Tuning Java Virtual Machines</a>
      *
      * @param plainText the binary plain text input buffer
      * @return the binary cipher text output buffer
@@ -267,7 +273,8 @@ public abstract class FileCipherAbstract {
      * of the in-use JVM should be tuned to accommodate very large byte buffers, if needed.
      * <p>
      * See also:
-     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'>Tuning Java Virtual Machines</a>
+     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'
+     * target='_blank'>Tuning Java Virtual Machines</a>
      *
      * @param cipherText the binary cipher text input buffer
      * @param attributes the attributes used in the context of the decrypt operation
@@ -286,7 +293,8 @@ public abstract class FileCipherAbstract {
      * of the in-use JVM should be tuned to accommodate very large byte buffers, if needed.
      * <p>
      * See also:
-     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'>Tuning Java Virtual Machines</a>
+     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'
+     * target='_blank'>Tuning Java Virtual Machines</a>
      *
      * @param cipherText the binary cipher text input buffer
      * @return the binary plain text output buffer
@@ -409,7 +417,8 @@ public abstract class FileCipherAbstract {
      * of the in-use JVM should be tuned to accommodate very large byte buffers, if needed.
      * <p>
      * See also:
-     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'>Tuning Java Virtual Machines</a>
+     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'
+     * target='_blank'>Tuning Java Virtual Machines</a>
      *
      * @param plainText  the binary plain text input buffer
      * @param attributes the attributes to be used in the context of the encrypt operation
@@ -426,7 +435,8 @@ public abstract class FileCipherAbstract {
      * of the in-use JVM should be tuned to accommodate very large byte buffers, if needed.
      * <p>
      * See also:
-     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'>Tuning Java Virtual Machines</a>
+     * <a href='https://docs.oracle.com/cd/E21764_01/web.1111/e13814/jvm_tuning.htm'
+     * target='_blank'>Tuning Java Virtual Machines</a>
      *
      * @param cipherText the binary cipher text input buffer
      * @param attributes the attributes used in the context of the decrypt operation

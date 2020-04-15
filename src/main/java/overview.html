@@ -1,0 +1,48 @@
+<HTML>
+<BODY>
+The Machina SDK exposes functions to perform key management, data encryption, profile management, and logging.
+<p>
+Key Management allows users to create, fetch, and update symmetric keys with granular data attributes. Machina
+SDKs perform data encryption at multiple layers of abstraction. You can encrypt / decrypt either strings or
+files. Profile management allows for secured and authenticated communications with Machina.
+</p>
+<h1>Key Management</h1>
+<p>Users may perform key management operations using the built-in
+<a href="com/ionic/sdk/key/KeyServices.html">KeyServices</a> implementation
+<a href="com/ionic/sdk/agent/Agent.html">Agent</a>.</p>
+<ul>
+<li>Create a key using API <a href="com/ionic/sdk/agent/Agent.html#createKey--">createKey()</a> and variants.</li>
+<li>Fetch a key using API <a href="com/ionic/sdk/agent/Agent.html#getKey-java.lang.String-">getKey()</a> and variants.</li>
+<li>Update attributes of a key using API <a href="com/ionic/sdk/agent/Agent.html#updateKey-com.ionic.sdk.agent.request.updatekey.UpdateKeysRequest.Key-">updateKey()</a> and variants.</li>
+</ul>
+<p>Key operations allow the specification of <a href="com/ionic/sdk/agent/key/KeyAttributesMap.html">Key Attributes</a>,
+which can be used to classify data associated with the key.  Machina policy decisions allowing key release may be based
+on these attributes.</p>
+
+<h1>Data Encryption</h1>
+<p>The Machina Tools SDKs provide the built-in ability to encrypt / decrypt either strings or files.</p>
+<h3>String Encryption</h3>
+<p>Encryption of strings may be done using one of the chunk cipher implementations in the package
+<a href="com/ionic/sdk/agent/cipher/chunk/package-summary.html">com.ionic.sdk.agent.cipher.chunk</a>.  Choose a chunk
+cipher based on the security, integrity, and size limitation requirements of your use case.</p>
+<h3>File Encryption</h3>
+<p>Encryption of filesystem files may be done using one of the file cipher implementations in the package
+<a href="com/ionic/sdk/agent/cipher/file/package-summary.html">com.ionic.sdk.agent.cipher.file</a>.  Choose a file
+cipher based on the requirements of your use case.</p>
+
+<h1>Profile Management</h1>
+<p>In order to secure client communications with Machina, devices must first enroll with their key service.  This may
+be done using the Agent API <a href="com/ionic/sdk/agent/Agent.html#createDevice-com.ionic.sdk.agent.request.createdevice.CreateDeviceRequest-">createDevice()</a>.</p>
+<p>Once enrolled, the enrollment data may be persisted to the device filesystem using of the implementations of
+<a href="com/ionic/sdk/device/profile/persistor/ProfilePersistor.html">ProfilePersistor</a>.</p>
+
+<h1>Errors</h1>
+<p>On operation failures when using the Machina Tools Java APIs, the exception
+<a href="com/ionic/sdk/error/IonicException.html">IonicException</a> is thrown.  This exception may wrap additional exceptions,
+including platform or server exceptions, so be sure to check the exception cause for additional contextual
+information.</p>
+<p>The error codes defined in the SDK are specified in constants classes found in the package
+<a href="com/ionic/sdk/error/package-summary.html">com.ionic.sdk.error</a>.  Additional error codes may be provided by
+other Machina components.</p>
+</BODY>
+</HTML>

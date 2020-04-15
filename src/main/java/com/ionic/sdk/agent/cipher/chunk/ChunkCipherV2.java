@@ -10,7 +10,29 @@ import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.key.KeyServices;
 
 /**
- * Wrapper object used to abstract Ionic cryptography operations.
+ * Ionic Machina Tools chunk crypto implementation, version 2.  This wrapper object can be used to abstract Machina
+ * cryptography operations.  This format is an AES-CTR based encryption scheme, encoded in Base64, and using
+ * delimiters that are shorter than the "legacy" ones in {@link ChunkCipherV1}.
+ * <p>
+ * AES-CTR (Counter Mode) is a streaming cipher variant of AES where the next key stream block is calculated by
+ * encrypting increasing values of a "counter".
+ * <p>
+ * ChunkCipherV2 is the default cipher used by the {@link ChunkCipherAuto} utility class.
+ * <p>
+ * Sample:
+ * <pre>
+ * public final void testChunkCipherV2_EncryptDecryptString() throws IonicException {
+ *     final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
+ *     final String plainText = "Hello, Machina!";
+ *     final ChunkCipherAbstract chunkCipher = new ChunkCipherV2(keyServices);
+ *     final String cipherText = chunkCipher.encrypt(plainText);
+ *     final String plainTextRecover = chunkCipher.decrypt(cipherText);
+ *     Assert.assertEquals(plainText, plainTextRecover);
+ * }
+ * </pre>
+ * <p>
+ * See <a href='https://dev.ionic.com/sdk/formats/chunk' target='_blank'>Machina Developers</a> for more information
+ * on the different chunk crypto data formats.
  */
 public class ChunkCipherV2 extends ChunkCipherAbstract {
 
@@ -136,7 +158,7 @@ public class ChunkCipherV2 extends ChunkCipherAbstract {
     /**
      * Encrypt some bytes, using Ionic infrastructure to abstract away the key management and cryptography.
      *
-     * @param plainText some bytes to be encrypted
+     * @param plainText         some bytes to be encrypted
      * @param encryptAttributes the attributes to pass along to the key created by the operation
      * @return the Ionic encoded encrypted representation of the input
      * @throws IonicException on cryptography errors

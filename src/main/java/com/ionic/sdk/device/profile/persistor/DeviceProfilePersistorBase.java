@@ -23,6 +23,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonValue;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -64,6 +65,17 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      * The URL of a device profile resource.
      */
     private URL mUrl;
+
+    /**
+     * The data version of the payload data in the file.  Version "1.1" includes a json header with metadata
+     * describing the file content.
+     */
+    private String version;
+
+    /**
+     * Additional settings associated with individual instances of {@link ProfilePersistor} data files.
+     */
+    private String extra;
 
     /**
      * The bytes cached from an input stream if the {@link InputStream} constructor is used.  These are cached to:
@@ -141,6 +153,46 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      */
     protected final CipherAbstract getCipher() {
         return mCipher;
+    }
+
+    /**
+     * @return the format type name of the {@link ProfilePersistor} in use
+     */
+    protected abstract String getFormat();
+
+    /**
+     * @return the format version of the persisted data
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Set the format version of the persisted data.
+     *
+     * @param version the format version of the persisted data
+     */
+    public void setVersion(final String version) {
+        this.version = version;
+    }
+
+    /**
+     * Set the extra parameters associated with the persisted data.  (Some format types require
+     * additional configuration.)
+     *
+     * @param extra the extra configuration parameters associated with the persisted data, in JSON format
+     */
+    protected void setExtra(final String extra) {
+        this.extra = extra;
+    }
+
+    /**
+     * Initialize the cipher associated with the {@link ProfilePersistor}.
+     *
+     * @param json (optional) JSON content prepended to the document, containing cipher configuration parameters
+     * @throws IonicException on cryptography initialization failures; bad input; cryptography operation failures
+     */
+    protected void initializeCipher(final String json) throws IonicException {
     }
 
     /**
@@ -234,7 +286,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      * @throws IonicException write to disk can throw a ISAGENT_OPENFILE exception
      *                        saveAllProfilesToJson can throw an ISCRYPTO_ERROR on encrypt
      */
-    private static void saveAllProfilesToFile(
+    private void saveAllProfilesToFile(
             final List<DeviceProfile> profiles, final String activeProfile,
             final String filePath, final CipherAbstract cipher) throws IonicException {
         // in order to save, file path must be set
@@ -243,7 +295,35 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
         final File folderParent = new File(filePath).getParentFile();
         final File folder = (folderParent == null) ? new File(System.getProperty(VM.Sys.USER_DIR)) : folderParent;
         SdkData.checkTrue((folder.exists() || folder.mkdirs()), SdkError.ISAGENT_OPENFILE);
-        Stream.writeToDisk(filePath, saveAllProfilesToJson(profiles, activeProfile, cipher));
+        final ByteArrayOutputStream os = new ByteArrayOutputStream();
+        if (VERSION_1_1.equals(version)) {
+            final String json = createPersistor11JsonHeader();
+            DeviceUtils.write(os, Transcoder.utf8().decode(json));
+            DeviceUtils.write(os, Transcoder.utf8().decode(DeviceProfileSerializer.HEADER_JSON_DELIMITER));
+            initializeCipher(json);
+        } else {
+            initializeCipher(null);
+        }
+        DeviceUtils.write(os, saveAllProfilesToJson(profiles, activeProfile, cipher));
+        Stream.writeToDisk(filePath, os.toByteArray());
+    }
+
+    /**
+     * Fabricate the JSON header to be persisted with the Secure Enrollment Profile data.  Version 1.1 of
+     * the {@link ProfilePersistor} data formats include a JSON header that specifies metadata associated with the
+     * file content.
+     *
+     * @return a String containing serialized JSON, specifying metadata associated with the file
+     * @throws IonicException on failure constructing the JSON header
+     */
+    private String createPersistor11JsonHeader() throws IonicException {
+        final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        JsonTarget.addNotNull(objectBuilder, EXTRA,
+                JsonIO.readObjectNotNull(Transcoder.utf8().decode(this.extra)));
+        JsonTarget.addNotNull(objectBuilder, FILE_TYPE_ID, FILE_TYPE_DEVICE_PROFILES);
+        JsonTarget.addNotNull(objectBuilder, FORMAT, getFormat());
+        JsonTarget.addNotNull(objectBuilder, VERSION, VERSION_1_1);
+        return JsonIO.write(objectBuilder.build(), false);
     }
 
     /**
@@ -315,16 +395,19 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      * profiles.
      *
      * @param cipherText The input we want to decrypt
-     * @param cipher     The cipher we will use to decrypt the inputed bytes
+     * @param cipher     The cipher we will use to decrypt the inputted bytes
      * @return a Tuple that holds the list of Device profiles and the id of the active profile
      * @throws IonicException decrypt or json parsing can throw a sdk exception, expect
      *                        ISAGENT_PARSEFAILED or ISCRYPTO_ERROR
      */
-    protected static Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(
+    protected Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(
             final byte[] cipherText, final CipherAbstract cipher) throws IonicException {
+        // handle ProfilePersistor v1.1 JSON header
+        final DeviceProfileSerializer serializer = new DeviceProfileSerializer(cipherText);
+        initializeCipher(serializer.getHeader());
         final List<DeviceProfile> profiles = new ArrayList<DeviceProfile>();
         String activeDeviceId = null;
-        final byte[] json = cipher.decrypt(cipherText);
+        final byte[] json = cipher.decrypt(serializer.getBody());
 
         final JsonObject jsonObj = JsonIO.readObject(json);
 
@@ -371,9 +454,54 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
             profile.setAesCdEiProfileKey(CryptoUtils.hexToBin(aesCdEiKeyHex));
             profile.setAesCdIdcProfileKey(CryptoUtils.hexToBin(aesCdIdcKeyHex));
             profile.setCreationTimestampSecs(timeStamp);
+            try {
+                profile.isValid();
+            } catch (IonicException e) {
+                throw new IonicException(SdkError.ISAGENT_LOAD_PROFILES_FAILED, e);
+            }
             profiles.add(profile);
         }
 
         return new Tuple<List<DeviceProfile>, String>(profiles, activeDeviceId);
     }
+
+    /**
+     * Ionic Secure Enrollment Profile type header field value.
+     */
+    public static final String VERSION_1_0 = "1.0";
+
+    /**
+     * Ionic Secure Enrollment Profile type header field value.
+     */
+    public static final String VERSION_1_1 = "1.1";
+
+    /**
+     * Ionic Secure Enrollment Profile type header field name.
+     */
+    public static final String EXTRA = "extra";
+
+    /**
+     * Ionic Secure Enrollment Profile type header field name.
+     */
+    public static final String FILE_TYPE_ID = "fileTypeId";
+
+    /**
+     * Ionic Secure Enrollment Profile type header field value.
+     */
+    public static final String FILE_TYPE_DEVICE_PROFILES = "ionic-device-profiles";
+
+    /**
+     * Ionic Secure Enrollment Profile type header field name.
+     */
+    public static final String FORMAT = "format";
+
+    /**
+     * Ionic Secure Enrollment Profile type header field name.
+     */
+    public static final String SALT = "salt";
+
+    /**
+     * Ionic Secure Enrollment Profile type header field name.
+     */
+    public static final String VERSION = "version";
 }
