@@ -15,6 +15,84 @@ Visit [Getting Started Tutorial](https://dev.ionic.com/getting-started) for a gu
 
 ## Release Notes
 
+### 2.7.0
+
+### New Features
+
+#### ProfilePersistor file specification version 1.1
+The Machina ```ProfilePersistor``` file format version 1.1 (currently implemented in the C++ SDK) is now available in 
+the Java SDK.  This file format includes a JSON metadata header in the file content.
+
+#### ProfilePersistor (DPAPI) default filesystem location
+The DPAPI implementation of the Machina ```ProfilePersistor``` has been updated to use the same algorithm as 
+the C++ SDK for determining the default filesystem location of DPAPI profiles.
+
+#### ProfilePersistor (DPAPI) local machine context
+The DPAPI addon library now handles usage in the context of a restricted OS user.  The LOCAL_MACHINE context is now 
+available when using ```DeviceProfilePersistorWindows``` by constructing it with parameter (isUser=false).
+- ```com.ionic.sdk.addon.dpapi.device.profile.persistor.DeviceProfilePersistorWindows(boolean isUser)```
+
+#### Keyspace Name Service additions
+Initial support for Machina Keyspace Name Service (KNS) has been added.
+- Calls to the API ```Agent.getKeyspace()``` are supported when using an ```Agent``` with no profiles.
+- The API ```Agent.updateProfileFromKNS()``` has been added.  This call will update a profile with the latest URL 
+available from the KNS provider. You may also pass in a different KNS provider URL instead of using the Ionic server.
+
+#### Documentation Improvements
+- Additional detail provided for common use cases:
+  - cryptography algorithm choice (AES-CTR, AES-GCM),
+  - chunk cryptography (strings),
+  - file cryptography (binary content),
+  - key operations (key create, key fetch),
+  - client accessor configuration (HTTP headers),
+  - persistence of client device profile information (plaintext, protected).
+- Sample code snippets included in documentation for many user-facing code classes.
+- Contextually relevant links provided from code to Machina developer website.
+- Javadoc generation corrected to provide links to classes used by the SDK (for example, to the Java 
+Runtime Environment).
+- References corrected to dependencies on Bouncy Castle library.
+- Clarifications added to treatment of Machina client and service time zones.
+- Usage information added to the "overview summary" front page of the Javadoc.
+
+#### Machina service transaction code cleanup
+Machina service transaction code has been refactored for simplicity and consistency.
+
+#### Agent copy constructor
+A copy constructor for the class ```com.ionic.sdk.agent.Agent``` has been implemented, in order to improve 
+interface consistency with the C++ reference implementation.  The copy constructor copies the in-memory state of an 
+existing Agent instance, so that filesystem access during initialization is unnecessary. 
+
+#### IonicException
+The class ```IonicException``` has been enhanced to provide the following additional information: version, build, 
+git-commit, and CID.  This additional information will help diagnose and address SDK issues.
+
+#### DeviceProfile validity checks
+The SDK alerts on a user attempt to perform an service operation using an invalid ```DeviceProfile```.  This includes
+supplying shared secret keys in the DeviceProfile with an invalid length.
+
+### Known Issues
+- None
+
+### Corrected Issues
+- Correct issue with handling of key fetch failure (C++ reference implementation consistency).
+
+### Deprecations
+| Old | New |
+| --- | --- |
+| ```com.ionic.sdk.agent.Agent.clone()``` | ```com.ionic.sdk.agent.Agent(Agent)``` |
+
+### Additional Notes
+- None
+
+### 2.6.1
+
+### New Features
+- No new software features have been added to this release.
+
+### Documentation Updates 
+- The process of documentation generation has been updated to include additional HTML meta tags, in order to improve 
+the search engine optimization (SEO) posture of the SDK documentation.
+
 ### 2.6.0
 
 ### New Features
