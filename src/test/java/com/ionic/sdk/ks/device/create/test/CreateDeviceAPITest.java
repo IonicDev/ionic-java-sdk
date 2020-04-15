@@ -8,6 +8,7 @@ import com.ionic.sdk.cipher.rsa.model.RsaKeyHolder;
 import com.ionic.sdk.core.vm.VM;
 import com.ionic.sdk.device.create.EnrollSAML;
 import com.ionic.sdk.device.profile.DeviceProfile;
+import com.ionic.sdk.device.profile.persistor.DeviceProfiles;
 import com.ionic.sdk.device.profile.persistor.ProfilePersistor;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.ks.test.IonicTestEnvironment;
@@ -66,6 +67,7 @@ public class CreateDeviceAPITest {
             agent.addProfile(deviceProfile);
             agent.setActiveProfile(deviceProfile.getDeviceId());
             agent.saveProfiles(persistor);
+            logger.info(new DeviceProfiles(deviceProfile).toJson());
             // demonstrate that this newly created agent can successfully create a tenant key
             final CreateKeysResponse keysResponse = agent.createKey();
             Assert.assertEquals(1, keysResponse.getKeys().size());
