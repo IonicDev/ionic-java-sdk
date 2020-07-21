@@ -3,6 +3,7 @@ package com.ionic.sdk.agent.request.base;
 import com.ionic.sdk.core.value.Value;
 
 import javax.json.JsonObject;
+import java.io.Serializable;
 
 /**
  * The base class for Ionic Machina Tools service responses to client requests.   These encapsulate the server
@@ -12,8 +13,13 @@ import javax.json.JsonObject;
  * <p>
  * Machina will generate a "conversation id" (CID) internally for each service interaction.  On service errors, the
  * CID will be helpful to the Machina support team in identifying the cause of the error.
+ * <p>
+ * Implementations of {@link com.ionic.sdk.key.KeyServices} may choose to set all, some, or none of the
+ * {@link AgentResponseBase} data values, as is appropriate for the implementation.  Users of
+ * {@link com.ionic.sdk.key.KeyServices} implementations should treat these values as read-only, for
+ * diagnostic purposes.
  */
-public class AgentResponseBase {
+public class AgentResponseBase implements Serializable {
 
     /**
      * The HTTP server status code from the response.
@@ -23,7 +29,7 @@ public class AgentResponseBase {
     /**
      * The json object representation of the server response.
      */
-    private JsonObject jsonPayload;
+    private transient JsonObject jsonPayload;
 
     /**
      * The Ionic server error code (if any) from the response.
@@ -51,6 +57,7 @@ public class AgentResponseBase {
      */
     public AgentResponseBase() {
         this.cid = "";
+        this.jsonPayload = null;
     }
 
     /**
@@ -155,4 +162,7 @@ public class AgentResponseBase {
     protected boolean isDataRequired() {
         return true;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = -3598379258252305464L;
 }

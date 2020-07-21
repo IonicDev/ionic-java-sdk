@@ -10,20 +10,13 @@ import com.ionic.sdk.agent.request.base.AgentResponseBase;
  * well as any server-specific error data.  The server-specific error data can be
  * helpful in determining why the communication failed.
  * <p>
+ * When deprecated class {@link ServerException} is removed from code base, this class will be updated to
+ * extend {@link IonicException}.
+ * <p>
  * {@link ServerException} has been deprecated in favor of this class.
  */
 @SuppressWarnings("deprecation")
 public final class IonicServerException extends ServerException {
-
-    /**
-     * Get the SDK error code.
-     *
-     * @return the SDK error code
-     */
-    @Override
-    public int getReturnCode() {
-        return super.getReturnCode();
-    }
 
     /**
      * Returns the detail message string of this exception.
@@ -184,4 +177,7 @@ public final class IonicServerException extends ServerException {
 //    public String getConversationId() {
 //        return conversationId;
 //    }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = 135378444826917769L;
 }

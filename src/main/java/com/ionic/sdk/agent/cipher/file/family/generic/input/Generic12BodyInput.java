@@ -37,12 +37,12 @@ final class Generic12BodyInput implements GenericBodyInput {
     /**
      * The buffer to hold a plaintext block (source buffer for encryption, target buffer for decryption).
      */
-    private ByteBuffer plainText;
+    private final ByteBuffer plainText;
 
     /**
      * The buffer to hold a ciphertext block (source buffer for decryption, target buffer for encryption).
      */
-    private ByteBuffer cipherText;
+    private final ByteBuffer cipherText;
 
     /**
      * The Ionic cipher used to encrypt file blocks.

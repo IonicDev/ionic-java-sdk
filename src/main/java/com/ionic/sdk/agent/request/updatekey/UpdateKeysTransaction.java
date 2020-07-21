@@ -10,6 +10,7 @@ import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.IonicServerException;
+import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
@@ -46,6 +47,7 @@ public class UpdateKeysTransaction extends AgentTransactionBase {
     public UpdateKeysTransaction(
             final ServiceProtocol protocol, final AgentRequestBase requestBase, final AgentResponseBase responseBase) {
         super(protocol, requestBase, responseBase);
+        this.message = null;
     }
 
     /**
@@ -58,7 +60,9 @@ public class UpdateKeysTransaction extends AgentTransactionBase {
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
         this.message = new UpdateKeysMessage(getProtocol());
-        final UpdateKeysRequest request = (UpdateKeysRequest) getRequestBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        SdkData.checkTrue(agentRequestBase instanceof UpdateKeysRequest, SdkError.ISAGENT_ERROR);
+        final UpdateKeysRequest request = (UpdateKeysRequest) agentRequestBase;
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
         final String resource = String.format(IDC.Resource.KEYS_UPDATE, IDC.Resource.SERVER_API_V24);
         // assemble the inner HTTP payload
@@ -83,8 +87,12 @@ public class UpdateKeysTransaction extends AgentTransactionBase {
         // unwrap the server response
         parseHttpResponseBase(httpRequest, httpResponse, message.getCid());
         // apply logic specific to the response type
-        final UpdateKeysRequest request = (UpdateKeysRequest) getRequestBase();
-        final UpdateKeysResponse response = (UpdateKeysResponse) getResponseBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        final AgentResponseBase agentResponseBase = getResponseBase();
+        SdkData.checkTrue(agentRequestBase instanceof UpdateKeysRequest, SdkError.ISAGENT_ERROR);
+        SdkData.checkTrue(agentResponseBase instanceof UpdateKeysResponse, SdkError.ISAGENT_ERROR);
+        final UpdateKeysRequest request = (UpdateKeysRequest) agentRequestBase;
+        final UpdateKeysResponse response = (UpdateKeysResponse) agentResponseBase;
         //final String cid = response.getConversationId();
         final JsonObject jsonPayload = response.getJsonPayload();
         final JsonObject jsonData = JsonSource.getJsonObject(jsonPayload, IDC.Payload.DATA);

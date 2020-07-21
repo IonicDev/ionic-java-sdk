@@ -7,6 +7,7 @@ import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.json.JsonIO;
 import com.ionic.sdk.json.JsonSource;
@@ -43,19 +44,22 @@ public class GetKeysMessage extends MessageBase {
      *
      * @param requestBase the user-generated object containing the attributes of the request
      * @return a {@link JsonObject} to be incorporated into the request payload
-     * @throws IonicException on cryptography errors (used by protected attributes feature)
      */
     @Override
     protected final JsonObject getJsonData(final AgentRequestBase requestBase) throws IonicException {
+        SdkData.checkTrue(requestBase instanceof GetKeysRequest, SdkError.ISAGENT_ERROR);
         final GetKeysRequest getKeysRequest = (GetKeysRequest) requestBase;
         final JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
         JsonTarget.add(objectBuilder, IDC.Payload.PROTECTION_KEYS, JsonTarget.toJsonArray(getKeysRequest.getKeyIds()));
         // external-id
         final JsonObjectBuilder protectionKeyQueries = Json.createObjectBuilder();
-        for (final String id : getKeysRequest.getExternalIds()) {
+        for (final GetKeysRequest.ExternalId id : getKeysRequest.getExternalIdObjects()) {
             final JsonObjectBuilder externalId = Json.createObjectBuilder();
-            JsonTarget.addNotNull(externalId, IDC.Payload.IONIC_EXTERNAL_ID, id);
-            JsonTarget.addNotNull(protectionKeyQueries, id, externalId.build());
+            JsonTarget.addNotNull(externalId, IDC.Payload.IONIC_EXTERNAL_ID, id.getExternalId());
+            if (id.getQuantity() > 0) {
+                JsonTarget.add(externalId, IDC.Payload.QTY, id.getQuantity());
+            }
+            JsonTarget.addNotNull(protectionKeyQueries, id.getExternalId(), externalId.build());
         }
         JsonTarget.add(objectBuilder, IDC.Payload.PROTECTION_KEY_QUERIES, protectionKeyQueries.build());
         return objectBuilder.build();

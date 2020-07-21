@@ -41,6 +41,7 @@ public class LogMessagesTransaction extends AgentTransactionBase {
     public LogMessagesTransaction(
             final ServiceProtocol protocol, final AgentRequestBase requestBase, final AgentResponseBase responseBase) {
         super(protocol, requestBase, responseBase);
+        this.message = null;
     }
 
 
@@ -54,14 +55,16 @@ public class LogMessagesTransaction extends AgentTransactionBase {
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
         this.message = new LogMessagesMessage(getProtocol());
-        final LogMessagesRequest request = (LogMessagesRequest) getRequestBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        SdkData.checkTrue(agentRequestBase instanceof LogMessagesRequest, SdkError.ISAGENT_ERROR);
+        final LogMessagesRequest request = (LogMessagesRequest) agentRequestBase;
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
         // assemble the inner HTTP payload
         final byte[] envelope = Transcoder.utf8().decode(JsonIO.write(jsonMessage, false));
         // assemble the outer (secured) HTTP payload
         final byte[] envelopeSecure = getProtocol().transformRequestPayload(envelope, message.getCid());
         // assemble the HTTP request to be sent to the server
-        final String resource = String.format(IDC.Resource.MESSAGES_PUT, IDC.Resource.SERVER_API_V22);
+        final String resource = String.format(IDC.Resource.MESSAGES_PUT, IDC.Resource.SERVER_API_V24);
         final ByteArrayInputStream bis = new ByteArrayInputStream(envelopeSecure);
         return new HttpRequest(getProtocol().getUrl(), Http.Method.POST, resource, getHttpHeaders(), bis);
     }
@@ -79,7 +82,9 @@ public class LogMessagesTransaction extends AgentTransactionBase {
         // unwrap the server response
         parseHttpResponseBase(httpRequest, httpResponse, message.getCid());
         // apply logic specific to the response type
-        final LogMessagesResponse response = (LogMessagesResponse) getResponseBase();
+        final AgentResponseBase agentResponseBase = getResponseBase();
+        SdkData.checkTrue(agentResponseBase instanceof LogMessagesResponse, SdkError.ISAGENT_ERROR);
+        final LogMessagesResponse response = (LogMessagesResponse) agentResponseBase;
         final JsonObject jsonPayload = response.getJsonPayload();
         // server response to a LogMessages request is expected to be an empty json object
         SdkData.checkTrue(JsonSource.isSize(jsonPayload, 0), SdkError.ISAGENT_INVALIDVALUE,

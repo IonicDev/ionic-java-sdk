@@ -155,8 +155,6 @@ public class OpenXmlZip {
         for (OpenXmlZipEntry oxEntry : newEntries) {
             oxEntry.addEntryToOpenXmlZip(this);
         }
-
-        return;
     }
 
     /**
@@ -170,7 +168,5 @@ public class OpenXmlZip {
         zipOutputStream.flush();
         zipOutputStream.close();
         zipOutputStream = null;
-
-        return;
     }
 }

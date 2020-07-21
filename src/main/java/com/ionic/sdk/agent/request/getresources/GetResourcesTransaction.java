@@ -8,6 +8,8 @@ import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
 import com.ionic.sdk.httpclient.HttpResponse;
@@ -41,6 +43,7 @@ public class GetResourcesTransaction extends AgentTransactionBase {
     public GetResourcesTransaction(
             final ServiceProtocol protocol, final AgentRequestBase requestBase, final AgentResponseBase responseBase) {
         super(protocol, requestBase, responseBase);
+        this.message = null;
     }
 
     /**
@@ -53,9 +56,11 @@ public class GetResourcesTransaction extends AgentTransactionBase {
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
         this.message = new GetResourcesMessage(getProtocol());
-        final GetResourcesRequest request = (GetResourcesRequest) getRequestBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        SdkData.checkTrue(agentRequestBase instanceof GetResourcesRequest, SdkError.ISAGENT_ERROR);
+        final GetResourcesRequest request = (GetResourcesRequest) agentRequestBase;
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
-        final String resource = String.format(IDC.Resource.RESOURCES_GET, IDC.Resource.SERVER_API_V23);
+        final String resource = String.format(IDC.Resource.RESOURCES_GET, IDC.Resource.SERVER_API_V24);
         // assemble the inner HTTP payload
         final byte[] envelope = Transcoder.utf8().decode(JsonIO.write(jsonMessage, false));
         // assemble the outer (secured) HTTP payload
@@ -81,7 +86,9 @@ public class GetResourcesTransaction extends AgentTransactionBase {
         //final Agent agent = getAgent();
         //final DeviceProfile activeProfile = agent.getActiveProfile();
         //final GetResourcesRequest request = (GetResourcesRequest) getRequestBase();
-        final GetResourcesResponse response = (GetResourcesResponse) getResponseBase();
+        final AgentResponseBase agentResponseBase = getResponseBase();
+        SdkData.checkTrue(agentResponseBase instanceof GetResourcesResponse, SdkError.ISAGENT_ERROR);
+        final GetResourcesResponse response = (GetResourcesResponse) agentResponseBase;
         //final String cid = response.getConversationId();
         final JsonObject jsonPayload = response.getJsonPayload();
         final JsonObject jsonData = JsonSource.getJsonObject(jsonPayload, IDC.Payload.DATA);

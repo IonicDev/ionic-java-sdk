@@ -360,9 +360,9 @@ public final class PdfFileCipher extends FileCipherAbstract {
     private void decryptInternal3(final SeekableByteChannel cipherText, final File targetFile,
                                   final FileCryptoDecryptAttributes attributes) throws IonicException, IOException {
         try (FileOutputStream fos = new FileOutputStream(targetFile)) {
-            final BufferedOutputStream os = new BufferedOutputStream(fos);
-            decryptInternal(cipherText, os, attributes);
-            os.close();
+            try (BufferedOutputStream os = new BufferedOutputStream(fos)) {
+                decryptInternal(cipherText, os, attributes);
+            }
         }
     }
 

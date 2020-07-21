@@ -82,7 +82,7 @@ public final class RsaKeyGenerator {
      */
     private RsaPublicKey generatePublicKeyInternal(final RSAPrivateCrtKey privkey) throws IonicException {
         try {
-            final RSAPublicKeySpec publicKeySpec = new java.security.spec.RSAPublicKeySpec(
+            final RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(
                     privkey.getModulus(), privkey.getPublicExponent());
             final KeyFactory keyFactory = AgentSdk.getCrypto().getKeyFactoryRsa();
             return new RsaPublicKey(keyFactory.generatePublic(publicKeySpec));

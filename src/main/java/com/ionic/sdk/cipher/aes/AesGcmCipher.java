@@ -166,11 +166,11 @@ public class AesGcmCipher extends AesCipherAbstract {
      * @throws IonicException on cryptography errors, or invalid (null) parameters (plainText)
      */
     private byte[] encryptInternal(final byte[] plainText) throws IonicException {
-        SdkData.checkNotNull(plainText, getClass().getSimpleName());
-        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, AAD);
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, ERR_AAD);
         // cipher configuration
         final byte[] iv = new CryptoRng().rand(new byte[AesCipher.SIZE_IV]);
-        final GCMParameterSpec parameterSpec = new GCMParameterSpec(SIZE_AUTH_TAG * Byte.SIZE, iv);
+        final GCMParameterSpec parameterSpec = new GCMParameterSpec(AesCipher.SIZE_ATAG * Byte.SIZE, iv);
         // encrypt
         final byte[] cipherText = super.encrypt(plainText, authData, parameterSpec);
         // package result
@@ -190,16 +190,39 @@ public class AesGcmCipher extends AesCipherAbstract {
      * @throws IonicException on cryptography errors, or invalid (null) parameters (key, plainText)
      */
     public final int encrypt(final ByteBuffer plainText, final ByteBuffer cipherText) throws IonicException {
-        SdkData.checkNotNull(plainText, getClass().getSimpleName());
-        SdkData.checkNotNull(cipherText, getClass().getSimpleName());
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
+        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, ERR_AAD);
         // cipher configuration
         final byte[] iv = new CryptoRng().rand(new byte[AesCipher.SIZE_IV]);
         final GCMParameterSpec parameterSpec = new GCMParameterSpec(
-                SIZE_AUTH_TAG * Byte.SIZE, iv, 0, AesCipher.SIZE_IV);
+                AesCipher.SIZE_ATAG * Byte.SIZE, iv, 0, AesCipher.SIZE_IV);
         // encrypt
         cipherText.clear();
         cipherText.put(iv);
         return iv.length + super.encrypt(plainText, cipherText, authData, parameterSpec);
+    }
+
+    /**
+     * Encrypt a byte buffer.  This API makes use of the JRE
+     * {@link Cipher#doFinal(ByteBuffer, ByteBuffer)} API, which uses the parameter <code>ByteBuffer</code>
+     * objects internally instead of allocating new buffers.
+     *
+     * @param plainText     ByteBuffer containing bytes to encrypt
+     * @param cipherText    ByteBuffer to receive the result of the cryptography operation
+     * @param parameterSpec additional cipher configuration
+     * @return the number of bytes stored in ciphertext
+     * @throws IonicException on cryptography errors, or invalid (null) parameters (key, plainText)
+     */
+    public final int encrypt(final ByteBuffer plainText, final ByteBuffer cipherText,
+                             final GCMParameterSpec parameterSpec) throws IonicException {
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
+        SdkData.checkNotNull(parameterSpec, ERR_LABEL);
+        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, ERR_AAD);
+        // encrypt
+        cipherText.clear();
+        return super.encrypt(plainText, cipherText, authData, parameterSpec);
     }
 
     /**
@@ -211,11 +234,11 @@ public class AesGcmCipher extends AesCipherAbstract {
      */
     @Override
     public final byte[] decrypt(final byte[] cipherText) throws IonicException {
-        SdkData.checkNotNull(cipherText, getClass().getSimpleName());
-        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, AAD);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
+        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, ERR_AAD);
         // cipher configuration
         final GCMParameterSpec parameterSpec = new GCMParameterSpec(
-                SIZE_AUTH_TAG * Byte.SIZE, cipherText, 0, AesCipher.SIZE_IV);
+                AesCipher.SIZE_ATAG * Byte.SIZE, cipherText, 0, AesCipher.SIZE_IV);
         // decrypt
         return super.decrypt(cipherText, authData, parameterSpec);
     }
@@ -231,21 +254,53 @@ public class AesGcmCipher extends AesCipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public final int decrypt(final ByteBuffer plainText, final ByteBuffer cipherText) throws IonicException {
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
+        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, ERR_AAD);
         final byte[] iv = new byte[AesCipher.SIZE_IV];
         cipherText.get(iv);
-        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, AAD);
         final GCMParameterSpec parameterSpec = new GCMParameterSpec(
-                SIZE_AUTH_TAG * Byte.SIZE, iv, 0, AesCipher.SIZE_IV);
+                AesCipher.SIZE_ATAG * Byte.SIZE, iv, 0, AesCipher.SIZE_IV);
+        return super.decrypt(plainText, cipherText, authData, parameterSpec);
+    }
+
+    /**
+     * Decrypt a previously encrypted byte buffer.  This API makes use of the JRE
+     * {@link Cipher#doFinal(ByteBuffer, ByteBuffer)} API, which uses the parameter <code>ByteBuffer</code>
+     * objects internally instead of allocating new buffers.
+     *
+     * @param plainText     ByteBuffer to receive the result of the cryptography operation
+     * @param cipherText    ByteBuffer containing bytes to decrypt
+     * @param parameterSpec additional cipher configuration
+     * @return the number of bytes stored in plaintext
+     * @throws IonicException on cryptography errors
+     */
+    public final int decrypt(final ByteBuffer plainText, final ByteBuffer cipherText,
+                             final GCMParameterSpec parameterSpec) throws IonicException {
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
+        SdkData.checkNotNull(parameterSpec, ERR_LABEL);
+        SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, ERR_AAD);
+        // decrypt
+        plainText.clear();
         return super.decrypt(plainText, cipherText, authData, parameterSpec);
     }
 
     /**
      * Length in bytes of authentication tag used to detect data tampering using AES/GCM.
+     *
+     * @deprecated please migrate usages to the replacement {@link AesCipher#SIZE_ATAG}
      */
+    @Deprecated
     public static final int SIZE_AUTH_TAG = 16;
+
+    /**
+     * Label for API call validity check failure.
+     */
+    private static final String ERR_LABEL = AesGcmCipher.class.getSimpleName();
 
     /**
      * Label for GCM Additional Authenticated Data (AAD).
      */
-    private static final String AAD = "Additional Authenticated Data";
+    private static final String ERR_AAD = "Additional Authenticated Data";
 }

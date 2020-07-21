@@ -62,9 +62,16 @@ public class CreateKeysResponse extends AgentResponseBase {
     }
 
     /**
+     * Fetch the first {@link CreateKeysResponse.Key} record associated with the specified <code>refId</code>.
+     * <p>
+     * As this API only provides access to the first key with a given <code>refId</code>, it has been deprecated by
+     * {@link #findKeysByRef(String)}.
+     *
      * @param refId the reference to search for in the server response
-     * @return the key record, if present, matching the specified key identifier
+     * @return the first key record, if present, matching the specified key identifier; otherwise <code>null</code>
+     * @deprecated please migrate usages to {@link #findKeysByRef(String)}
      */
+    @Deprecated
     public final Key findKey(final String refId) {
         Key key = null;
         for (Key keyIt : keyResponses) {
@@ -77,6 +84,30 @@ public class CreateKeysResponse extends AgentResponseBase {
     }
 
     /**
+     * Fetch the {@link CreateKeysResponse.Key} records associated with the specified <code>refId</code>.
+     * <p>
+     * A call to the API {@link com.ionic.sdk.key.KeyServices#createKeys(CreateKeysRequest)} may contain requests for
+     * keys with different attributes, via multiple calls to the API
+     * {@link CreateKeysRequest#add(CreateKeysRequest.Key)}.  Each {@link CreateKeysRequest.Key} includes a
+     * user-specified <code>refId</code>, allowing the resulting keys to be differentiated from each other.
+     * <p>
+     * This API allows the newly created keys for a given <code>refId</code> to be fetched from the response.
+     *
+     * @param refId the user-supplied reference, specified in {@link CreateKeysRequest.Key}, on which to filter
+     * @return the {@link com.ionic.sdk.agent.request.getkey.GetKeysResponse.Key} objects matching the supplied
+     * <code>refId</code>
+     */
+    public final List<Key> findKeysByRef(final String refId) {
+        final List<Key> keys = new ArrayList<Key>();
+        for (Key keyIt : keyResponses) {
+            if (refId.equals(keyIt.getRefId())) {
+                keys.add(keyIt);
+            }
+        }
+        return keys;
+    }
+
+    /**
      * Add a key response object to the {@link CreateKeysResponse}.
      *
      * @param key the object containing the parameters of the key response
@@ -84,6 +115,9 @@ public class CreateKeysResponse extends AgentResponseBase {
     public final void add(final Key key) {
         keyResponses.add(key);
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = -6828285368455531860L;
 
     /**
      * Represents a discrete key response object in the context of a {@link CreateKeysResponse}.
@@ -217,5 +251,8 @@ public class CreateKeysResponse extends AgentResponseBase {
         public final void setDeviceId(final String deviceId) {
             this.deviceId = Value.defaultOnEmpty(deviceId, "");
         }
+
+        /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+        private static final long serialVersionUID = 2744412005401917215L;
     }
 }

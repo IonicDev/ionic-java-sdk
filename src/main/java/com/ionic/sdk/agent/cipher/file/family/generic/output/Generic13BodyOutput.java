@@ -65,12 +65,12 @@ final class Generic13BodyOutput implements GenericBodyOutput {
     /**
      * The buffer to hold a plaintext block (source buffer for encryption, target buffer for decryption).
      */
-    private ByteBuffer plainText;
+    private final ByteBuffer plainText;
 
     /**
      * The buffer to hold a ciphertext block (source buffer for decryption, target buffer for encryption).
      */
-    private ByteBuffer cipherText;
+    private final ByteBuffer cipherText;
 
     /**
      * Constructor.
@@ -106,7 +106,7 @@ final class Generic13BodyOutput implements GenericBodyOutput {
 
     @Override
     public int getBlockLengthPlain() {
-        return FileCipher.Generic.V13.BLOCK_SIZE_PLAIN;
+        return blockSize;
     }
 
     @Override

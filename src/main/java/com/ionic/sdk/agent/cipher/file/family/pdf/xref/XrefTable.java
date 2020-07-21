@@ -64,4 +64,7 @@ public final class XrefTable extends TreeMap<Integer, Xref> {
         final Integer identifier = Xref.getIdentifier(ref);
         return (identifier == null) ? null : get(identifier);
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = 1864286166075223518L;
 }

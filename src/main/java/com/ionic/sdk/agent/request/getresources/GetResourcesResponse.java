@@ -2,6 +2,7 @@ package com.ionic.sdk.agent.request.getresources;
 
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,10 +47,13 @@ public class GetResourcesResponse extends AgentResponseBase {
         resources.add(resource);
     }
 
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = 2239746847945310472L;
+
     /**
      * Represents a discrete resource object.
      */
-    public static class Resource {
+    public static class Resource implements Serializable {
 
         /**
          * A reference to be used to associate resources received in the response with the request.
@@ -99,5 +103,8 @@ public class GetResourcesResponse extends AgentResponseBase {
         public final String getError() {
             return error;
         }
+
+        /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+        private static final long serialVersionUID = -2903532464909971516L;
     }
 }

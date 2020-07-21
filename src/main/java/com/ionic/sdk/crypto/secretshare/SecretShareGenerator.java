@@ -107,14 +107,12 @@ public final class SecretShareGenerator {
         return new SecretShareKey(CryptoUtils.binToHex(secretFinal), JsonIO.write(jsonPersist, true));
     }
 
-    @SuppressWarnings({"checkstyle:javadocmethod"})
     /**
      * Recover the original secret from its associated metadata.
      *
      * @param data the JSON-encoded metadata bound to the JVM environment which protects the secret
      * @return an object containing the secret, and its associated metadata
      * @throws IonicException on cryptography errors
-     * @throws javax.json.JsonException on problems parsing the secret share bytes
      */
     public SecretShareKey recover(final String data) throws IonicException {
         final JsonObject jsonPersist = JsonIO.readObject(data, SdkError.ISAGENT_PARSEFAILED);

@@ -40,4 +40,7 @@ public class MetadataMap extends HashMap<String, String> {
     public final boolean hasKey(final String key) {
         return key != null && super.containsKey(key);
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = 8283514370155381706L;
 }

@@ -59,6 +59,7 @@ public final class OpenXmlUtils {
      * @return The type as a FileType enumeration
      * @throws IonicException on IO errors
      */
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public static Tuple<FileType, byte[]> doFirstPassThrough(final File fileToEncrypt,
                                                              final boolean getCustomProps) throws IonicException {
 
@@ -195,7 +196,7 @@ public final class OpenXmlUtils {
                 if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                     final Element eElement = (Element) nNode;
                     final String contentType = eElement.getAttribute(FileCipher.OpenXml.CONTENT_TYPE_KEY_LABEL);
-                    if (contentType != null && searchName.equals(contentType)) {
+                    if (searchName.equals(contentType)) {
                         foundMacro = true;
                     }
                 }
@@ -240,11 +241,11 @@ public final class OpenXmlUtils {
             if (nNode.getNodeType() == Node.ELEMENT_NODE) {
                 final Element eElement = (Element) nNode;
                 final String contentType = eElement.getAttribute(FileCipher.OpenXml.CONTENT_TYPE_KEY_LABEL);
-                if (contentType != null && searchName.equals(contentType)) {
+                if (searchName.equals(contentType)) {
                     return true;
                 }
             }
-         }
+        }
 
         LOGGER.fine(String.format("node = %s was not found.", searchName));
         return false;

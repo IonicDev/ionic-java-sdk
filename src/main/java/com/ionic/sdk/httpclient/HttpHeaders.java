@@ -2,6 +2,7 @@ package com.ionic.sdk.httpclient;
 
 import com.ionic.sdk.core.value.Value;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -9,7 +10,7 @@ import java.util.Collection;
 /**
  * The set of name value pairs associated with an HTTP request / response.
  */
-public class HttpHeaders extends ArrayList<HttpHeader> {
+public class HttpHeaders extends ArrayList<HttpHeader> implements Serializable {
 
     /**
      * Constructor.
@@ -63,4 +64,7 @@ public class HttpHeaders extends ArrayList<HttpHeader> {
         }
         return headerNames;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = -561978172917351189L;
 }

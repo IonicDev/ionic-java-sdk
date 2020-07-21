@@ -2,6 +2,7 @@ package com.ionic.sdk.agent.request.getresources;
 
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,10 +47,13 @@ public class GetResourcesRequest extends AgentRequestBase {
     }
 
     /**
-     * Retrieve the key request with the matching refId.
+     * Retrieve the {@link Resource} with the matching reference id.
+     * <p>
+     * If the specified reference id is not found in the {@link GetResourcesRequest}, <code>null</code> is returned.
      *
-     * @param refId an identifier to correlate the request
-     * @return the matching key request
+     * @param refId a reference identifier to correlate {@link GetResourcesRequest.Resource} records to the
+     *              corresponding {@link GetResourcesResponse.Resource}
+     * @return the matching {@link GetResourcesRequest.Resource} record; or <code>null</code> if not found
      */
     public final Resource getResource(final String refId) {
         Resource resource = null;
@@ -62,10 +66,13 @@ public class GetResourcesRequest extends AgentRequestBase {
         return resource;
     }
 
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = -4412487267607877485L;
+
     /**
      * Represents a discrete resource object.
      */
-    public static class Resource {
+    public static class Resource implements Serializable {
 
         /**
          * A reference to be used to associate resources received in the response with the request.
@@ -126,5 +133,8 @@ public class GetResourcesRequest extends AgentRequestBase {
         public final String getArgs() {
             return ((args == null) ? "" : args);
         }
+
+        /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+        private static final long serialVersionUID = -969910446044409664L;
     }
 }

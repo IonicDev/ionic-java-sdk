@@ -121,4 +121,7 @@ public class GetKeyspaceResponse extends AgentResponseBase {
     public List<String> getApiURLs() {
         return apiURLs;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = 956831753735162538L;
 }

@@ -37,6 +37,7 @@ public final class UTF8 implements BytesTranscoder {
     /**
      * Local reference to JVM definition of UTF-8 charset.
      */
+    @SuppressWarnings("PMD.UnusedPrivateField")  // false positive
     private static final Charset UTF8 = StandardCharsets.UTF_8;
 
     /**

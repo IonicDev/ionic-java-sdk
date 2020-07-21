@@ -63,6 +63,11 @@ public class Http {
         public static final String ACCEPT_ENCODING_VALUE = "gzip,deflate";
 
         /**
+         * HTTP connection provides mechanism to signal connection lifecycle from either client or service.
+         */
+        public static final String CONNECTION = "Connection";
+
+        /**
          * The HTTP request and response headers identify the MIME type of the associated entity using this key.
          */
         public static final String CONTENT_TYPE = "Content-Type";
@@ -86,6 +91,22 @@ public class Http {
          * The request headers may contain this header, which identifies the application generating the client request.
          */
         public static final String USER_AGENT = "User-Agent";
+
+        /**
+         * CreateDevice 2.3 API calls for the inclusion of a conversation ID header (value of type UUID).
+         */
+        public static final String X_CONVERSATION_ID = "X-Conversation-ID";
+    }
+
+    /**
+     * Text values associated with HTTP headers.
+     */
+    public static class Value {
+
+        /**
+         * HTTP connection provides mechanism to signal connection lifecycle from either client or service.
+         */
+        public static final String CLOSE = "close";
     }
 
     /**
@@ -94,10 +115,18 @@ public class Http {
     public static class Network {
 
         /**
+         * Indicates if persistent connections should be supported.
+         *
+         * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html#MiscHTTP"
+         * target="_blank">Networking Properties</a>
+         */
+        public static final String KEEP_ALIVE = "http.keepalive";
+
+        /**
          * This integer value determines the maximum number, for a given request, of HTTP redirects that will be
          * automatically followed by the protocol handler.
          *
-         * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html"
+         * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/net/doc-files/net-properties.html#MiscHTTP"
          * target="_blank">Networking Properties</a>
          */
         public static final String MAX_REDIRECTS = "http.maxRedirects";

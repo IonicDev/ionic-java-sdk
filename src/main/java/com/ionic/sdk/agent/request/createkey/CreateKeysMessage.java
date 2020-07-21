@@ -5,6 +5,8 @@ import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.request.base.MessageBase;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.json.JsonIO;
 import com.ionic.sdk.json.JsonTarget;
 
@@ -68,8 +70,10 @@ public class CreateKeysMessage extends MessageBase {
      */
     @Override
     protected final JsonObject getJsonData(final AgentRequestBase requestBase) throws IonicException {
+        SdkData.checkTrue(requestBase instanceof CreateKeysRequest, SdkError.ISAGENT_ERROR);
+        final CreateKeysRequest createKeysRequest = (CreateKeysRequest) requestBase;
         return Json.createObjectBuilder()
-                .add(IDC.Payload.PROTECTION_KEYS, getJsonProtectionKeys((CreateKeysRequest) requestBase))
+                .add(IDC.Payload.PROTECTION_KEYS, getJsonProtectionKeys(createKeysRequest))
                 .build();
     }
 

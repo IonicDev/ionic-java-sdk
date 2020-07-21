@@ -94,7 +94,7 @@ final class OpenXml11BodyInput implements OpenXmlBodyInput {
                 try {
                     final FileInputStream fs = (FileInputStream) sourceStream;
                     fs.getChannel().position(0);
-                } catch (java.lang.ClassCastException e) {
+                } catch (ClassCastException e) {
                     sourceStream.reset();
                 }
             } catch (IOException e) {

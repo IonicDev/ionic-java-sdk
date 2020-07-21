@@ -202,6 +202,7 @@ public final class PdfDictionaryReader {
     /**
      * Token indicating the end of a PDF object array value (PDF 32000-1:2008, section 7.3.6).
      */
+    @SuppressWarnings("PMD.UnusedPrivateField")  // preserve for possible future use
     private static final String TOKEN_ARRAY_CLOSE = "]";
 
     /**

@@ -63,4 +63,7 @@ public class GetKeyspaceRequest extends AgentRequestBase {
     public String getUrl() {
         return url;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = 3429766797893551566L;
 }

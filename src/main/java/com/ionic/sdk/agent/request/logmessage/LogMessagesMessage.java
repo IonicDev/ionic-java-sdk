@@ -41,6 +41,7 @@ public class LogMessagesMessage extends MessageBase {
     @Override
     protected final JsonValue getJsonData(final AgentRequestBase requestBase) throws IonicException {
         final JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        SdkData.checkTrue(requestBase instanceof LogMessagesRequest, SdkError.ISAGENT_ERROR);
         final LogMessagesRequest logMessagesRequest = (LogMessagesRequest) requestBase;
         for (LogMessagesRequest.Message message : logMessagesRequest.getMessages()) {
             JsonTarget.addNotNull(arrayBuilder, getJsonDataOne(message));

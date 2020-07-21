@@ -75,11 +75,13 @@ public class UpdateKeysRequest extends AgentRequestBase {
     }
 
     /**
-     * Retrieve the key request with the matching keyId.
+     * Retrieve the {@link UpdateKeysRequest.Key} record associated with the specified key tag.
      *
-     * @param keyId an identifier to correlate the request
-     * @return the matching key request
+     * @param keyId a Machina key tag
+     * @return the matching {@link UpdateKeysRequest.Key} record, or <code>null</code> if not found
+     * @deprecated Please migrate usages to the replacement {@link #getKey(String)}
      */
+    @Deprecated
     public final Key findKey(final String keyId) {
         Key key = null;
         for (Key keyRequest : keyRequests) {
@@ -92,10 +94,10 @@ public class UpdateKeysRequest extends AgentRequestBase {
     }
 
     /**
-     * Retrieve the key request with the matching keyId.
+     * Retrieve the {@link UpdateKeysRequest.Key} record associated with the specified key tag.
      *
-     * @param keyId an identifier to correlate the request
-     * @return the matching key request
+     * @param keyId a Machina key tag
+     * @return the matching {@link UpdateKeysRequest.Key} record, or <code>null</code> if not found
      */
     public final Key getKey(final String keyId) {
         Key key = null;
@@ -107,6 +109,9 @@ public class UpdateKeysRequest extends AgentRequestBase {
         }
         return key;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = 9157502748079517417L;
 
     /**
      * Represents a discrete key request object in the context of a {@link UpdateKeysRequest}.
@@ -164,5 +169,8 @@ public class UpdateKeysRequest extends AgentRequestBase {
         public final boolean getForceUpdate() {
             return forceUpdate;
         }
+
+        /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+        private static final long serialVersionUID = 1512173787583075644L;
     }
 }

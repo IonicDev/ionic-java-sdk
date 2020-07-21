@@ -165,7 +165,7 @@ public final class JsonIO {
         if (pretty) {
             config.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
         }
-        final JsonWriterFactory writerFactory = javax.json.Json.createWriterFactory(config);
+        final JsonWriterFactory writerFactory = Json.createWriterFactory(config);
         try (JsonWriter writer = writerFactory.createWriter(os)) {
             writer.writeObject(jsonObject);
         }
@@ -185,7 +185,7 @@ public final class JsonIO {
         if (pretty) {
             config.put(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE);
         }
-        final JsonWriterFactory writerFactory = javax.json.Json.createWriterFactory(config);
+        final JsonWriterFactory writerFactory = Json.createWriterFactory(config);
         try (JsonWriter writer = writerFactory.createWriter(os)) {
             writer.writeArray(jsonArray);
         }

@@ -28,6 +28,15 @@ public final class AesCipher {
     public static final int SIZE_IV = 16;
 
     /**
+     * Length in bytes of authentication tag used to detect data tampering using AES/GCM.  Also called:
+     * <ul>
+     * <li>message authentication code (MAC),</li>
+     * <li>integrity check value (ICV).</li>
+     * </ul>
+     */
+    public static final int SIZE_ATAG = 16;
+
+    /**
      * Label for AES algorithm.
      */
     public static final String ALGORITHM = "AES";

@@ -52,7 +52,9 @@ public class GetKeyspaceTransaction extends AgentTransactionBase {
 
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
-        final GetKeyspaceRequest request = (GetKeyspaceRequest) getRequestBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        SdkData.checkTrue(agentRequestBase instanceof GetKeyspaceRequest, SdkError.ISAGENT_ERROR);
+        final GetKeyspaceRequest request = (GetKeyspaceRequest) agentRequestBase;
         final URL url = AgentTransactionUtil.getProfileUrl(request.getUrl());
         final String resource = String.format(IDC.Resource.KEYSPACE_GET,
                 IDC.Resource.SERVER_API_V24, request.getKeyspace());
@@ -82,8 +84,12 @@ public class GetKeyspaceTransaction extends AgentTransactionBase {
      * @throws IonicException on expectation failures with regard to the payload content
      */
     private void parseHttpResponsePayload(final JsonObject jsonPayload) throws IonicException {
-        final GetKeyspaceRequest request = (GetKeyspaceRequest) getRequestBase();
-        final GetKeyspaceResponse response = (GetKeyspaceResponse) getResponseBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        final AgentResponseBase agentResponseBase = getResponseBase();
+        SdkData.checkTrue(agentRequestBase instanceof GetKeyspaceRequest, SdkError.ISAGENT_ERROR);
+        SdkData.checkTrue(agentResponseBase instanceof GetKeyspaceResponse, SdkError.ISAGENT_ERROR);
+        final GetKeyspaceRequest request = (GetKeyspaceRequest) agentRequestBase;
+        final GetKeyspaceResponse response = (GetKeyspaceResponse) agentResponseBase;
         response.setKeyspace(JsonSource.getJsonString(jsonPayload, IDC.Payload.KEYSPACE).getString());
         response.setFqdn(JsonSource.getJsonString(jsonPayload, IDC.Payload.FQDN).getString());
         response.setTtlSeconds(JsonSource.getJsonNumber(jsonPayload, IDC.Payload.TTLSECONDS).intValue());

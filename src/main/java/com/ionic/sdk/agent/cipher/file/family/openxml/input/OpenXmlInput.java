@@ -129,7 +129,7 @@ public final class OpenXmlInput {
             try {
                 final FileInputStream fs = (FileInputStream) sourceStream;
                 fs.getChannel().position(0);
-            } catch (java.lang.ClassCastException e) {
+            } catch (ClassCastException e) {
                 sourceStream.reset();
             }
         } catch (IOException e) {

@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -40,6 +39,11 @@ import java.util.logging.Logger;
  * @author Ionic Security
  */
 public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
+
+    /**
+     * Class scoped logger.
+     */
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
      * The list of profiles loaded into memory from disk.
@@ -244,7 +248,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
             final Tuple<List<DeviceProfile>, String> profiles = (f != null)
                     ? loadAllProfilesFromFile(mFilePath) : (mUrl != null)
                     ? loadAllProfilesFromURL(mUrl) : (inputStreamBytes != null)
-                    ? loadAllProfilesFromJson(inputStreamBytes, mCipher)
+                    ? loadAllProfilesFromJson(InputStream.class.getSimpleName(), inputStreamBytes, mCipher)
                     : null;
             SdkData.checkNotNull(profiles, DeviceProfile.class.getName());
             mProfiles = new ArrayList<DeviceProfile>(profiles.first());
@@ -372,7 +376,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      */
     private Tuple<List<DeviceProfile>, String> loadAllProfilesFromFile(final String filePath) throws IonicException {
         final byte[] cipherText = Stream.loadFileIntoMemory(filePath);
-        return loadAllProfilesFromJson(cipherText, mCipher);
+        return loadAllProfilesFromJson(filePath, cipherText, mCipher);
     }
 
     /**
@@ -387,21 +391,25 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      */
     private Tuple<List<DeviceProfile>, String> loadAllProfilesFromURL(final URL url) throws IonicException {
         final byte[] cipherText = DeviceUtils.read(url);
-        return loadAllProfilesFromJson(cipherText, mCipher);
+        return loadAllProfilesFromJson(url.toExternalForm(), cipherText, mCipher);
     }
 
     /**
      * A method used to decrypt and parse a json object in order to create Device
      * profiles.
      *
+     * @param resource   The label to associate with the input
      * @param cipherText The input we want to decrypt
      * @param cipher     The cipher we will use to decrypt the inputted bytes
      * @return a Tuple that holds the list of Device profiles and the id of the active profile
      * @throws IonicException decrypt or json parsing can throw a sdk exception, expect
      *                        ISAGENT_PARSEFAILED or ISCRYPTO_ERROR
      */
-    protected Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(
+    protected Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(final String resource,
             final byte[] cipherText, final CipherAbstract cipher) throws IonicException {
+        SdkData.checkTrue(cipherText != null, SdkError.ISAGENT_NULL_INPUT, resource);
+        logger.info(String.format("ProfilePersistor, resource=[%s], hash=[%s], size=[%d]",
+                resource, CryptoUtils.sha256ToHexString(cipherText), cipherText.length));
         // handle ProfilePersistor v1.1 JSON header
         final DeviceProfileSerializer serializer = new DeviceProfileSerializer(cipherText);
         initializeCipher(serializer.getHeader());
@@ -416,7 +424,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
 
         } catch (final NullPointerException npe) {
             // do NOT fail here since this field is optional
-            Logger.getLogger(DeviceProfilePersistorBase.class.getName()).log(Level.WARNING, "JSON is missing a field "
+            logger.warning("JSON is missing a field "
                     + DeviceFields.FIELD_ACTIVE_DEVICE_ID + ". It has been skipped since it is optional.");
         }
 
@@ -442,8 +450,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
             } catch (final NullPointerException npe) {
                 // NOTE: do NOT fail here, just skip the loading of this invalid profile and
                 // keep moving
-                Logger.getLogger(DeviceProfilePersistorBase.class.getName()).log(Level.WARNING,
-                        "JSON device profile object is missing one or more fields. Profile has been skipped.");
+                logger.warning("JSON device profile object is missing one or more fields. Profile has been skipped.");
                 continue;
 
             }

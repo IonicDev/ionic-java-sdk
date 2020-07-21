@@ -72,6 +72,7 @@ public class KeyAttributesMapMergerDefault implements KeyAttributesMapMerger {
      * @param mergedAttributes         The output attributes resulting from the merge operation.
      * @return An error code indicating the status of the operation.
      */
+    @SuppressWarnings("PMD.UnusedFormalParameter")  // preserve the existing API signature
     private int mergeKeyAttributeMapsInternal(final boolean attributesAreMutable,
                                               final KeyAttributesMap originalServerAttributes,
                                               final KeyAttributesMap currentServerAttributes,
