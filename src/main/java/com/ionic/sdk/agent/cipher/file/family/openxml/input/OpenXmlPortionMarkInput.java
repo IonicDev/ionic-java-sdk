@@ -1,45 +1,37 @@
 package com.ionic.sdk.agent.cipher.file.family.openxml.input;
 
-import com.ionic.sdk.agent.request.getkey.GetKeysRequest;
-import com.ionic.sdk.agent.request.getkey.GetKeysResponse;
 import com.ionic.sdk.agent.cipher.file.data.FileCipher;
 import com.ionic.sdk.agent.cipher.file.data.FileCryptoDecryptAttributes;
 import com.ionic.sdk.agent.cipher.file.family.openxml.data.OpenXmlZip;
+import com.ionic.sdk.agent.request.getkey.GetKeysRequest;
+import com.ionic.sdk.agent.request.getkey.GetKeysResponse;
 import com.ionic.sdk.cipher.aes.AesCtrCipher;
 import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.key.KeyServices;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 /**
  * Post process a decrypted file or byte array to check for and decrypt any portion marked sections.
  */
 @InternalUseOnly
 public final class OpenXmlPortionMarkInput {
-
-    /**
-     * Class scoped logger.
-     */
-    private static final Logger LOGGER = Logger.getLogger(OpenXmlPortionMarkInput.class.getName());
 
     /**
      * The xmlDocument found in the OpenXML file.
@@ -222,7 +214,7 @@ public final class OpenXmlPortionMarkInput {
                 if (endPos != -1) {
 
                     final String keyId = nodeText.substring(0, endPos);
-                    final GetKeysResponse.Key foundKey = getKeyResponse.findKey(keyId);
+                    final GetKeysResponse.Key foundKey = getKeyResponse.getKey(keyId);
                     if (foundKey != null) {
 
                         cipher.setKey(foundKey.getKey());

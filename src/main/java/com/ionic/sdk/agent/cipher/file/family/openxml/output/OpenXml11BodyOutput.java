@@ -207,7 +207,7 @@ final class OpenXml11BodyOutput implements OpenXmlBodyOutput {
         }
         genericOutput.doFinal();
         final byte[] signature = genericOutput.getSignature();
-        long fileSize = -1;
+        final long fileSize;
         if (fileOutputStream != null) {
             if (signature != null) {
                 fileOutputStream.getChannel().position(genericOutput.getHeaderLength());

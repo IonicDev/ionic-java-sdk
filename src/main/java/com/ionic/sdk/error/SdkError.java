@@ -24,7 +24,7 @@ public final class SdkError implements
      * Gets an {@link com.ionic.sdk.error.SdkModule} enum for any SDK error code emitted by any Ionic SDK module.
      *
      * @param errorCode The error code returned from any Ionic SDK function.
-     * @return The module enumerator for the module, or MODULE_UNKNOWN for success or errors out of range.
+     * @return The enumerator for the module, or {@link SdkModule#MODULE_UNKNOWN} for success or errors out of range.
      */
     public static SdkModule getErrorModule(final int errorCode) {
         return SdkModule.getErrorCodeModule(errorCode);
@@ -46,7 +46,8 @@ public final class SdkError implements
     }
 
     /**
-     * Container for error messages associated with Ionic SDK error codes, loaded on first use.
+     * Container for error messages associated with Ionic SDK error codes.  {@link ResourceBundle} is loaded
+     * on first use.
      */
     private static final ResourceBundle BUNDLE = ResourceBundle.getBundle("com.ionic.sdk.error.SdkError");
 

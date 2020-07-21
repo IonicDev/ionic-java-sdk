@@ -1,11 +1,15 @@
 package com.ionic.sdk.httpclient;
 
+import com.ionic.sdk.agent.AgentSdk;
 import com.ionic.sdk.agent.config.AgentConfig;
 import com.ionic.sdk.core.date.DateTime;
 import com.ionic.sdk.core.io.Stream;
+import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.httpclient.proxy.ProxyManager;
+import com.ionic.sdk.httpclient.tls.TrustAllHostnameVerifier;
 import com.ionic.sdk.httpclient.tls.TrustAllTrustManager;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -47,6 +51,11 @@ public final class HttpClientTrustAll implements HttpClient {
     private final SSLSocketFactory sslSocketFactory;
 
     /**
+     * Custom hostname verifier associated with this client type.
+     */
+    private final HostnameVerifier hostnameVerifier;
+
+    /**
      * Class scoped logger.
      */
     private final Logger logger = Logger.getLogger(getClass().getName());
@@ -55,7 +64,8 @@ public final class HttpClientTrustAll implements HttpClient {
      * Constructor.
      *
      * @param agentConfig the configuration settings associated with the agent instance in use
-     * @param protocol    the protocol to be checked for proxy configuration (e.g. "http", "https")
+     * @param protocol    the http protocol to be checked for proxy configuration (e.g. "http", "https")
+     * @throws UnsupportedOperationException on failure to initialize this client for use
      */
     public HttpClientTrustAll(final AgentConfig agentConfig, final String protocol) {
         this.httpTimeoutSecs = agentConfig.getHttpTimeoutSecs();
@@ -63,16 +73,31 @@ public final class HttpClientTrustAll implements HttpClient {
         this.proxy = ProxyManager.getProxy(protocol);
         SSLSocketFactory sslSocketFactoryCtor = null;
         try {
-            final SSLContext context = SSLContext.getDefault();
+            final String sslProtocol = agentConfig.getProperty(KEY_PROTOCOL, PROTOCOL_DEFAULT);
+            final SSLContext context = AgentSdk.getCrypto().getSSLContext(sslProtocol);
             final TrustManager[] trustManagers = new TrustManager[]{new TrustAllTrustManager()};
             context.init(null, trustManagers, null);
             sslSocketFactoryCtor = context.getSocketFactory();
         } catch (GeneralSecurityException e) {
             // wrap in unchecked exception
             throw new UnsupportedOperationException(e);
+        } catch (IonicException e) {
+            // wrap in unchecked exception
+            throw new UnsupportedOperationException(e);
         }
         this.sslSocketFactory = sslSocketFactoryCtor;
+        this.hostnameVerifier = new TrustAllHostnameVerifier();
     }
+
+    /**
+     * {@link AgentConfig} key for protocol to use when making remote connections.
+     */
+    private static final String KEY_PROTOCOL = "protocol";
+
+    /**
+     * {@link SSLContext} default protocol to use when making remote connections.
+     */
+    private static final String PROTOCOL_DEFAULT = "TLSv1.2";
 
     /**
      * Send a request to the specified HTTP server.
@@ -93,6 +118,9 @@ public final class HttpClientTrustAll implements HttpClient {
         if (sslSocketFactory != null) {
             final HttpsURLConnection httpsConnection = (HttpsURLConnection) connection;
             httpsConnection.setSSLSocketFactory(sslSocketFactory);
+            if (hostnameVerifier != null) {
+                httpsConnection.setHostnameVerifier(hostnameVerifier);
+            }
         }
         connection.setConnectTimeout(httpTimeoutSecs * (int) DateTime.ONE_SECOND_MILLIS);
         connection.setReadTimeout(httpTimeoutSecs * (int) DateTime.ONE_SECOND_MILLIS);

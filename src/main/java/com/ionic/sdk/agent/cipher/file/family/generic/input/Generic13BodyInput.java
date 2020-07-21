@@ -45,11 +45,6 @@ final class Generic13BodyInput implements GenericBodyInput {
     private final AgentKey key;
 
     /**
-     * The default size of a single encryption block.
-     */
-    private final int blockSize;
-
-    /**
      * The count of encryption blocks which use the same encryption key.
      */
     private final int metaSize;
@@ -63,12 +58,12 @@ final class Generic13BodyInput implements GenericBodyInput {
     /**
      * The buffer to hold a plaintext block (source buffer for encryption, target buffer for decryption).
      */
-    private ByteBuffer plainText;
+    private final ByteBuffer plainText;
 
     /**
      * The buffer to hold a ciphertext block (source buffer for decryption, target buffer for encryption).
      */
-    private ByteBuffer cipherText;
+    private final ByteBuffer cipherText;
 
     /**
      * The Ionic cipher used to encrypt file blocks.
@@ -87,13 +82,13 @@ final class Generic13BodyInput implements GenericBodyInput {
      * @param cipherText   ByteBuffer containing bytes to decrypt
      * @throws IonicException on cipher initialization failures
      */
+    @SuppressWarnings("PMD.UnusedFormalParameter")  // preserve the existing API signature
     Generic13BodyInput(final BufferedInputStream sourceStream, final KeyServices agent, final AgentKey key,
                        final int blockSize, final int metaSize,
                        final ByteBuffer plainText, final ByteBuffer cipherText) throws IonicException {
         this.sourceStream = sourceStream;
         this.agent = agent;
         this.key = key;
-        this.blockSize = blockSize;
         this.metaSize = metaSize;
         this.blockIndex = 0;
         this.plainText = plainText;

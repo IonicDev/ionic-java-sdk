@@ -40,4 +40,7 @@ public final class PdfDictionary extends TreeMap<String, PdfObject> implements P
         }
         return value;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = -8977593510185292133L;
 }

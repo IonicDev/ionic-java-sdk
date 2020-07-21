@@ -41,4 +41,7 @@ public final class PdfArray extends ArrayList<PdfObject> implements PdfObject {
      * The delimiter used to mark the end of a serialized {@link PdfArray} object.
      */
     private static final String EPILOGUE = DELIMITER + "]";
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = -2559784859251852677L;
 }

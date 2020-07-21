@@ -2,6 +2,7 @@ package com.ionic.sdk.agent.request.logmessage;
 
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -42,6 +43,9 @@ public class LogMessagesRequest extends AgentRequestBase {
         messages.add(message);
     }
 
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = -163833622243208551L;
+
     /**
      * Class used to store an individual log message for a <code>LogMessagesRequest</code>.
      * <p>
@@ -58,7 +62,7 @@ public class LogMessagesRequest extends AgentRequestBase {
      * </ul>
      * </ol>
      */
-    public static class Message {
+    public static class Message implements Serializable {
 
         /**
          * The type of message being sent.
@@ -94,5 +98,8 @@ public class LogMessagesRequest extends AgentRequestBase {
         public final String getData() {
             return data;
         }
+
+        /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+        private static final long serialVersionUID = 3900758834643627218L;
     }
 }

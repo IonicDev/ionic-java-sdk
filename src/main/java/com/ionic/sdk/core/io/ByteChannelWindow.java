@@ -43,6 +43,13 @@ public class ByteChannelWindow {
     }
 
     /**
+     * @return the offset of the channel at which data reads should begin
+     */
+    public long getStart() {
+        return start;
+    }
+
+    /**
      * Returns the number of bytes that can be read from the wrapped {@link SeekableByteChannel}.
      *
      * @return the number of bytes that can be read from the wrapped {@link SeekableByteChannel}

@@ -18,4 +18,7 @@ public class LogMessagesResponse extends AgentResponseBase {
     protected final boolean isDataRequired() {
         return false;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = 7774901610273845317L;
 }

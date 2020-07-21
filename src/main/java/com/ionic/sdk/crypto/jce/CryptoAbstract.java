@@ -10,6 +10,7 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKeyFactory;
+import javax.net.ssl.SSLContext;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
@@ -144,7 +145,7 @@ public final class CryptoAbstract {
 
     /**
      * Return an instance of an RSA signature facility.
-     *
+     * <p>
      * Reference <a href="https://bugs.openjdk.java.net/browse/JDK-8190180" target="_blank">JDK Bug System</a>
      * Reference <a href="https://stackoverflow.com/questions/48803100/" target="_blank">RSA-PSS</a>
      *
@@ -250,6 +251,23 @@ public final class CryptoAbstract {
             }
         } catch (GeneralSecurityException e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
+        }
+    }
+
+    /**
+     * Return an SSLContext object instance using the specified protocol.
+     *
+     * @param protocol the {@link SSLContext} protocol to use
+     * @return an SSLContext object instance using the specified protocol
+     * @throws IonicException if the facility is not provided by the configured CryptoAbstract implementation
+     */
+    public SSLContext getSSLContext(final String protocol) throws IonicException {
+        try {
+            return (provider == null)
+                    ? SSLContext.getInstance(protocol)
+                    : SSLContext.getInstance(protocol, provider);
+        } catch (GeneralSecurityException e) {
             throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
         }
     }

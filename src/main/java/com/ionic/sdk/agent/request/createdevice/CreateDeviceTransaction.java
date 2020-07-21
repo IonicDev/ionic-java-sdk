@@ -23,6 +23,8 @@ import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
+import com.ionic.sdk.httpclient.HttpHeader;
+import com.ionic.sdk.httpclient.HttpHeaders;
 import com.ionic.sdk.httpclient.HttpRequest;
 import com.ionic.sdk.httpclient.HttpResponse;
 import com.ionic.sdk.json.JsonIO;
@@ -33,7 +35,10 @@ import javax.json.JsonObject;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An object encapsulating the server request and response for
@@ -46,6 +51,11 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
      * Class scoped logger.
      */
     private final Logger logger = Logger.getLogger(getClass().getName());
+
+    /**
+     * CreateDevice 2.3 API calls for the inclusion of a conversation ID header (value of type UUID).
+     */
+    private final String cid;
 
     /**
      * Request state.
@@ -73,6 +83,7 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
         SdkData.checkTrue(requestBase instanceof CreateDeviceRequest, errorCode, SdkError.getErrorString(errorCode));
         final CreateDeviceRequest request = (CreateDeviceRequest) requestBase;
         final RsaKeyHolder keyHolder = request.getRsaKeyHolder();
+        this.cid = UUID.randomUUID().toString();
         this.rsaKeyHolder = ((keyHolder == null) ? new RsaKeyGenerator().generate(RsaCipher.KEY_BITS) : keyHolder);
         this.aesKeyHolder = new AesKeyGenerator().generate();
     }
@@ -86,7 +97,9 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
      */
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
-        final CreateDeviceRequest request = (CreateDeviceRequest) getRequestBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        SdkData.checkTrue(agentRequestBase instanceof CreateDeviceRequest, SdkError.ISAGENT_ERROR);
+        final CreateDeviceRequest request = (CreateDeviceRequest) agentRequestBase;
         logger.fine(request.getToken());
         // ASSEMBLE BASE REQUEST (OUR SESSION PUBKEY, PLUS SERVER SUPPLIED TOKEN)
         // serialize RSA session public key using DER and encode with Base64
@@ -135,13 +148,15 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
         final String entitySecure = JsonIO.write(jsonRequestRoot, false);
         logger.fine(entitySecure);
         final String resource = String.format(IDC.Resource.DEVICE_CREATE,
-                IDC.Resource.SERVER_API_V22, request.getEtag());
+                IDC.Resource.SERVER_API_V24, request.getEtag());
         // assemble the HTTP request to be sent to the server
         final URL url = AgentTransactionUtil.getProfileUrl(request.getServer());
         logger.fine(request.getServer());
         final ByteArrayInputStream bis = new ByteArrayInputStream(
                 Transcoder.utf8().decode(JsonIO.write(jsonRequestRoot, false)));
-        return new HttpRequest(url, Http.Method.POST, resource, getHttpHeaders(), bis);
+        final HttpHeaders httpHeaders = getHttpHeaders();
+        httpHeaders.add(new HttpHeader(Http.Header.X_CONVERSATION_ID, cid));
+        return new HttpRequest(url, Http.Method.POST, resource, httpHeaders, bis);
     }
 
     /**
@@ -156,8 +171,18 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
             final HttpRequest httpRequest, final HttpResponse httpResponse) throws IonicException {
         // unwrap the server response
         parseHttpResponseBase(httpRequest, httpResponse, null);
-        final CreateDeviceRequest request = (CreateDeviceRequest) getRequestBase();
-        final CreateDeviceResponse response = (CreateDeviceResponse) getResponseBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        final AgentResponseBase agentResponseBase = getResponseBase();
+        SdkData.checkTrue(agentRequestBase instanceof CreateDeviceRequest, SdkError.ISAGENT_ERROR);
+        SdkData.checkTrue(agentResponseBase instanceof CreateDeviceResponse, SdkError.ISAGENT_ERROR);
+        final CreateDeviceRequest request = (CreateDeviceRequest) agentRequestBase;
+        final CreateDeviceResponse response = (CreateDeviceResponse) agentResponseBase;
+        // cid(request)=$uuid
+        // cid(response)="CID|ENROLLMENT|cid(request)|{Keyspace}|timestamp|version"
+        final String cidResponse = response.getConversationId();
+        final Matcher matcher = Pattern.compile(REGEX_CREATE_DEVICE_RESPONSE_CID).matcher(cidResponse);
+        SdkData.checkTrue(matcher.matches(), SdkError.ISAGENT_UNEXPECTEDRESPONSE);
+        SdkData.checkTrue(cid.equals(matcher.group(1)), SdkError.ISAGENT_UNEXPECTEDRESPONSE);
         final JsonObject json = response.getJsonPayload();
         final String deviceId = JsonSource.getString(json, IDC.Payload.DEVICE_ID);
         final String sepAesk = JsonSource.getString(json, IDC.Payload.SEPAESK);
@@ -181,4 +206,9 @@ public class CreateDeviceTransaction extends AgentTransactionBase {
     protected final boolean isIdentityNeeded() {
         return false;
     }
+
+    /**
+     * Expected format of CreateDevice 2.3 API response CID.
+     */
+    private static final String REGEX_CREATE_DEVICE_RESPONSE_CID = "CID\\|ENROLLMENT\\|(\\S+)\\|\\S+\\|\\d+\\|\\S+";
 }

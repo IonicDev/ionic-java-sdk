@@ -2,6 +2,8 @@ package com.ionic.sdk.error;
 
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
 
+import java.io.Serializable;
+
 /**
  * An Exception class for representing Ionic server-side errors.
  * When an SDK call communicates with an Ionic server, it is possible that the
@@ -13,7 +15,7 @@ import com.ionic.sdk.agent.request.base.AgentResponseBase;
  * @deprecated Please migrate usages to the drop-in replacement class {@link IonicServerException}.
  */
 @Deprecated
-public class ServerException extends SdkException {
+public class ServerException extends SdkException implements Serializable {
 
     /**
      * The HTTP response code.
@@ -185,4 +187,7 @@ public class ServerException extends SdkException {
     public final AgentResponseBase getResponse() {
         return response;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = -1905113821085493642L;
 }

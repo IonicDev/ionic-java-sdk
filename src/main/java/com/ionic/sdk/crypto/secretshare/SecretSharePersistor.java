@@ -1,16 +1,23 @@
 package com.ionic.sdk.crypto.secretshare;
 
 import com.ionic.sdk.core.codec.Transcoder;
+import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.device.DeviceUtils;
 import com.ionic.sdk.error.IonicException;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 /**
  * Interface for working with secret share implementations.
  */
 public class SecretSharePersistor {
+
+    /**
+     * Class scoped logger.
+     */
+    private final Logger logger = Logger.getLogger(getClass().getName());
 
     /**
      * The path of a file containing the JSON encoded share data, used to reconstitute the secret.
@@ -52,7 +59,10 @@ public class SecretSharePersistor {
         final File file = new File(path);
         final SecretShareKey secretShareKey;
         if (file.exists()) {
-            secretShareKey = generator.recover(Transcoder.utf8().encode(DeviceUtils.read(file)));
+            final byte[] bytes = DeviceUtils.read(file);
+            logger.info(String.format("SecretSharePersistor, resource=[%s], hash=[%s], size=[%d]",
+                    path, CryptoUtils.sha256ToHexString(bytes), bytes.length));
+            secretShareKey = generator.recover(Transcoder.utf8().encode(bytes));
         } else {
             secretShareKey = generator.generate();
             DeviceUtils.write(file, Transcoder.utf8().decode(secretShareKey.getShares()));

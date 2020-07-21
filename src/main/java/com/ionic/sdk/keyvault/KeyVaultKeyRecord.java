@@ -102,6 +102,7 @@ public class KeyVaultKeyRecord extends KeyVaultKey {
      * @param keyRecObj KeyVaultKey or KeyVaultKeyRecord to compare to
      * @return True if all the KeyVaultKey members equal the ones in the Object
      */
+    @SuppressWarnings("PMD.UselessOverridingMethod")  // spotbugs versus pmd; document behavior
     @Override
     public boolean equals(final Object keyRecObj) {
         return super.equals(keyRecObj);
@@ -111,6 +112,7 @@ public class KeyVaultKeyRecord extends KeyVaultKey {
      * Override for hashCode because code quality requires it.
      * @return hash of all the things in the super class.
      */
+    @SuppressWarnings("PMD.UselessOverridingMethod")  // spotbugs versus pmd; document behavior
     @Override
     public int hashCode() {
         return super.hashCode();

@@ -5,13 +5,14 @@ import com.ionic.sdk.core.value.Value;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Class that defines an abstract basic key container object used by Ionic.
  * Other classes may subclass AgentKey.
  */
-public class AgentKey implements KeyBase, KeyMetadata {
+public class AgentKey implements Serializable, KeyBase, KeyMetadata {
 
     /**
      * A String denoting the id of the key.
@@ -73,8 +74,10 @@ public class AgentKey implements KeyBase, KeyMetadata {
      */
     public AgentKey(final AgentKey key) {
         this(key.keyId, key.keyBytes, key.keyAttributes, key.mutableAttributes, key.keyObligations);
+        this.mutableAttributesFromServer = key.mutableAttributesFromServer;
         this.attributesSigBase64FromServer = key.attributesSigBase64FromServer;
         this.mutableAttributesSigBase64FromServer = key.mutableAttributesSigBase64FromServer;
+        this.origin = key.origin;
     }
 
     /**
@@ -400,4 +403,7 @@ public class AgentKey implements KeyBase, KeyMetadata {
     public final void setOrigin(final String origin) {
         this.origin = Value.defaultOnEmpty(origin, "");
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = 6534194716468482558L;
 }

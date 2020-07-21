@@ -77,8 +77,6 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
                         String.format("Invalid protection key. Invalid key data length (expected %d, got %d).",
                                         AesCipher.KEY_BYTES, key.getKeyBytes().length));
         }
-
-        return;
     }
 
     /**
@@ -185,8 +183,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public KeyVaultKey getKey(final String keyId) {
+    public final KeyVaultKey getKey(final String keyId) {
         logger.finest(String.format("keyId = %s", keyId));
 
         // make this entire function thread-safe
@@ -207,8 +204,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public Vector<KeyVaultKey> getKeys(final Set<String> setKeyIds) {
+    public final Vector<KeyVaultKey> getKeys(final Set<String> setKeyIds) {
         logger.finest(String.format("setKeyIds.size() = %d", setKeyIds.size()));
 
         // make this entire function thread-safe
@@ -231,8 +227,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public Set<String> getAllKeyIds() {
+    public final Set<String> getAllKeyIds() {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -255,8 +250,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public Vector<KeyVaultKey> getAllKeys() {
+    public final Vector<KeyVaultKey> getAllKeys() {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -278,8 +272,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public int getKeyCount() {
+    public final int getKeyCount() {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -301,8 +294,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public boolean hasKey(final String keyId) {
+    public final boolean hasKey(final String keyId) {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -316,8 +308,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public boolean removeKey(final KeyVaultKey key) {
+    public final boolean removeKey(final KeyVaultKey key) {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -326,8 +317,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public boolean removeKey(final String keyId) {
+    public final boolean removeKey(final String keyId) {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -336,8 +326,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public Set<String> removeKeys(final Set<String> keyIds) {
+    public final Set<String> removeKeys(final Set<String> keyIds) {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -358,8 +347,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public void clearAllKeys() {
+    public final void clearAllKeys() {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -379,8 +367,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
 
     // key expiration / purging functions (required by ISKeyVaultInterface)
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    protected void expireKeysInternal(final Set<String> keyIdsExpiredOptOut) {
+    protected final void expireKeysInternal(final Set<String> keyIdsExpiredOptOut) {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -392,8 +379,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
 
     // persistence functions (required by ISKeyVaultInterface)
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public void sync() throws IonicException {
+    public final void sync() throws IonicException {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -459,8 +445,7 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
     }
 
     @Override
-    @SuppressWarnings({"checkstyle:designforextension"})
-    public boolean hasChanges() {
+    public final boolean hasChanges() {
 
         // make this entire function thread-safe
         synchronized (this) {
@@ -546,8 +531,6 @@ public abstract class KeyVaultBase extends KeyVaultInterface {
                 record.setState(KeyVaultKeyRecord.State.KR_REMOVED);
             }
         }
-
-        return;
     }
 
     /**

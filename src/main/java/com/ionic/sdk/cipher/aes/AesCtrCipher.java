@@ -147,7 +147,7 @@ public class AesCtrCipher extends AesCipherAbstract {
      * @throws IonicException on cryptography errors, or invalid (null) parameters (plainText)
      */
     private byte[] encryptInternal(final byte[] plainText) throws IonicException {
-        SdkData.checkNotNull(plainText, getClass().getSimpleName());
+        SdkData.checkNotNull(plainText, ERR_LABEL);
         // cipher configuration
         final byte[] iv = new CryptoRng().rand(new byte[AesCipher.SIZE_IV]);
         final IvParameterSpec parameterSpec = new IvParameterSpec(iv);
@@ -170,8 +170,8 @@ public class AesCtrCipher extends AesCipherAbstract {
      * @throws IonicException on cryptography errors, or invalid (null) parameters (key, plainText)
      */
     public final int encrypt(final ByteBuffer plainText, final ByteBuffer cipherText) throws IonicException {
-        SdkData.checkNotNull(plainText, getClass().getSimpleName());
-        SdkData.checkNotNull(cipherText, getClass().getSimpleName());
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
         // cipher configuration
         final byte[] iv = new CryptoRng().rand(new byte[AesCipher.SIZE_IV]);
         final IvParameterSpec parameterSpec = new IvParameterSpec(iv);
@@ -179,6 +179,27 @@ public class AesCtrCipher extends AesCipherAbstract {
         cipherText.clear();
         cipherText.put(iv);
         return iv.length + super.encrypt(plainText, cipherText, null, parameterSpec);
+    }
+
+    /**
+     * Encrypt a byte buffer.  This API makes use of the JRE
+     * {@link Cipher#doFinal(ByteBuffer, ByteBuffer)} API, which uses the parameter <code>ByteBuffer</code>
+     * objects internally instead of allocating new buffers.
+     *
+     * @param plainText     ByteBuffer containing bytes to encrypt
+     * @param cipherText    ByteBuffer to receive the result of the cryptography operation
+     * @param parameterSpec additional cipher configuration
+     * @return the number of bytes stored in ciphertext
+     * @throws IonicException on cryptography errors, or invalid (null) parameters (key, plainText)
+     */
+    public final int encrypt(final ByteBuffer plainText, final ByteBuffer cipherText,
+                             final IvParameterSpec parameterSpec) throws IonicException {
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
+        SdkData.checkNotNull(parameterSpec, ERR_LABEL);
+        // encrypt
+        cipherText.clear();
+        return super.encrypt(plainText, cipherText, null, parameterSpec);
     }
 
     /**
@@ -190,7 +211,7 @@ public class AesCtrCipher extends AesCipherAbstract {
      */
     @Override
     public final byte[] decrypt(final byte[] cipherText) throws IonicException {
-        SdkData.checkNotNull(cipherText, getClass().getSimpleName());
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
         // cipher configuration
         final IvParameterSpec parameterSpec = new IvParameterSpec(cipherText, 0, AesCipher.SIZE_IV);
         // decrypt
@@ -208,10 +229,38 @@ public class AesCtrCipher extends AesCipherAbstract {
      * @throws IonicException on cryptography errors
      */
     public final int decrypt(final ByteBuffer plainText, final ByteBuffer cipherText) throws IonicException {
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
         final byte[] iv = new byte[AesCipher.SIZE_IV];
         cipherText.get(iv);
         final IvParameterSpec parameterSpec = new IvParameterSpec(iv, 0, iv.length);
         plainText.clear();
         return super.decrypt(plainText, cipherText, null, parameterSpec);
     }
+
+    /**
+     * Decrypt a previously encrypted byte buffer.  This API makes use of the JRE
+     * {@link Cipher#doFinal(ByteBuffer, ByteBuffer)} API, which uses the parameter <code>ByteBuffer</code>
+     * objects internally instead of allocating new buffers.
+     *
+     * @param plainText     ByteBuffer to receive the result of the cryptography operation
+     * @param cipherText    ByteBuffer containing bytes to decrypt
+     * @param parameterSpec additional cipher configuration
+     * @return the number of bytes stored in plaintext
+     * @throws IonicException on cryptography errors
+     */
+    public final int decrypt(final ByteBuffer plainText, final ByteBuffer cipherText,
+                             final IvParameterSpec parameterSpec) throws IonicException {
+        SdkData.checkNotNull(plainText, ERR_LABEL);
+        SdkData.checkNotNull(cipherText, ERR_LABEL);
+        SdkData.checkNotNull(parameterSpec, ERR_LABEL);
+        // decrypt
+        plainText.clear();
+        return super.decrypt(plainText, cipherText, null, parameterSpec);
+    }
+
+    /**
+     * Label for API call validity check failure.
+     */
+    private static final String ERR_LABEL = AesCtrCipher.class.getSimpleName();
 }

@@ -11,6 +11,8 @@ import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
 import com.ionic.sdk.httpclient.HttpResponse;
@@ -44,6 +46,7 @@ public class CreateKeysTransaction extends AgentTransactionBase {
     public CreateKeysTransaction(
             final ServiceProtocol protocol, final AgentRequestBase requestBase, final AgentResponseBase responseBase) {
         super(protocol, requestBase, responseBase);
+        this.message = null;
     }
 
     /**
@@ -56,7 +59,9 @@ public class CreateKeysTransaction extends AgentTransactionBase {
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
         this.message = new CreateKeysMessage(getProtocol());
-        final CreateKeysRequest request = (CreateKeysRequest) getRequestBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        SdkData.checkTrue(agentRequestBase instanceof CreateKeysRequest, SdkError.ISAGENT_ERROR);
+        final CreateKeysRequest request = (CreateKeysRequest) agentRequestBase;
         final JsonObject jsonMessage = message.getJsonMessage(request, fingerprint);
         final String resource = getProtocol().getResource(IDC.Resource.SERVER_API_V24, IDC.Resource.KEYS_CREATE_BASE);
         // assemble the inner HTTP payload
@@ -81,8 +86,12 @@ public class CreateKeysTransaction extends AgentTransactionBase {
         // unwrap the server response
         parseHttpResponseBase(httpRequest, httpResponse, message.getCid());
         // apply logic specific to the response type
-        final CreateKeysRequest request = (CreateKeysRequest) getRequestBase();
-        final CreateKeysResponse response = (CreateKeysResponse) getResponseBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        final AgentResponseBase agentResponseBase = getResponseBase();
+        SdkData.checkTrue(agentRequestBase instanceof CreateKeysRequest, SdkError.ISAGENT_ERROR);
+        SdkData.checkTrue(agentResponseBase instanceof CreateKeysResponse, SdkError.ISAGENT_ERROR);
+        final CreateKeysRequest request = (CreateKeysRequest) agentRequestBase;
+        final CreateKeysResponse response = (CreateKeysResponse) agentResponseBase;
         final String cid = response.getConversationId();
         final JsonObject jsonPayload = response.getJsonPayload();
         final JsonObject jsonData = JsonSource.getJsonObject(jsonPayload, IDC.Payload.DATA);

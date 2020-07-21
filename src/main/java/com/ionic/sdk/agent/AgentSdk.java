@@ -7,7 +7,6 @@ import com.ionic.sdk.error.SdkError;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import java.lang.reflect.Constructor;
 import java.security.GeneralSecurityException;
 import java.security.Provider;
 import java.security.Security;
@@ -56,7 +55,7 @@ public final class AgentSdk {
             }
             final Provider providerUse = (provider == null) ? Security.getProvider(PROVIDER_SUNJCE) : provider;
             cryptoAbstractCtor = new CryptoAbstract(providerUse);
-            checkForUnlimitedStrength(cryptoAbstractCtor);
+            checkForUnlimitedStrength();
             logger.log(Level.FINE, "initialize() = OK");
         } catch (IonicException e) {
             exception = e;
@@ -231,10 +230,9 @@ public final class AgentSdk {
      * <p>
      * Search page for: "Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files"
      *
-     * @param cryptoAbstract the pass-through object that brokers access to JCE primitives
      * @throws IonicException if the javax.crypto.Cipher object cannot be initialized
      */
-    private static void checkForUnlimitedStrength(final CryptoAbstract cryptoAbstract) throws IonicException {
+    private static void checkForUnlimitedStrength() throws IonicException {
         try {
             final byte[] bytes = new byte[AesCipher.KEY_BITS / Byte.SIZE];
             Arrays.fill(bytes, (byte) 0);
@@ -247,36 +245,7 @@ public final class AgentSdk {
     }
 
     /**
-     * Using reflection, add Bouncy Castle provider to provider list.
-     *
-     * @return the provider implementation that should be used to satisfy requests for cryptography objects
-     * @throws IonicException if Bouncy Castle provider is not in classpath or available
-     */
-    private static Provider createProviderBouncyCastle() throws IonicException {
-        final String className = CLASSNAME_BC_PROVIDER;
-        try {
-            final Class<?> c = Class.forName(className);
-            final Constructor<?> ctor = c.getConstructor();
-            final Object object = ctor.newInstance();
-            if (object instanceof Provider) {
-                Security.addProvider((Provider) object);
-                return (Provider) object;
-            } else {
-                throw new IonicException(SdkError.ISCRYPTO_ERROR, new GeneralSecurityException(className));
-            }
-        } catch (ReflectiveOperationException e) {
-            throw new IonicException(SdkError.ISAGENT_RESOURCE_NOT_FOUND, e);
-        }
-    }
-
-    /**
      * Provider name for built-in JCE implementation.
      */
     private static final String PROVIDER_SUNJCE = "SunJCE";
-
-    /**
-     * Class name for Bouncy Castle Security Provider.  When running in JRE less than or equal 7, Bouncy Castle provides
-     * implementation of AES/GCM transform (needed for communications with ionic.com).
-     */
-    private static final String CLASSNAME_BC_PROVIDER = "org.bouncycastle.jce.provider.BouncyCastleProvider";
 }

@@ -138,4 +138,7 @@ public final class KeyObligationsMap extends TreeMap<String, List<String>> {
     public Iterator<Map.Entry<String, List<String>>> iterator() {
         return this.entrySet().iterator();
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = 3239952739509879818L;
 }

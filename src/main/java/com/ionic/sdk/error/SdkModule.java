@@ -67,6 +67,7 @@ public enum SdkModule {
      *
      * @param errorCode the error code produced during use of the Ionic SDK
      * @return the module corresponding to the input error code
+     * @see SdkError
      */
     public static SdkModule getErrorCodeModule(final int errorCode) {
         SdkModule module = MODULE_UNKNOWN;

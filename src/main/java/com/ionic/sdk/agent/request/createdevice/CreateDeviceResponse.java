@@ -52,4 +52,7 @@ public final class CreateDeviceResponse extends AgentResponseBase {
     protected boolean isDataRequired() {
         return false;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = 4245560615669475754L;
 }

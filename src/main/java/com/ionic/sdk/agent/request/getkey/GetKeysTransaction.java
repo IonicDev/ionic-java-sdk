@@ -11,6 +11,7 @@ import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.httpclient.Http;
 import com.ionic.sdk.httpclient.HttpRequest;
@@ -49,6 +50,7 @@ public class GetKeysTransaction extends AgentTransactionBase {
     public GetKeysTransaction(
             final ServiceProtocol protocol, final AgentRequestBase requestBase, final AgentResponseBase responseBase) {
         super(protocol, requestBase, responseBase);
+        this.message = null;
     }
 
     /**
@@ -61,7 +63,9 @@ public class GetKeysTransaction extends AgentTransactionBase {
     @Override
     protected final HttpRequest buildHttpRequest(final Properties fingerprint) throws IonicException {
         // check for one or the other, protection keys or external ids, must have one
-        final GetKeysRequest request = (GetKeysRequest) getRequestBase();
+        final AgentRequestBase agentRequestBase = getRequestBase();
+        SdkData.checkTrue(agentRequestBase instanceof GetKeysRequest, SdkError.ISAGENT_ERROR);
+        final GetKeysRequest request = (GetKeysRequest) agentRequestBase;
         final List<String> externalIds = request.getExternalIds();
         final List<String> keyIds = request.getKeyIds();
         if ((externalIds.isEmpty()) && (keyIds.isEmpty())) {
@@ -92,8 +96,9 @@ public class GetKeysTransaction extends AgentTransactionBase {
         // unwrap the server response
         parseHttpResponseBase(httpRequest, httpResponse, message.getCid());
         // apply logic specific to the response type
-        //final GetKeysRequest request = (GetKeysRequest) getRequestBase();
-        final GetKeysResponse response = (GetKeysResponse) getResponseBase();
+        final AgentResponseBase agentResponseBase = getResponseBase();
+        SdkData.checkTrue(agentResponseBase instanceof GetKeysResponse, SdkError.ISAGENT_ERROR);
+        final GetKeysResponse response = (GetKeysResponse) agentResponseBase;
         final String cid = response.getConversationId();
         final JsonObject jsonPayload = response.getJsonPayload();
         final JsonObject jsonData = JsonSource.getJsonObject(jsonPayload, IDC.Payload.DATA);
@@ -136,7 +141,9 @@ public class GetKeysTransaction extends AgentTransactionBase {
         final JsonObject jsonQueries = JsonSource.getJsonObjectNullable(jsonData, IDC.Payload.QUERY_RESULTS);
         if (jsonQueries != null) {
             // grab the request
-            final GetKeysRequest request = (GetKeysRequest) getRequestBase();
+            final AgentRequestBase agentRequestBase = getRequestBase();
+            SdkData.checkTrue(agentRequestBase instanceof GetKeysRequest, SdkError.ISAGENT_ERROR);
+            final GetKeysRequest request = (GetKeysRequest) agentRequestBase;
             // for each external id we requested, see if there's optional errors or key'd responses
             for (String extId : request.getExternalIds()) {
                 // response reference for each external id must exist (even if empty)

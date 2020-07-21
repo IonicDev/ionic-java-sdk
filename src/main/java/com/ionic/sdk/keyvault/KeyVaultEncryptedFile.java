@@ -484,9 +484,6 @@ public class KeyVaultEncryptedFile {
         System.arraycopy(dataBytes, 0, header, 0, headerDelimIndex);
 
         // parse and read the JSON header
-        final String keyVaultIdFromHeader = null;
-        final String cipherIdFromHeader = null;
-        final String fileVersionFromHeader = null;
         readJsonHeader(Transcoder.utf8().encode(header), keyVaultId,
                         cipher.getId(), FILE_VERSION_LATEST);
 

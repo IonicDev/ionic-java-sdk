@@ -4,8 +4,10 @@ import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
 
 /**
- * Custom TLS trust manager, which does no validation on server certificates it is presented.  Any presented server
- * certificate will be trusted.  Useful for testing.
+ * Custom TLS trust manager, which does no validation on server certificates it is presented.  Any presented
+ * server certificate will be trusted.  Useful for testing.
+ * <p>
+ * Not intended for use in production applications.
  */
 public class TrustAllTrustManager implements X509TrustManager {
 

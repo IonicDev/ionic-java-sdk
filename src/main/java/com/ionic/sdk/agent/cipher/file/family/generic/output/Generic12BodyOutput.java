@@ -34,17 +34,17 @@ final class Generic12BodyOutput implements GenericBodyOutput {
     /**
      * The cryptography key used to encrypt and sign the file content.
      */
-    private AgentKey key;
+    private final AgentKey key;
 
     /**
      * The buffer to hold a plaintext block (source buffer for encryption, target buffer for decryption).
      */
-    private ByteBuffer plainText;
+    private final ByteBuffer plainText;
 
     /**
      * The buffer to hold a ciphertext block (source buffer for decryption, target buffer for encryption).
      */
-    private ByteBuffer cipherText;
+    private final ByteBuffer cipherText;
 
     /**
      * A running buffer used to store block hashes.  These are hashed and signed at the completion of the

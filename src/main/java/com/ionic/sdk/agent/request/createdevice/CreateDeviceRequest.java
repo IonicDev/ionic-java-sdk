@@ -127,4 +127,7 @@ public final class CreateDeviceRequest extends AgentRequestBase {
     public void setRsaKeyHolder(final RsaKeyHolder rsaKeyHolder) {
         this.rsaKeyHolder = rsaKeyHolder;
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = -908138148066044549L;
 }

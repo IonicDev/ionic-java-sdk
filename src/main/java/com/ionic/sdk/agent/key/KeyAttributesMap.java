@@ -36,6 +36,18 @@ public final class KeyAttributesMap extends TreeMap<String, List<String>> {
     }
 
     /**
+     * Constructs a new HashMap from a set of 1..n {@link KeyAttribute}.
+     *
+     * @param keyAttributes the map values used to initialize this map
+     */
+    public KeyAttributesMap(final KeyAttribute... keyAttributes) {
+        super();
+        for (KeyAttribute keyAttribute : keyAttributes) {
+            put(keyAttribute.getKey(), keyAttribute);
+        }
+    }
+
+    /**
      * Check if the map is empty or not.
      *
      * @deprecated Please use {@link Map#isEmpty isEmpty}.
@@ -138,4 +150,7 @@ public final class KeyAttributesMap extends TreeMap<String, List<String>> {
     public Iterator<Map.Entry<String, List<String>>> iterator() {
         return this.entrySet().iterator();
     }
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.7.0". */
+    private static final long serialVersionUID = -5472314398072920143L;
 }

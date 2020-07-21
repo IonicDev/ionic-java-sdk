@@ -4,12 +4,13 @@ import com.ionic.sdk.cipher.aes.AesCipher;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkError;
 
+import java.io.Serializable;
 import java.security.InvalidKeyException;
 
 /**
  * This class represents the device profile of the machine we are on.
  */
-public class DeviceProfile {
+public class DeviceProfile implements Serializable {
 
     /**
      * The device profile name.
@@ -247,4 +248,7 @@ public class DeviceProfile {
      * Regular expression token used to split device ID into its constituent parts.
      */
     private static final String REGEX_TOKEN_DOT = "\\.";
+
+    /** Value of serialVersionUID from maven coordinates "com.ionic:ionic-sdk:2.8.0". */
+    private static final long serialVersionUID = -8004857920029153448L;
 }

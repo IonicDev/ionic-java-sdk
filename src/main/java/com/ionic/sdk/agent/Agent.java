@@ -43,8 +43,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The main point of interaction with the Ionic Machina Tools SDK.  {@link Agent} instances provide APIs to perform the
- * following Machina operations:
+ * The main point of interaction with the Ionic Machina Tools SDK.  {@link Agent} instances provide APIs to perform
+ * the following Machina operations:
  * <ul>
  * <li>Create Key</li>
  * <li>Get Key</li>
@@ -53,6 +53,10 @@ import java.util.List;
  * <li>Log Messages</li>
  * <li>Create Device</li>
  * </ul>
+ * <p>
+ * For this {@link KeyServices} implementation, these operations involve a request to a remote Machina key
+ * server.  On failure of this operation, an {@link IonicException} is thrown, which contains additional data
+ * about the failure.
  * <p>
  * {@link Agent} objects may be instantiated in a few different ways.
  * <ul>
@@ -670,28 +674,26 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Creates one or more protection keys through Ionic.com.
+     * Creates one or more protection keys in the Machina service, and returns those keys to the caller.
+     * <p>
+     * Each protection key may contain caller-specified **immutable** key attributes, which describe the context
+     * of the intended key usage.  Each key may also contain caller-specified **mutable** key attributes, which
+     * may be updated after creation via the API {@link #updateKeys(UpdateKeysRequest)}.
+     * <p>
+     * The {@link CreateKeysRequest} parameter may contain caller-specified metadata, which provides contextual
+     * information about the device making the request.
      * <p>
      * NOTE: please limit to 1,000 keys per request, otherwise the server will return an error.
      *
-     * @param request The protection key request input data object.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
+     * @param request the protection key request input data object
+     * @return the protection key response output data object
+     * @throws IonicException on failure to create the requested protection key(s)
      */
     @Override
     public final CreateKeysResponse createKeys(final CreateKeysRequest request) throws IonicException {
         return createKeysInternal(request, new VbeProtocol(this));
     }
 
-    /**
-     * Creates a single protection key with **immutable** and mutable key attributes through Ionic.com.
-     *
-     * @param attributes        The **immutable** protection key attributes to use for creating the protection key.
-     * @param mutableAttributes The mutable protection key attributes to use for creating the protection key.
-     * @param metadata          The metadata properties to send along with the HTTP request.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final CreateKeysResponse createKey(final KeyAttributesMap attributes,
                                               final KeyAttributesMap mutableAttributes,
@@ -699,65 +701,29 @@ public class Agent extends MetadataHolder implements KeyServices {
         return createKeyInternal(attributes, mutableAttributes, metadata, new VbeProtocol(this));
     }
 
-    /**
-     * Creates a single protection key with **immutable** and mutable key attributes through Ionic.com.
-     *
-     * @param attributes        The **immutable** protection key attributes to use for creating the protection key.
-     * @param mutableAttributes The mutable protection key attributes to use for creating the protection key.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final CreateKeysResponse createKey(final KeyAttributesMap attributes,
                                               final KeyAttributesMap mutableAttributes) throws IonicException {
         return createKeyInternal(attributes, mutableAttributes, new MetadataMap(), new VbeProtocol(this));
     }
 
-    /**
-     * Creates a single protection key with **immutable** key attributes through Ionic.com.
-     *
-     * @param attributes The **immutable** protection key attributes to use for creating the protection key.
-     * @param metadata   The metadata properties to send along with the HTTP request.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final CreateKeysResponse createKey(final KeyAttributesMap attributes,
                                               final MetadataMap metadata) throws IonicException {
         return createKeyInternal(attributes, new KeyAttributesMap(), metadata, new VbeProtocol(this));
     }
 
-    /**
-     * Creates a single protection key with **immutable** key attributes through Ionic.com.
-     *
-     * @param attributes The **immutable** protection key attributes to use for creating the protection key.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final CreateKeysResponse createKey(final KeyAttributesMap attributes) throws IonicException {
         return createKeyInternal(attributes, new KeyAttributesMap(), new MetadataMap(), new VbeProtocol(this));
     }
 
-    /**
-     * Creates a single protection key without key attributes through Ionic.com.
-     *
-     * @param metadata The metadata properties to send along with the HTTP request.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final CreateKeysResponse createKey(final MetadataMap metadata) throws IonicException {
         return createKeyInternal(
                 new KeyAttributesMap(), new KeyAttributesMap(), metadata, new VbeProtocol(this));
     }
 
-    /**
-     * Creates a single protection key without key attributes through Ionic.com.
-     *
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final CreateKeysResponse createKey() throws IonicException {
         return createKeyInternal(
@@ -765,12 +731,12 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Creates one or more protection keys through Ionic.com.
+     * Creates one or more protection keys in the Machina service, and returns those keys to the caller.
      *
-     * @param request  The protection key request input data object.
-     * @param protocol The implementation of the semantics for the targeted service endpoint.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
+     * @param request  the protection key request input data object
+     * @param protocol the implementation of the semantics for the targeted service endpoint
+     * @return the protection key response output data object
+     * @throws IonicException on failure to create the requested protection key(s)
      */
     protected CreateKeysResponse createKeysInternal(final CreateKeysRequest request,
                                                     final ServiceProtocol protocol) throws IonicException {
@@ -781,14 +747,14 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Creates one or more protection keys through Ionic.com.
+     * Creates one or more protection keys in the Machina service, and returns those keys to the caller.
      *
-     * @param attributes        The **immutable** protection key attributes to use for creating the protection key.
-     * @param mutableAttributes The mutable protection key attributes to use for creating the protection key.
-     * @param metadata          The metadata properties to send along with the HTTP request.
-     * @param protocol          The implementation of the semantics for the targeted service endpoint.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
+     * @param attributes        the **immutable** key attributes to associate with the key
+     * @param mutableAttributes the mutable key attributes to associate with the key
+     * @param metadata          the metadata properties to associate with the request
+     * @param protocol          the implementation of the semantics for the targeted service endpoint
+     * @return the protection key response output data object
+     * @throws IonicException on failure to create the requested protection key
      */
     protected CreateKeysResponse createKeyInternal(final KeyAttributesMap attributes,
                                                    final KeyAttributesMap mutableAttributes,
@@ -809,13 +775,16 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Gets protection keys from Ionic.com.
+     * Retrieves a set of protection keys (by key tag, or by external id) from the Machina service.
+     * <p>
+     * The {@link GetKeysRequest} parameter may contain caller-specified metadata, which provides contextual
+     * information about the device making the request.
      * <p>
      * NOTE: please limit to 1,000 keys per request, otherwise the server will return an error.
      *
-     * @param request The protection key request input data object.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
+     * @param request the protection key request input data object
+     * @return the protection key response output data object
+     * @throws IonicException on failure to retrieve the requested protection key(s)
      */
     @Override
     public final GetKeysResponse getKeys(final GetKeysRequest request) throws IonicException {
@@ -823,26 +792,11 @@ public class Agent extends MetadataHolder implements KeyServices {
         return getKeysInternal(request, new VbeProtocol(this, getDeviceProfileForKeyIdInternal(firstKeyId)));
     }
 
-    /**
-     * Gets a single protection key from Ionic.com.
-     *
-     * @param keyId    The protection key ID to fetch.
-     * @param metadata The metadata properties to send along with the HTTP request.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final GetKeysResponse getKey(final String keyId, final MetadataMap metadata) throws IonicException {
         return getKeyInternal(keyId, metadata, new VbeProtocol(this, getDeviceProfileForKeyIdInternal(keyId)));
     }
 
-    /**
-     * Gets a single protection key from Ionic.com.
-     *
-     * @param keyId The protection key ID to fetch.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final GetKeysResponse getKey(final String keyId) throws IonicException {
         return getKeyInternal(keyId, new MetadataMap(),
@@ -850,12 +804,12 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Gets protection keys from KeysAPI service endpoint.
+     * Retrieves a single protection key (by key tag, or by external id) from the Machina service.
      *
-     * @param request  The protection key request input data object.
-     * @param protocol The implementation of the semantics for the targeted service endpoint.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
+     * @param request  the protection key request input data object
+     * @param protocol the implementation of the semantics for the targeted service endpoint
+     * @return the protection key response output data object
+     * @throws IonicException on failure to retrieve the requested protection key(s)
      */
     protected GetKeysResponse getKeysInternal(final GetKeysRequest request,
                                               final ServiceProtocol protocol) throws IonicException {
@@ -866,13 +820,16 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Gets protection keys from KeysAPI service endpoint.
+     * Retrieves a single protection key (by key tag) from the Machina service.
+     * <p>
+     * By convention, failures to retrieve a single {@link com.ionic.sdk.agent.key.AgentKey} specified by key tag
+     * should result in an {@link IonicException} with the error code {@link SdkError#ISAGENT_KEY_DENIED}.
      *
-     * @param keyId    The protection key ID to fetch.
-     * @param metadata The metadata properties to send along with the HTTP request.
-     * @param protocol The implementation of the semantics for the targeted service endpoint.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
+     * @param keyId    the protection key tag to fetch
+     * @param metadata the metadata properties to associate with the request
+     * @param protocol the implementation of the semantics for the targeted service endpoint
+     * @return the protection key response output data object
+     * @throws IonicException on failure of the remote request; on failure to fetch the specified protection key
      */
     protected GetKeysResponse getKeyInternal(final String keyId, final MetadataMap metadata,
                                              final ServiceProtocol protocol) throws IonicException {
@@ -891,11 +848,11 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Updates one or more protection keys through Ionic.com.
+     * Updates a set of protection keys in the Machina service.
      *
-     * @param request The protection key request input data object.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
+     * @param request the protection key request input data object
+     * @return the protection key response output data object
+     * @throws IonicException on failure of the remote request
      */
     private UpdateKeysResponse updateKeysInternal(final UpdateKeysRequest request) throws IonicException {
         final UpdateKeysResponse response = new UpdateKeysResponse();
@@ -905,38 +862,11 @@ public class Agent extends MetadataHolder implements KeyServices {
         return response;
     }
 
-    /**
-     * Updates one or more protection keys through Ionic.com.
-     * <p>
-     * MutableAttributes will be modified on the server, as specified in the request. Since
-     * changes to immutable attributes are prohibited, the value for Attributes (if specified)
-     * will be ignored and the Attributes will remain unchanged on the server. The keys returned
-     * in the Response object will copy the Attributes of the keys provided in the Request object
-     * for convenience, but will not reflect the values on the server if changes were made.
-     *
-     * @param request The protection key request input data object.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final UpdateKeysResponse updateKeys(final UpdateKeysRequest request) throws IonicException {
         return updateKeysInternal(request);
     }
 
-    /**
-     * Updates a single protection key from Ionic.com.
-     * <p>
-     * MutableAttributes will be modified on the server, as specified in the request. Since
-     * changes to immutable attributes are prohibited, the value for Attributes (if specified)
-     * will be ignored and the Attributes will remain unchanged on the server. The key returned
-     * in the Response object will copy the Attributes of the key provided in the Request object
-     * for convenience, but will not reflect the values on the server if changes were made.
-     *
-     * @param key      key to update
-     * @param metadata The metadata properties to send along with the HTTP request.
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
-     */
     @Override
     public final UpdateKeysResponse updateKey(
             final UpdateKeysRequest.Key key, final MetadataMap metadata) throws IonicException {
@@ -947,7 +877,10 @@ public class Agent extends MetadataHolder implements KeyServices {
     }
 
     /**
-     * Updates a single protection key from Ionic.com.
+     * Updates a single protection key in the Machina service.
+     * <p>
+     * The call may contain caller-specified metadata, which provides contextual
+     * information about the device making the request.
      * <p>
      * MutableAttributes will be modified on the server, as specified in the request. Since
      * changes to immutable attributes are prohibited, the value for Attributes (if specified)
@@ -956,8 +889,8 @@ public class Agent extends MetadataHolder implements KeyServices {
      * for convenience, but will not reflect the values on the server if changes were made.
      *
      * @param key key to update
-     * @return The protection key response output data object.
-     * @throws IonicException if an error occurs
+     * @return the protection key response output data object
+     * @throws IonicException on failure of the remote request
      */
     public final UpdateKeysResponse updateKey(final UpdateKeysRequest.Key key) throws IonicException {
         final UpdateKeysRequest request = new UpdateKeysRequest();
@@ -1227,8 +1160,6 @@ public class Agent extends MetadataHolder implements KeyServices {
         // update server time offset to be the difference between server time millis
         // and our own device time millis
         serverTimeOffsetMillis = serverTimeMillis - deviceTimeMillis;
-
-        return;
     }
 
     /**

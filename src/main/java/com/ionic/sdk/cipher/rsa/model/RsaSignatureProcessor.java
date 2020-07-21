@@ -34,6 +34,8 @@ public final class RsaSignatureProcessor {
      */
     public RsaSignatureProcessor() throws IonicException {
         AgentSdk.initialize();
+        rsaPublicKey = null;
+        rsaPrivateKey = null;
     }
 
     /**
