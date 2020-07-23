@@ -2,10 +2,11 @@
 
 [Ionic](https://ionic.com) Java software development kit (SDK).
 
-### Getting The SDK
+## Getting The SDK
 
-The built Java SDK JAR can be downloaded from [Ionic Downloads](https://dev-dashboard.ionic.com/#/downloads?tenant=5640bb430ea2684423e0655c).
-In general, you should not need to build the SDK from this source.
+Machina Java SDK releases (including source and unit tests) are published to the [Maven Central repository](https://repo.maven.apache.org/maven2/com/ionic/ionic-sdk/).
+
+Additional Maven Central publishing information can be found [here](https://mvnrepository.com/artifact/com.ionic/ionic-sdk).
 
 ## Developer documentation
 
