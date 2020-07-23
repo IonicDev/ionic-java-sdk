@@ -15,6 +15,35 @@ Visit [Getting Started Tutorial](https://dev.ionic.com/getting-started) for a gu
 
 ## Release Notes
 
+### 2.8.0
+
+#### Abstract Class KeyServicesMinimal
+The new class ```KeyServicesMinimal``` has been added, providing default implementations of most ```KeyServices```
+interfaces.  This enables users to provide custom KeyServices implementations with minimal boilerplate code.
+
+#### BatchCipher Implementations
+The new abstract class ```BatchCipherAbstract``` has been added, with implementations using the AES-CTR and AES-GCM
+algorithms.  Users may employ these classes to perform cryptography operations on discrete sets of logically related
+plaintexts (for example, multiple columns of a single database table row).
+
+#### Documentation Improvements
+- Additional detail describes the use and purpose of the ```GetKeys``` external id data structures.
+- The error code definitions are linked in more places within the API documentation.
+- Expected return values from ```get``` operations are better documented, detailing expectations with regard to null
+values and exceptions.
+
+#### Code Improvements
+- Additional SDK classes implement the ```java.io.Serializable``` interface, facilitating usage within external
+frameworks such as [Apache Spark](https://spark.apache.org/).
+- The source code has been updated to comply with up-to-date versions of the code quality tools
+[checkstyle](https://checkstyle.sourceforge.io/), [SpotBugs](https://spotbugs.github.io/), and
+[pmd](https://pmd.github.io/).
+- Additional trace has been added to help diagnose issues with the available ```ProfilePersistor``` implementations.
+- Provide method to specify a desired quantity of keys that match an External ID in a ```GetKeysRequest```.
+
+#### Service Endpoint Updates
+- All SDK calls to the Machina service layer use the v2.4 service HTTP endpoints.
+
 ### 2.7.0
 
 ### New Features
