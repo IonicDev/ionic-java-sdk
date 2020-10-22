@@ -2,7 +2,6 @@ package com.ionic.sdk.cipher.aes;
 
 import com.ionic.sdk.agent.AgentSdk;
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.core.rng.CryptoRng;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
 
@@ -149,7 +148,7 @@ public class AesCtrCipher extends AesCipherAbstract {
     private byte[] encryptInternal(final byte[] plainText) throws IonicException {
         SdkData.checkNotNull(plainText, ERR_LABEL);
         // cipher configuration
-        final byte[] iv = new CryptoRng().rand(new byte[AesCipher.SIZE_IV]);
+        final byte[] iv = getIV(plainText);
         final IvParameterSpec parameterSpec = new IvParameterSpec(iv);
         // encrypt
         final byte[] cipherText = super.encrypt(plainText, null, parameterSpec);
@@ -173,10 +172,9 @@ public class AesCtrCipher extends AesCipherAbstract {
         SdkData.checkNotNull(plainText, ERR_LABEL);
         SdkData.checkNotNull(cipherText, ERR_LABEL);
         // cipher configuration
-        final byte[] iv = new CryptoRng().rand(new byte[AesCipher.SIZE_IV]);
+        final byte[] iv = getIV(plainText.duplicate().array());
         final IvParameterSpec parameterSpec = new IvParameterSpec(iv);
         // encrypt
-        cipherText.clear();
         cipherText.put(iv);
         return iv.length + super.encrypt(plainText, cipherText, null, parameterSpec);
     }

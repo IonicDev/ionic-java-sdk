@@ -7,6 +7,8 @@ import com.ionic.sdk.core.rng.CryptoRng;
 import com.ionic.sdk.crypto.CryptoUtils;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 import com.ionic.sdk.json.JsonIO;
 import com.ionic.sdk.json.JsonSource;
 import com.ionic.sdk.json.JsonTarget;
@@ -24,7 +26,8 @@ import java.util.List;
  * interactions with 1..n Ionic Machina service keyspaces, which broker authenticated cryptography key transactions.
  * <p>
  * DeviceProfilePersistorPassword is a persistor that uses the AesGcmCipher with a user-supplied password
- * hashed with pbkdf2.
+ * hashed with pbkdf2.  The minimum password length is 6 characters; use of a null password, or of a password of
+ * insufficient length, will cause an {@link IonicException} to be thrown.
  * <p>
  * The constructor {@link #DeviceProfilePersistorPassword(InputStream)} may be used to load the serialized store of
  * {@link com.ionic.sdk.device.profile.DeviceProfile} objects from an InputStream.  The content is cached in this
@@ -78,6 +81,11 @@ public class DeviceProfilePersistorPassword extends DeviceProfilePersistorBase {
     private String password;
 
     /**
+     * The minimum acceptable password length.
+     */
+    private static final int MINIMUM_PASSWORD_LENGTH = 6;
+
+    /**
      * The Ionic auth string.
      */
     private static final String IONIC_AUTH_DATA = "Ionic Security Inc";
@@ -129,8 +137,11 @@ public class DeviceProfilePersistorPassword extends DeviceProfilePersistorBase {
      * Provide password used to protect the serialized byte stream containing DeviceProfile objects.
      *
      * @param password the client-supplied string used to protect the DeviceProfile objects on serialization
+     * @throws IonicException on null password, or on insufficient password length (minimum 6 characters)
      */
-    public final void setPassword(final String password) {
+    public final void setPassword(final String password) throws IonicException {
+        final boolean isPasswordOk = ((password != null) && (password.length() >= MINIMUM_PASSWORD_LENGTH));
+        SdkData.checkTrue(isPasswordOk, SdkError.ISAGENT_INVALIDVALUE, FORMAT_PASSWORD);
         this.password = password;
     }
 
@@ -141,6 +152,8 @@ public class DeviceProfilePersistorPassword extends DeviceProfilePersistorBase {
 
     @Override
     protected final void initializeCipher(final String jsonHeader) throws IonicException {
+        final boolean isPasswordOk = ((password != null) && (password.length() >= MINIMUM_PASSWORD_LENGTH));
+        SdkData.checkTrue(isPasswordOk, SdkError.ISAGENT_INVALIDVALUE, FORMAT_PASSWORD);
         byte[] salt = new byte[0];
         if (jsonHeader != null) {
             final JsonObject jsonObject = JsonIO.readObject(Transcoder.utf8().decode(jsonHeader));

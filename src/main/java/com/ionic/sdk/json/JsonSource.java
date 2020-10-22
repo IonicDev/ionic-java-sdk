@@ -10,6 +10,7 @@ import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonString;
 import javax.json.JsonValue;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -117,6 +118,19 @@ public final class JsonSource {
             final JsonObject jsonObject) throws IonicException {
         SdkData.checkNotNull(jsonObject, JsonObject.class.getSimpleName());
         return jsonObject.entrySet().iterator();
+    }
+
+    /**
+     * Get a iterator reference allowing traversal of the content of the input json object.
+     *
+     * @param jsonObject The input object
+     * @return an iterator with which the input object content may be traversed if non-null; otherwise
+     * an empty iterator
+     */
+    public static Iterator<Map.Entry<String, JsonValue>> getIteratorNullable(
+            final JsonObject jsonObject) {
+        final Iterator<Map.Entry<String, JsonValue>> emptyIterator = Collections.emptyIterator();
+        return (jsonObject == null) ? emptyIterator : jsonObject.entrySet().iterator();
     }
 
     /**

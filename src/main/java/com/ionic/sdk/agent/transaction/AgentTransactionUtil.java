@@ -2,6 +2,7 @@ package com.ionic.sdk.agent.transaction;
 
 import com.ionic.sdk.agent.SdkVersion;
 import com.ionic.sdk.agent.ServiceProtocol;
+import com.ionic.sdk.agent.key.KeyObligationsMap;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.core.annotation.InternalUseOnly;
@@ -13,15 +14,21 @@ import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
+import com.ionic.sdk.json.JsonSource;
 import com.ionic.sdk.json.JsonTarget;
 
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -211,5 +218,34 @@ public final class AgentTransactionUtil {
             throw new IonicException(error, Value.join(VM.getEol(), SdkError.getErrorString(error), String.format(
                     "Null value detected (conversation ID %s, name %s).", cid, name)));
         }
+    }
+
+    /**
+     * Assemble a {@link KeyObligationsMap} object from the service response key data.
+     *
+     * @param jsonObject service response {@link JsonObject} representation of obligations data
+     * @return {@link KeyObligationsMap} representation of input data
+     * @throws IonicException on json parsing errors
+     */
+    public static KeyObligationsMap toObligations(final JsonObject jsonObject) throws IonicException {
+        final KeyObligationsMap keyObligationsMap = new KeyObligationsMap();
+        final Iterator<Map.Entry<String, JsonValue>> iterator = JsonSource.getIteratorNullable(jsonObject);
+        while (iterator.hasNext()) {
+            final Map.Entry<String, JsonValue> entry = iterator.next();
+            final List<String> valuesOut = new ArrayList<String>();
+            final String key = entry.getKey();
+            final JsonArray valuesIn = JsonSource.toJsonArray(entry.getValue(), key);
+            for (JsonValue valueIn : valuesIn) {
+                if (valueIn instanceof JsonString) {
+                    valuesOut.add(JsonSource.toString(valueIn));
+                } else {
+                    throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, key);
+                }
+            }
+            if (!valuesOut.isEmpty()) {
+                keyObligationsMap.put(key, valuesOut);
+            }
+        }
+        return keyObligationsMap;
     }
 }

@@ -1,0 +1,10 @@
+[
+{
+  "name":"com.ionic.sdk.core.codec8.TranscoderFactory8",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.glassfish.json.JsonProviderImpl",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+}
+]

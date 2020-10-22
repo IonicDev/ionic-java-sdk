@@ -58,9 +58,10 @@ public final class DateTime8601 {
      */
     private Date fromStringInner(final String date) throws IonicException {
         try {
-            return dateFormat.parse(date);
+            final String dateNormalized = date.replaceFirst(PRESERVE_MILLIS_FROM, PRESERVE_MILLIS_TO);
+            return dateFormat.parse(dateNormalized);
         } catch (ParseException e) {
-            throw new IonicException(SdkError.ISAGENT_ERROR, e);
+            throw new IonicException(SdkError.ISAGENT_INVALIDVALUE, e);
         }
     }
 
@@ -78,6 +79,16 @@ public final class DateTime8601 {
      * The format string used to represent a GMT date as a string.
      */
     private static final String ISO_8601_MILLI_Z = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+
+    /**
+     * Pattern used to normalize ISO 8601 date to a maximum of three digits of millisecond precision.
+     */
+    private static final String PRESERVE_MILLIS_FROM = "(\\.\\d{3})\\d*";
+
+    /**
+     * Pattern used to normalize ISO 8601 date to a maximum of three digits of millisecond precision.
+     */
+    private static final String PRESERVE_MILLIS_TO = "$1";
 
     /**
      * The format string used to represent a GMT date as a string.

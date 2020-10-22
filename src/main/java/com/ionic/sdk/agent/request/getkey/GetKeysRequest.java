@@ -4,6 +4,7 @@ import com.ionic.sdk.agent.request.base.AgentRequestBase;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -47,6 +48,16 @@ public class GetKeysRequest extends AgentRequestBase {
     public GetKeysRequest() {
         this.keyIds = new ArrayList<String>();
         this.externalIds = new ArrayList<ExternalId>();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param keyIds an initial group of Machina key IDs to include in the service transaction
+     */
+    public GetKeysRequest(final String... keyIds) {
+        this();
+        this.keyIds.addAll(Arrays.asList(keyIds));
     }
 
     /**

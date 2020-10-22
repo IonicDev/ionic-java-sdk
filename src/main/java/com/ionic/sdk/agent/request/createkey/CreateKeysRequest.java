@@ -2,9 +2,11 @@ package com.ionic.sdk.agent.request.createkey;
 
 import com.ionic.sdk.agent.key.KeyAttributesMap;
 import com.ionic.sdk.agent.request.base.AgentRequestBase;
+import com.ionic.sdk.agent.service.IDC;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,6 +40,16 @@ public class CreateKeysRequest extends AgentRequestBase {
      */
     public CreateKeysRequest() {
         this.keyRequests = new ArrayList<Key>();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param keys an initial group of {@link Key} objects to include in the service transaction
+     */
+    public CreateKeysRequest(final Key... keys) {
+        this();
+        this.keyRequests.addAll(Arrays.asList(keys));
     }
 
     /**
@@ -103,6 +115,13 @@ public class CreateKeysRequest extends AgentRequestBase {
          * The attributes to be associated with the keys requested by this key request.
          */
         private final KeyAttributesMap mutableAttributes;
+
+        /**
+         * Constructor.
+         */
+        public Key() {
+            this(IDC.Payload.REF);
+        }
 
         /**
          * Constructor.

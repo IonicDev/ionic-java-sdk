@@ -72,6 +72,14 @@ public final class VbeProtocol implements ServiceProtocol {
         this.deviceProfile = deviceProfile;
     }
 
+    /**
+     * @return the private AES key shared between the enrolled device and EI (Enterprise Infrastructure)
+     */
+    public byte[] getKeyEi() {
+        final DeviceProfile activeProfile = agent.getActiveProfile();
+        return (activeProfile == null) ? null : activeProfile.getAesCdEiProfileKey();
+    }
+
     @Override
     public boolean isInitialized() {
         return agent.isInitialized();

@@ -11,6 +11,7 @@ import com.ionic.sdk.error.SdkError;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -74,6 +75,16 @@ public class GetKeysResponse extends AgentResponseBase {
         this.keys = new ArrayList<Key>();
         this.errors = new ArrayList<IonicError>();
         this.results = new ArrayList<QueryResult>();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param keys the group of {@link GetKeysResponse.Key} objects to include in the response
+     */
+    public GetKeysResponse(final GetKeysResponse.Key... keys) {
+        this();
+        this.keys.addAll(Arrays.asList(keys));
     }
 
     /**
@@ -237,6 +248,16 @@ public class GetKeysResponse extends AgentResponseBase {
          * The device ID associated with this key.
          */
         private String deviceId;
+
+        /**
+         * Constructor.
+         *
+         * @param key an existing object with data to populate this new object
+         */
+        public Key(final AgentKey key) {
+            this(key.getId(), key.getKey(), null, key.getAttributesMap(),
+                    key.getMutableAttributesMap(), key.getObligationsMap(), key.getOrigin());
+        }
 
         /**
          * Constructor.

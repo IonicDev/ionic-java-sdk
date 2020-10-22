@@ -128,6 +128,7 @@ final class Generic13BodyOutput implements GenericBodyOutput {
             dos.write(Transcoder.utf8().decode(headerText));
         }
         plainText.position(0);
+        cipherText.clear();
         final int encryptedLen = cipher.encrypt(plainText, cipherText);
         dos.writeInt(encryptedLen);
         final WritableByteChannel cipherChannel = Channels.newChannel(targetStream);

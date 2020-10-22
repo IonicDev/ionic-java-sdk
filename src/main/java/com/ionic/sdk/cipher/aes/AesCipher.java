@@ -50,4 +50,14 @@ public final class AesCipher {
      * Label for AES algorithm, GCM transform (used in communications with ionic.com).
      */
     public static final String TRANSFORM_GCM = "AES/GCM/NoPadding";
+
+    /**
+     * Label for metadata indicating use of alternate IV generation strategy.
+     */
+    public static final String IV_ALGORITHM = "ionic-iv-algorithm";
+
+    /**
+     * String pattern used to calculate HMAC when using deterministic encryption.
+     */
+    public static final String PATTERN_HMAC = "Ionic IV key %s %d";
 }

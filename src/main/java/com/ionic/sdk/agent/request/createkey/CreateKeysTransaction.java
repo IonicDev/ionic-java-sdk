@@ -39,7 +39,7 @@ public class CreateKeysTransaction extends AgentTransactionBase {
     /**
      * Constructor.
      *
-     * @param protocol the protocol used by the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
+     * @param protocol     the protocol used by the {@link com.ionic.sdk.key.KeyServices} client (authentication, state)
      * @param requestBase  the client request
      * @param responseBase the server response
      */
@@ -109,11 +109,13 @@ public class CreateKeysTransaction extends AgentTransactionBase {
             final String keyHex = JsonSource.getString(jsonProtectionKey, IDC.Payload.KEY);
             final String csig = JsonSource.getString(jsonProtectionKey, IDC.Payload.CSIG);
             final String msig = JsonSource.getString(jsonProtectionKey, IDC.Payload.MSIG);
+            final KeyObligationsMap keyObligationsMap = AgentTransactionUtil.toObligations(
+                    JsonSource.getJsonObjectNullable(jsonProtectionKey, IDC.Payload.OBLIGATIONS));
             // verify each received response key
             final byte[] keyBytes = getProtocol().getKeyBytes(keyHex, authData);
             response.add(new CreateKeysResponse.Key(ref, id, keyBytes, getProtocol().getIdentity(),
                     keyRequest.getAttributesMap(), keyRequest.getMutableAttributesMap(),
-                    new KeyObligationsMap(), IDC.Metadata.KEYORIGIN_IONIC, csig, msig));
+                    keyObligationsMap, IDC.Metadata.KEYORIGIN_IONIC, csig, msig));
         }
     }
 }

@@ -93,6 +93,7 @@ final class Generic12BodyOutput implements GenericBodyOutput {
         final byte[] plainTextBlockHash = CryptoUtils.hmacSHA256(byteBuffer, key.getKey());
         plainTextBlockHashes.write(plainTextBlockHash);
         plainText.position(0);
+        cipherText.clear();
         final int encryptedLen = cipher.encrypt(plainText, cipherText);
         final WritableByteChannel cipherChannel = Channels.newChannel(targetStream);
         cipherText.limit(cipherText.position());

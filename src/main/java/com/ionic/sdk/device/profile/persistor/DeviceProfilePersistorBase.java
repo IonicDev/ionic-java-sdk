@@ -194,7 +194,8 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
      * Initialize the cipher associated with the {@link ProfilePersistor}.
      *
      * @param json (optional) JSON content prepended to the document, containing cipher configuration parameters
-     * @throws IonicException on cryptography initialization failures; bad input; cryptography operation failures
+     * @throws IonicException on cryptography initialization failures; bad input; cipher expectation failures;
+     * cryptography operation failures
      */
     protected void initializeCipher(final String json) throws IonicException {
     }
@@ -408,7 +409,7 @@ public abstract class DeviceProfilePersistorBase implements ProfilePersistor {
     protected Tuple<List<DeviceProfile>, String> loadAllProfilesFromJson(final String resource,
             final byte[] cipherText, final CipherAbstract cipher) throws IonicException {
         SdkData.checkTrue(cipherText != null, SdkError.ISAGENT_NULL_INPUT, resource);
-        logger.info(String.format("ProfilePersistor, resource=[%s], hash=[%s], size=[%d]",
+        logger.fine(String.format("ProfilePersistor, resource=[%s], hash=[%s], size=[%d]",
                 resource, CryptoUtils.sha256ToHexString(cipherText), cipherText.length));
         // handle ProfilePersistor v1.1 JSON header
         final DeviceProfileSerializer serializer = new DeviceProfileSerializer(cipherText);

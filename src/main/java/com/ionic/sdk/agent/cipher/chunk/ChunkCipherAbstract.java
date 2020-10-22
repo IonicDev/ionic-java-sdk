@@ -86,7 +86,7 @@ public abstract class ChunkCipherAbstract {
         encryptAttributes.setKeyResponse(createKey);
         final String keyId = createKey.getId();
         // perform crypto operation
-        final String cipherText = normalize(encryptInternal(createKey, plainText));
+        final String cipherText = normalize(encryptInternal(createKey, plainText, encryptAttributes));
         // format output
         final StringBuilder buffer = new StringBuilder();
         buffer.append(getDelimiterKeyTagStart()).append(keyId)
@@ -272,12 +272,14 @@ public abstract class ChunkCipherAbstract {
     /**
      * Encrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
      *
-     * @param key       the Ionic key associated with the ciphertext
-     * @param plainText some data to be encrypted
+     * @param key               the Ionic key associated with the ciphertext
+     * @param plainText         some data to be encrypted
+     * @param encryptAttributes the attributes to be used in the encryption operation
      * @return the Ionic encoded encrypted representation of the input
      * @throws IonicException on cryptography errors
      */
-    protected abstract String encryptInternal(AgentKey key, byte[] plainText) throws IonicException;
+    protected abstract String encryptInternal(AgentKey key, byte[] plainText,
+                                              ChunkCryptoEncryptAttributes encryptAttributes) throws IonicException;
 
     /**
      * Decrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
