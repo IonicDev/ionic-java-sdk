@@ -167,17 +167,11 @@ public class ChunkCipherV1 extends ChunkCipherAbstract {
         return encryptInternal(plainText, encryptAttributes);
     }
 
-    /**
-     * Encrypt some text, using Ionic infrastructure to abstract away the key management and cryptography.
-     *
-     * @param key       the Ionic key associated with the ciphertext
-     * @param plainText some data to be encrypted
-     * @return the Ionic encoded encrypted representation of the input
-     * @throws IonicException on cryptography errors
-     */
     @Override
-    protected final String encryptInternal(final AgentKey key, final byte[] plainText) throws IonicException {
+    protected final String encryptInternal(final AgentKey key, final byte[] plainText,
+                                           final ChunkCryptoEncryptAttributes encryptAttributes) throws IonicException {
         final AesCtrCipher cipher = new AesCtrCipher();
+        cipher.setMetadata(encryptAttributes.getMetadata());
         cipher.setKey(key.getKey());
         return cipher.encryptToBase64(plainText);
     }

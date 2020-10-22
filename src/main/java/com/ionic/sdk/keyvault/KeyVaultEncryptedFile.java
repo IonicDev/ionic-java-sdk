@@ -236,6 +236,7 @@ public class KeyVaultEncryptedFile {
      * @param keyObject Parsed JsonObject whose individual values are all arrays of strings
      * @return KeyObligationsMap
      * @throws IonicException on Json parsing errors
+     * @see com.ionic.sdk.agent.transaction.AgentTransactionUtil#toObligations(JsonObject)
      */
     private KeyObligationsMap readJsonMapOfObligations(final JsonObject keyObject) throws IonicException  {
 

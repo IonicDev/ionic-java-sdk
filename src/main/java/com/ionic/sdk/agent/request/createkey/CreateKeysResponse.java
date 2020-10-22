@@ -10,6 +10,7 @@ import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -43,6 +44,16 @@ public class CreateKeysResponse extends AgentResponseBase {
     public CreateKeysResponse() {
         super();
         this.keyResponses = new ArrayList<Key>();
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param keys the group of {@link CreateKeysResponse.Key} objects to include in the response
+     */
+    public CreateKeysResponse(final CreateKeysResponse.Key... keys) {
+        this();
+        this.keyResponses.addAll(Arrays.asList(keys));
     }
 
     /**
@@ -133,6 +144,16 @@ public class CreateKeysResponse extends AgentResponseBase {
          * The device id associated with the creation request.
          */
         private String deviceId;
+
+        /**
+         * Constructor.
+         *
+         * @param key an existing object with data to populate this new object
+         */
+        public Key(final AgentKey key) {
+            this(null, key.getId(), key.getKey(), null, key.getAttributesMap(),
+                    key.getMutableAttributesMap(), key.getObligationsMap(), key.getOrigin());
+        }
 
         /**
          * Constructor.

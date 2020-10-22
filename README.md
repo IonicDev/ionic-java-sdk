@@ -16,6 +16,54 @@ Visit [Getting Started Tutorial](https://dev.ionic.com/getting-started) for a gu
 
 ## Release Notes
 
+### 2.9.0
+
+### New Features
+
+#### Deterministic Encryption Support
+The SDK has added support for deterministic encryption, allowing users to perform equality comparisons on encrypted 
+data values.
+
+#### Space-Efficient Encryption of Small Binary Data Values
+A new `BinaryCipher` family of cipher implementations has been added to the SDK.  These implementations allow for 
+the protection of small binary data values like the existing `ChunkCipher` implementations, but without the 
+additional space needed to encode ciphertexts using the base64 algorithm.
+
+#### GraalVM Support
+The SDK library JAR now includes additional metadata to enable usage in [GraalVM](https://www.graalvm.org/) 
+native binary applications.
+
+#### Support for Machina Identity Assertion Functions
+The class `com.ionic.sdk.agent.Agent` now includes additional APIs in support of Machina identity provider operations:
+- `CreateIdentityAssertion` allows a Machina-enabled device to generate an assertion, which can be used 
+to prove that it has a valid enrollment in the given keyspace.
+- `ValidateIdentityAssertion` allows a non-Machina-enabled device to verify the assertion.
+
+#### KeyServices Implementations
+Additional implementations of the interface `KeyServices` are available in the distributable 
+source (including the test source).
+- `KeyServicesMinimal` is a partial implementation of `KeyServices`, with default methods.
+- `KeyServicesSingleKey` wraps a single cryptography key, useful for deterministic encryption scenarios.
+- `LoopbackAgent` implements `KeyServices`, with a `KeyVaultBase` as a backing persistent store of key data.
+- `TestKeyServices` wraps access to a single fixed key, with no network access.  Useful in unit test scenarios.
+
+#### Additional Documentation Included with Release Distributable
+The SDK release distributable now includes the following documents, in markdown and html formats:
+- `README`, describing high-level SDK project functionality
+- `LICENSE`, providing the Machina license agreement for Ionic resources
+- `CHANGELOG`, with line items providing summary information about the issues included in each release
+- `RELEASE_NOTES`, detailing the features and fixes included in the release 
+
+#### Documentation Improvements
+- Additional detail describes the data model associated with the APIs `Agent.loadProfiles()` 
+and `Agent.saveProfiles()`.
+
+### Corrected Issues
+- `GetKey` transaction responses now include any `KeyObligations` specified by the Machina service.
+- Extraneous information about the data associated with a serialized `ProfilePersistor` is now logged at an 
+appropriate log level.
+- `DeviceProfilePersistorPassword` now documents the minimum password length requirement.
+
 ### 2.8.0
 
 #### Abstract Class KeyServicesMinimal

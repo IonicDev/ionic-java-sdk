@@ -5,6 +5,13 @@ import com.ionic.sdk.agent.data.MetadataHolder;
 import com.ionic.sdk.agent.data.MetadataMap;
 import com.ionic.sdk.agent.hfp.Fingerprint;
 import com.ionic.sdk.agent.key.KeyAttributesMap;
+import com.ionic.sdk.agent.request.createassertion.CreateIdentityAssertionRequest;
+import com.ionic.sdk.agent.request.createassertion.CreateIdentityAssertionResponse;
+import com.ionic.sdk.agent.request.createassertion.CreateIdentityAssertionTransaction;
+import com.ionic.sdk.agent.request.createassertion.IdentityAssertionValidator;
+import com.ionic.sdk.agent.request.createassertion.data.AssertionUtils;
+import com.ionic.sdk.agent.request.createassertion.data.IdentityAssertion;
+import com.ionic.sdk.agent.request.createassertion.data.PubkeyResolver;
 import com.ionic.sdk.agent.request.createdevice.CreateDeviceRequest;
 import com.ionic.sdk.agent.request.createdevice.CreateDeviceResponse;
 import com.ionic.sdk.agent.request.createdevice.CreateDeviceTransaction;
@@ -30,6 +37,8 @@ import com.ionic.sdk.agent.service.IDC;
 import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.core.date.DateTime;
 import com.ionic.sdk.core.value.Value;
+import com.ionic.sdk.device.DeviceUtils;
+import com.ionic.sdk.device.create.saml.DeviceEnrollment;
 import com.ionic.sdk.device.profile.DeviceProfile;
 import com.ionic.sdk.device.profile.persistor.DeviceProfiles;
 import com.ionic.sdk.device.profile.persistor.ProfilePersistor;
@@ -76,7 +85,15 @@ import java.util.List;
  * objects may be added to the working set of the Agent through the {@link #addProfile(DeviceProfile)} API.  Updates to
  * the DeviceProfile working set may be saved through the {@link #saveProfiles(ProfilePersistor)} API.
  * <p>
- * Machina Tools SDK for Java does not have the concept of an default ProfilePersistor, so use of
+ * Implementations of {@link ProfilePersistor} are typically backed by a file on a filesystem available to
+ * the {@link Agent} process.  The agent maintains an in-memory cache of {@link DeviceProfile} objects for use during
+ * cryptography operations.  The API {@link #loadProfiles(ProfilePersistor)} causes the agent cache
+ * of DeviceProfile objects to be replaced with those retrieved from the file.  The
+ * API {@link #saveProfiles(ProfilePersistor)} causes the serialized ProfilePersistor file to be replaced
+ * with the records from the agent cache.  No internal reference to a ProfilePersistor is maintained by
+ * the agent.
+ * <p>
+ * Machina Tools SDK for Java does not have the concept of a default ProfilePersistor, so use of
  * the {@link #loadProfiles()} and {@link #saveProfiles()} APIs will cause an {@link IonicException} to be thrown.
  * <p>
  * Sample (simple agent instantiation and usage):
@@ -124,8 +141,8 @@ import java.util.List;
  * </pre>
  * <p>
  * Keyspace Name Service (KNS), based on DNS, allows Machina clients to resolve API endpoint information by
- * providing a valid four-character keyspace ID.  It can be used to update existing {@link DeviceProfile} records (for
- * instance, in the case of a Machina tenant migration).  This may be persisted to the filesystem via a subsequent
+ * providing a valid four-character keyspace ID.  KNS can be used to update existing {@link DeviceProfile} records (for
+ * instance, in the case of a Machina tenant migration).  Updates may be persisted to the filesystem via a subsequent
  * call to {@link Agent#saveProfiles(ProfilePersistor)}.
  * <p>
  * Sample (update in-memory copy of active profile's server string, loaded from filesystem):
@@ -641,6 +658,25 @@ public class Agent extends MetadataHolder implements KeyServices {
     /**
      * Creates a new device record for use with subsequent requests to Ionic.com.
      *
+     * @param assertion        a (pre-generated) SAML assertion (proof of validated authentication to keyspace)
+     * @param keyspace         the four character Machina keyspace that is the target of the enrollment
+     * @param makeDeviceActive assign the newly created device as the active device for the agent
+     * @return the response output data object, containing the created device profile
+     * @throws IonicException if an error occurs
+     */
+    public final CreateDeviceResponse createDevice(
+            final byte[] assertion, final String keyspace, final boolean makeDeviceActive) throws IonicException {
+        final GetKeyspaceResponse getKeyspaceResponse = getKeyspaceInternal(new GetKeyspaceRequest(keyspace));
+        final String enrollmentURL = getKeyspaceResponse.getFirstEnrollmentURL();
+        final DeviceEnrollment deviceEnrollment = new DeviceEnrollment(DeviceUtils.toUrl(enrollmentURL));
+        final CreateDeviceResponse createDeviceResponse = deviceEnrollment.enroll(assertion);
+        addProfileInternal(createDeviceResponse.getDeviceProfile(), makeDeviceActive);
+        return createDeviceResponse;
+    }
+
+    /**
+     * Creates a new device record for use with subsequent requests to Ionic.com.
+     *
      * @param request The request input data object.
      * @return The response output data object, containing the created device profile.
      * @throws IonicException if an error occurs
@@ -1011,6 +1047,43 @@ public class Agent extends MetadataHolder implements KeyServices {
                 new LogMessagesTransaction(new VbeProtocol(this), request, response);
         transaction.run();
         return response;
+    }
+
+    /**
+     * Creates an Identity Assertion using the active {@link DeviceProfile}.  Assertions are used as proof of
+     * membership in an Ionic keyspace.  They can be created by Ionic devices, and validated by any other system.
+     *
+     * @param request the identity assertion request input data object
+     * @return the identity assertion response output data object
+     * @throws IonicException if an error occurs during servicing of the request
+     */
+    public CreateIdentityAssertionResponse createIdentityAssertion(
+            final CreateIdentityAssertionRequest request) throws IonicException {
+        final CreateIdentityAssertionResponse response = new CreateIdentityAssertionResponse();
+        final CreateIdentityAssertionTransaction transaction =
+                new CreateIdentityAssertionTransaction(new VbeProtocol(this), request, response);
+        transaction.run();
+        return response;
+    }
+
+    /**
+     * Verify the validity of an Identity Assertion.  This may be used to verify that the assertion was
+     * generated by a previously enrolled Ionic Machina device.
+     *
+     * @param pubkeyBase64    the public key component of the RSA keypair used to generate the identity assertion;
+     *                        if null, the key is retrieved via a Keyspace Name Service (KNS) lookup
+     * @param assertionBase64 the container for the supplied Identity Assertion data
+     * @param nonce           the single-use token incorporated into the canonical form / digest of the assertion
+     * @return a container object holding the data from the unwrapped assertionBase64 input
+     * @throws IonicException on failure to validate the specified assertion
+     */
+    public IdentityAssertion validateIdentityAssertion(
+            final String pubkeyBase64, final String assertionBase64, final String nonce) throws IonicException {
+        final IdentityAssertion assertion = new IdentityAssertion(assertionBase64);
+        final String keyspace = AssertionUtils.toKeyspace(assertion.getSigner());
+        final IdentityAssertionValidator validator = new IdentityAssertionValidator(
+                (pubkeyBase64 == null) ? new PubkeyResolver(this).getPublicKeyKeyspace(keyspace) : pubkeyBase64);
+        return validator.validate(assertionBase64, null, null, nonce);
     }
 
     /**

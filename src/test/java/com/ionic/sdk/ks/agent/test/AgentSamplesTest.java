@@ -100,7 +100,8 @@ public class AgentSamplesTest {
     public final void testAgent_KNS_UpdateActiveProfile_FromProfilePersistor() throws IonicException {
         final ProfilePersistor profilePersistor = IonicTestEnvironment.getInstance().getProfilePersistor();
         final Agent agent = new Agent(profilePersistor);
-        Assume.assumeFalse(agent.getActiveProfile().getKeySpace().equals("PDs3"));  // on-premise test tenant
+        Assume.assumeFalse("no KNS record, on premise test tenant",
+                agent.getActiveProfile().getKeySpace().equals("PDs3"));
         final String deviceId = agent.getActiveProfile().getDeviceId();
         final String server = agent.getActiveProfile().getServer();
         agent.updateProfileFromKNS(deviceId, "https://api.ionic.com");
@@ -122,7 +123,8 @@ public class AgentSamplesTest {
         Assert.assertNotNull(file);
         final String json = Transcoder.utf8().encode(Stream.read(file));
         final Agent agent = new Agent(new DeviceProfiles(json));
-        Assume.assumeFalse(agent.getActiveProfile().getKeySpace().equals("PDs3"));  // on-premise test tenant
+        Assume.assumeFalse("no KNS record, on premise test tenant",
+                agent.getActiveProfile().getKeySpace().equals("PDs3"));
         final String deviceId = agent.getActiveProfile().getDeviceId();
         final String server = agent.getActiveProfile().getServer();
         agent.updateProfileFromKNS(deviceId, "https://api.ionic.com");
@@ -145,7 +147,8 @@ public class AgentSamplesTest {
     public final void testAgent_KNS_UpdateActiveProfile_PersistUpdate() throws IonicException {
         final ProfilePersistor profilePersistor = IonicTestEnvironment.getInstance().getProfilePersistor();
         final Agent agent = new Agent(profilePersistor);
-        Assume.assumeFalse(agent.getActiveProfile().getKeySpace().equals("PDs3"));  // on-premise test tenant
+        Assume.assumeFalse("no KNS record, on premise test tenant",
+                agent.getActiveProfile().getKeySpace().equals("PDs3"));
         final String deviceId = agent.getActiveProfile().getDeviceId();
         agent.updateProfileFromKNS(deviceId, "https://api.ionic.com");
         agent.saveProfiles(profilePersistor);

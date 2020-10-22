@@ -1,6 +1,9 @@
 package com.ionic.sdk.agent.request.getkeyspace;
 
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
+import com.ionic.sdk.error.IonicException;
+import com.ionic.sdk.error.SdkData;
+import com.ionic.sdk.error.SdkError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,6 +109,15 @@ public class GetKeyspaceResponse extends AgentResponseBase {
      */
     public final List<String> getEnrollmentURLs() {
         return enrollmentURLs;
+    }
+
+    /**
+     * @return the first URL providing access to the enrollment functionality of the keyspace
+     * @throws IonicException on empty list of enrollmentURLs in response
+     */
+    public final String getFirstEnrollmentURL() throws IonicException {
+        SdkData.checkTrue(!enrollmentURLs.isEmpty(), SdkError.ISAGENT_MISSINGVALUE);
+        return enrollmentURLs.iterator().next();
     }
 
     /**

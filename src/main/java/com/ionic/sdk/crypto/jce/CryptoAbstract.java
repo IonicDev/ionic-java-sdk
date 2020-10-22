@@ -264,9 +264,13 @@ public final class CryptoAbstract {
      */
     public SSLContext getSSLContext(final String protocol) throws IonicException {
         try {
-            return (provider == null)
-                    ? SSLContext.getInstance(protocol)
-                    : SSLContext.getInstance(protocol, provider);
+            if (provider == null) {
+                return SSLContext.getInstance(protocol);
+            } else if (PROVIDER_SUNJCE.equals(provider.getName())) {
+                return SSLContext.getInstance(protocol, PROVIDER_SUNJSSE);
+            } else {
+                return SSLContext.getInstance(protocol, provider);
+            }
         } catch (GeneralSecurityException e) {
             throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
         }

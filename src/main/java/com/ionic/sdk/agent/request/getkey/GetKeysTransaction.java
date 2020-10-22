@@ -7,6 +7,7 @@ import com.ionic.sdk.agent.request.base.AgentRequestBase;
 import com.ionic.sdk.agent.request.base.AgentResponseBase;
 import com.ionic.sdk.agent.request.base.AgentTransactionBase;
 import com.ionic.sdk.agent.service.IDC;
+import com.ionic.sdk.agent.transaction.AgentTransactionUtil;
 import com.ionic.sdk.core.annotation.InternalUseOnly;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.core.value.Value;
@@ -112,6 +113,8 @@ public class GetKeysTransaction extends AgentTransactionBase {
             final String mattrs = JsonSource.getString(jsonProtectionKey, IDC.Payload.MATTRS);
             final String csig = JsonSource.getString(jsonProtectionKey, IDC.Payload.CSIG);
             final String msig = JsonSource.getString(jsonProtectionKey, IDC.Payload.MSIG);
+            final KeyObligationsMap keyObligationsMap = AgentTransactionUtil.toObligations(
+                    JsonSource.getJsonObjectNullable(jsonProtectionKey, IDC.Payload.OBLIGATIONS));
             final String authData = Value.join(IDC.Signature.DELIMITER, cid, id, csig, msig);
             // verify each received response key
             final byte[] clearBytesKey = getProtocol().getKeyBytes(keyHex, authData);
@@ -121,7 +124,7 @@ public class GetKeysTransaction extends AgentTransactionBase {
             final KeyAttributesMap cattrsKey = message.getJsonAttrs(cattrs, id, clearBytesKey);
             final KeyAttributesMap mattrsKey = message.getJsonAttrs(mattrs, id, clearBytesKey);
             response.add(new GetKeysResponse.Key(id, clearBytesKey, getProtocol().getIdentity(), cattrsKey, mattrsKey,
-                    new KeyObligationsMap(), IDC.Metadata.KEYORIGIN_IONIC, csig, msig));
+                    keyObligationsMap, IDC.Metadata.KEYORIGIN_IONIC, csig, msig));
         }
         // populate the errors into the response
         final JsonObject jsonErrors = JsonSource.getJsonObjectNullable(jsonData, IDC.Payload.ERROR_MAP);

@@ -85,7 +85,7 @@ public class PdfFileCipherTest {
         final KeyServices keyServices = IonicTestEnvironment.getInstance().getKeyServices();
         final int countMin = 1024;
         final int countMax = getCountMax();
-        final int step = 4;
+        final int step = 32;
         for (int count = countMin; (count <= countMax); count *= step) {
             logger.info(String.format("TEST WITH PLAINTEXT SIZE %d", count));
             final ByteArrayOutputStream bos = new ByteArrayOutputStream(count);
@@ -142,7 +142,7 @@ public class PdfFileCipherTest {
         final File folder = IonicTestEnvironment.getInstance().getFolderTestOutputsMkdir();
         final int countMin = 1024;
         final int countMax = getCountMax();
-        final int step = 4;
+        final int step = 32;
         for (int count = countMin; (count <= countMax); count *= step) {
             logger.info(String.format("TEST WITH PLAINTEXT SIZE %d", count));
             final ByteArrayOutputStream bos = new ByteArrayOutputStream(count);
@@ -230,8 +230,8 @@ public class PdfFileCipherTest {
      * @return the maximum size of plaintext on which to perform file cipher cryptography operations
      */
     private static int getCountMax() {
-        final int countMaxArm = 1024 * 1024;
-        final int countMaxDefault = countMaxArm * 16;
+        final int countMaxArm = 1024 * 64;
+        final int countMaxDefault = countMaxArm * 256;
         final boolean isArm = System.getProperty(VM.Sys.OS_ARCH).equals("arm");
         return isArm ? countMaxArm : countMaxDefault;
     }

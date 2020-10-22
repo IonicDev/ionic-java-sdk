@@ -55,6 +55,20 @@ public class EncryptAttributes extends MetadataHolder {
     }
 
     /**
+     * Constructor.
+     *
+     * @param encryptAttributes an existing object with data to populate this new object
+     */
+    public EncryptAttributes(final EncryptAttributes encryptAttributes) {
+        this.keyAttributes = encryptAttributes.keyAttributes;
+        this.mutableAttributes = encryptAttributes.mutableAttributes;
+        this.properties = encryptAttributes.properties;
+        super.setMetadata(encryptAttributes.getMetadata());
+        this.key = null;
+        this.serverErrorResponse = null;
+    }
+
+    /**
      * @return the cryptography key used by the cipher's encryption operation
      */
     public final CreateKeysResponse.Key getKeyResponse() {

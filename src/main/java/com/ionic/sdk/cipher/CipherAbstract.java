@@ -1,5 +1,7 @@
 package com.ionic.sdk.cipher;
 
+import com.ionic.sdk.agent.AgentSdk;
+import com.ionic.sdk.agent.data.MetadataHolder;
 import com.ionic.sdk.cipher.aes.AesCipher;
 import com.ionic.sdk.core.codec.Transcoder;
 import com.ionic.sdk.crypto.CryptoUtils;
@@ -8,6 +10,7 @@ import com.ionic.sdk.error.SdkData;
 import com.ionic.sdk.error.SdkError;
 
 import javax.crypto.Cipher;
+import javax.crypto.Mac;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -16,7 +19,7 @@ import java.security.spec.AlgorithmParameterSpec;
 /**
  * Base class for all encryption/decryption ciphers.
  */
-public abstract class CipherAbstract {
+public abstract class CipherAbstract extends MetadataHolder {
 
     /**
      * The native Java cipher instance to wrap.
@@ -58,6 +61,23 @@ public abstract class CipherAbstract {
      */
     protected final void setKeyNative(final Key key) {
         this.keyInstance = key;
+    }
+
+    /**
+     * Compute a MAC (message authentication code) for the input value, using the member key.
+     *
+     * @param message the message for which the MAC should be generated
+     * @return the message authentication code
+     * @throws IonicException on cryptography errors
+     */
+    public byte[] hmacSHA256(final byte[] message) throws IonicException {
+        try {
+            final Mac hmacSHA256 = AgentSdk.getCrypto().getHmacSha256();
+            hmacSHA256.init(keyInstance);
+            return hmacSHA256.doFinal(message);
+        } catch (GeneralSecurityException e) {
+            throw new IonicException(SdkError.ISCRYPTO_ERROR, e);
+        }
     }
 
     /**

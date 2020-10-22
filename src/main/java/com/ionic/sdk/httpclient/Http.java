@@ -5,11 +5,24 @@ import java.net.HttpURLConnection;
 /**
  * Constants associated with the ISHTTP module.
  */
-public class Http {
+public final class Http {
+
+    /**
+     * Constructor.
+     * http://checkstyle.sourceforge.net/config_design.html#FinalClass
+     */
+    private Http() {
+    }
+
     /**
      * Method names associated with the ISHTTP module.
      */
-    public static class Method {
+    public static final class Method {
+
+        /** Checkstyle / FinalClass. */
+        private Method() {
+        }
+
         /**
          * The "GET" HTTP method.
          */
@@ -24,7 +37,12 @@ public class Http {
     /**
      * Status values associated with the ISHTTP module.
      */
-    public static class Status {
+    public static final class Status {
+
+        /** Checkstyle / FinalClass. */
+        private Status() {
+        }
+
         /**
          * The code associated with a successful HTTP call.
          */
@@ -34,7 +52,11 @@ public class Http {
     /**
      * States associated with an HTTP exchange.
      */
-    public static class State {
+    public static final class State {
+
+        /** Checkstyle / FinalClass. */
+        private State() {
+        }
 
         /**
          * The request sent by the client to the server.
@@ -50,7 +72,11 @@ public class Http {
     /**
      * Text names associated with the ISHTTP request/response headers.
      */
-    public static class Header {
+    public static final class Header {
+
+        /** Checkstyle / FinalClass. */
+        private Header() {
+        }
 
         /**
          * The HTTP request and response headers identify the allowed encoding of subsequent messages using this key.
@@ -101,7 +127,11 @@ public class Http {
     /**
      * Text values associated with HTTP headers.
      */
-    public static class Value {
+    public static final class Value {
+
+        /** Checkstyle / FinalClass. */
+        private Value() {
+        }
 
         /**
          * HTTP connection provides mechanism to signal connection lifecycle from either client or service.
@@ -112,7 +142,11 @@ public class Http {
     /**
      * Text names associated with network-related system properties.
      */
-    public static class Network {
+    public static final class Network {
+
+        /** Checkstyle / FinalClass. */
+        private Network() {
+        }
 
         /**
          * Indicates if persistent connections should be supported.

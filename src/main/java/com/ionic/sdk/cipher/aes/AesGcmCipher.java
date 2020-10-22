@@ -2,7 +2,6 @@ package com.ionic.sdk.cipher.aes;
 
 import com.ionic.sdk.agent.AgentSdk;
 import com.ionic.sdk.core.codec.Transcoder;
-import com.ionic.sdk.core.rng.CryptoRng;
 import com.ionic.sdk.core.value.Value;
 import com.ionic.sdk.error.IonicException;
 import com.ionic.sdk.error.SdkData;
@@ -169,7 +168,7 @@ public class AesGcmCipher extends AesCipherAbstract {
         SdkData.checkNotNull(plainText, ERR_LABEL);
         SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, ERR_AAD);
         // cipher configuration
-        final byte[] iv = new CryptoRng().rand(new byte[AesCipher.SIZE_IV]);
+        final byte[] iv = getIV(plainText);
         final GCMParameterSpec parameterSpec = new GCMParameterSpec(AesCipher.SIZE_ATAG * Byte.SIZE, iv);
         // encrypt
         final byte[] cipherText = super.encrypt(plainText, authData, parameterSpec);
@@ -194,11 +193,10 @@ public class AesGcmCipher extends AesCipherAbstract {
         SdkData.checkNotNull(cipherText, ERR_LABEL);
         SdkData.checkTrue(!Value.isEmpty(authData), SdkError.ISCRYPTO_BAD_INPUT, ERR_AAD);
         // cipher configuration
-        final byte[] iv = new CryptoRng().rand(new byte[AesCipher.SIZE_IV]);
+        final byte[] iv = getIV(plainText.duplicate().array());
         final GCMParameterSpec parameterSpec = new GCMParameterSpec(
                 AesCipher.SIZE_ATAG * Byte.SIZE, iv, 0, AesCipher.SIZE_IV);
         // encrypt
-        cipherText.clear();
         cipherText.put(iv);
         return iv.length + super.encrypt(plainText, cipherText, authData, parameterSpec);
     }
